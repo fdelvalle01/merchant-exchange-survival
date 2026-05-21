@@ -6,7 +6,7 @@ const TickerContext = createContext();
 export function TickerProvider({ children }) {
   const [products, setProducts] = useState([]);
   const fetchPrices = async () => {
-    const res = await axios.get("http://localhost:8080/api/products/detailed");
+    const res = await axios.get("/api/products/detailed");
     const newData = res.data;
     if (JSON.stringify(products) !== JSON.stringify(newData)) {
       setProducts(newData);

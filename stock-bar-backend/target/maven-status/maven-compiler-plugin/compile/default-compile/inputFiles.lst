@@ -15,4 +15,5 @@ D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\mod
 D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\controller\SaleController.java
 D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\controller\AdminController.java
 D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\dto\SaleRequest.java
+D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\config\PriceProperties.java
 D:\TradingBarExchange\stock-bar-backend\src\main\java\com\francisco\stockbar\model\Product.java

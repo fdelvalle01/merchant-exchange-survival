@@ -10,6 +10,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
 logging:
   level:
     root: INFO
@@ -18,3 +19,32 @@ logging:
     org.springframework: WARN
     com.zaxxer.hikari: WARN
     org.hibernate.orm.jdbc.bind: WARN
+
+# Ajustes del motor de precios
+price:
+  # Subida gradual por unidad vendida
+  impact-factor:       0.005     # 0.5 % por unidad
+
+  # Techo y suelo simétricos respecto al basePrice
+  max-multiplier:      1.20      # +20 %
+  min-multiplier:      0.80      # –20 %
+
+  # Schedulers
+  update-rate-millis:   30000    # cada 30 s para actualizar precios
+  degrade-rate-millis:  30000    # cada 30 s para degradar precios
+
+  # Degradación por inactividad
+  degrade-threshold-seconds: 60  # 1 min sin venta antes de degradar
+  degrade-per-minute-pct:     0.01   # 1 % de caída por minuto
+  degrade-max-pct:           0.30    # hasta –30 % como máximo
+
+  # Happy Hour: ventanas especiales con parámetros propios
+  happy-hours:
+    - start: "18:00"
+    
+      end:   "20:00"
+      impact-factor:          0.010  # 1 % por unidad durante happy hour
+      max-multiplier:         1.30   # hasta +30 % como máximo
+      degrade-threshold-seconds: 120  # 2 min sin venta antes de degradar
+      degrade-per-minute-pct:    0.005 # 0.5 % de caída por minuto
+      initial-discount-pct:      0.10  # 10 % de descuento inmediato al arrancar

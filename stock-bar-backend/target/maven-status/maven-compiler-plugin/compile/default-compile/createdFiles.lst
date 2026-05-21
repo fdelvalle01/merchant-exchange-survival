@@ -7,6 +7,7 @@ com\francisco\stockbar\controller\AdminController.class
 com\francisco\stockbar\model\Sale$SaleBuilder.class
 com\francisco\stockbar\dto\ProductBoardDTO$ProductBoardDTOBuilder.class
 com\francisco\stockbar\model\PriceHistory$PriceHistoryBuilder.class
+com\francisco\stockbar\config\PriceProperties.class
 com\francisco\stockbar\config\WebConfig$1.class
 com\francisco\stockbar\repository\ProductRepository.class
 com\francisco\stockbar\services\PriceDegraderService.class
@@ -14,6 +15,7 @@ com\francisco\stockbar\controller\SaleController.class
 com\francisco\stockbar\StockBarBackendApplication.class
 com\francisco\stockbar\services\ProductService.class
 com\francisco\stockbar\dto\SaleRequest.class
+com\francisco\stockbar\config\PriceProperties$HappyHourWindow.class
 com\francisco\stockbar\config\WebConfig.class
 com\francisco\stockbar\controller\ProductController.class
 com\francisco\stockbar\model\Product.class

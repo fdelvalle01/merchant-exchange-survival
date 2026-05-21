@@ -1,4 +1,13 @@
+# Frontend
 node_modules/
 dist/
+
+# Backend
+target/
+*.jar
+
+# General
 .vscode/
 .env
+*.log
+*.zip

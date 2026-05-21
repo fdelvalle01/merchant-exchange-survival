@@ -1,0 +1,189 @@
+import axios from "axios";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { API_BASE_URL, money, percentFor, valueClass } from "../marketUtils";
+import type { TradingInstrument } from "../types";
+
+type OrderTicketPanelProps = {
+  instruments: TradingInstrument[];
+  selectedInstrument?: TradingInstrument;
+  onSelectInstrument: (instrument: TradingInstrument) => void;
+  onOrderSubmitted: () => void;
+  isActive: boolean;
+};
+
+function isBackendProductId(id: TradingInstrument["id"]) {
+  return Number.isFinite(Number(id));
+}
+
+export default function OrderTicketPanel({
+  instruments,
+  selectedInstrument,
+  onSelectInstrument,
+  onOrderSubmitted,
+  isActive
+}: OrderTicketPanelProps) {
+  const [quantity, setQuantity] = useState(1);
+  const [status, setStatus] = useState("Ready to buy");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (selectedInstrument) {
+      setStatus(`Selected ${selectedInstrument.name}`);
+    }
+  }, [selectedInstrument]);
+
+  const selectedPercent = useMemo(
+    () => (selectedInstrument ? percentFor(selectedInstrument) : 0),
+    [selectedInstrument]
+  );
+
+  const canSubmitToBackend = selectedInstrument && isBackendProductId(selectedInstrument.id);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedInstrument) {
+      setStatus("Select an instrument first");
+      return;
+    }
+
+    const normalizedQuantity = Math.max(1, Number(quantity) || 1);
+    setIsSubmitting(true);
+
+    try {
+      if (canSubmitToBackend) {
+        await axios.post(`${API_BASE_URL}/api/sales`, {
+          productId: Number(selectedInstrument.id),
+          quantity: normalizedQuantity
+        });
+        setStatus(`Compra enviada: ${normalizedQuantity} x ${selectedInstrument.name}`);
+        onOrderSubmitted();
+      } else {
+        setStatus(`Compra simulada: ${normalizedQuantity} x ${selectedInstrument.name}`);
+      }
+    } catch (error) {
+      console.error("Order ticket submit failed", error);
+      setStatus("No se pudo registrar la compra en backend.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <section
+      className={`overflow-hidden rounded-md border bg-[#100b08]/95 shadow-2xl ${
+        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
+      }`}
+      style={{
+        backgroundImage:
+          "linear-gradient(160deg, rgba(188, 129, 60, 0.10), transparent 42%), repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 16px)"
+      }}
+    >
+      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
+            Order Ticket
+          </h2>
+          <p className="text-[11px] text-stone-500">Compra real contra /api/sales</p>
+        </div>
+        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
+          OT-01
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="grid gap-4 p-4 text-sm">
+        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
+          <label className="mb-2 block text-xs uppercase tracking-[0.14em] text-stone-500">
+            Product
+          </label>
+          <select
+            value={selectedInstrument ? String(selectedInstrument.id) : ""}
+            onChange={(event) => {
+              const next = instruments.find(
+                (instrument) => String(instrument.id) === event.target.value
+              );
+              if (next) onSelectInstrument(next);
+            }}
+            className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-stone-100 outline-none focus:border-amber-600"
+          >
+            {instruments.map((instrument) => (
+              <option key={instrument.id} value={String(instrument.id)}>
+                {instrument.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-md border border-emerald-400 bg-emerald-400/15 px-3 py-2 text-center font-semibold text-emerald-200">
+            BUY
+          </div>
+          <div
+            className="rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-2 text-center font-semibold text-stone-600"
+            title="El backend actual solo permite comprar"
+          >
+            SELL
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-stone-500">
+              Quantity
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={quantity}
+              onChange={(event) => setQuantity(Number(event.target.value))}
+              className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600"
+            />
+          </div>
+        </div>
+
+        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
+          <div className="flex items-center justify-between text-xs text-stone-500">
+            <span>Precio actual backend</span>
+            <span className={valueClass(selectedPercent)}>
+              {selectedPercent > 0 ? "+" : ""}
+              {selectedPercent.toFixed(2)}%
+            </span>
+          </div>
+          <div className="mt-2 flex items-center gap-3">
+            {selectedInstrument?.imageUrl && (
+              <img
+                src={selectedInstrument.imageUrl}
+                alt=""
+                className="h-12 w-12 rounded border border-[#4a3323] object-cover"
+              />
+            )}
+            <div>
+              <div className="font-mono text-xl text-stone-100">
+                {selectedInstrument ? money.format(selectedInstrument.currentPrice) : money.format(0)}
+              </div>
+              <div className="text-xs text-stone-500">
+                Base {selectedInstrument ? money.format(selectedInstrument.basePrice) : money.format(0)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-md border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
+          El precio no se envia en la orden. El motor del backend define el precio actual y sus
+          variaciones.
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !selectedInstrument}
+          className="rounded-md border border-amber-600/70 bg-amber-500/15 px-3 py-3 font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSubmitting ? "Enviando..." : "Comprar"}
+        </button>
+
+        <div className="min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] text-stone-400">
+          {status}
+        </div>
+      </form>
+    </section>
+  );
+}

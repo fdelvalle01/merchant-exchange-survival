@@ -1,5 +1,6 @@
 package com.francisco.stockbar.services;
 
+import com.francisco.stockbar.config.PriceProperties;
 import com.francisco.stockbar.model.PriceHistory;
 import com.francisco.stockbar.model.Product;
 import com.francisco.stockbar.repository.PriceHistoryRepository;
@@ -22,43 +23,55 @@ public class PriceDegraderService {
 
     private final ProductRepository productRepository;
     private final PriceHistoryRepository priceHistoryRepository;
+    private final PriceProperties cfg;  // ← inyectamos las props
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRateString = "${price.degrade-rate-millis}")
     public void degradarPrecios() {
         List<Product> productos = productRepository.findAll();
-        log.info("📉 Entrando a for DeradarPrecio )");
+        log.info("📉 Iniciando degradación de precios");
 
         for (Product producto : productos) {
             LocalDateTime ultimaCompra = producto.getLastPurchasedAt();
             if (ultimaCompra == null) continue;
 
             long segundos = Duration.between(ultimaCompra, LocalDateTime.now()).getSeconds();
-            BigDecimal actual = producto.getCurrentPrice();
-            BigDecimal base = producto.getBasePrice();
+            if (segundos <= cfg.getDegradeThresholdSeconds()) continue;  // espera el umbral
 
-            if (segundos > 60) {
-                long minutos = segundos / 60;
-                double factor = 1.0 - Math.min(0.01 * minutos, 0.3); // hasta 30% máximo
+            BigDecimal actual    = producto.getCurrentPrice();
+            BigDecimal basePrice = producto.getBasePrice();
 
-                BigDecimal nuevo = actual.multiply(BigDecimal.valueOf(factor)).setScale(2, RoundingMode.HALF_UP);
-                BigDecimal minimoPermitido = base.subtract(BigDecimal.valueOf(1000)); // no baja más de $1000
+            // 1) Calcula el factor de degradación (de cfg.getDegradePerMinutePct() por min, hasta cfg.getDegradeMaxPct())
+            long minutos = segundos / 60;
+            BigDecimal pctDown = cfg.getDegradePerMinutePct()
+                                    .multiply(BigDecimal.valueOf(minutos))
+                                    .min(cfg.getDegradeMaxPct());
+            BigDecimal factor  = BigDecimal.ONE.subtract(pctDown);
 
-                if (nuevo.compareTo(minimoPermitido) < 0) {
-                    nuevo = minimoPermitido;
-                }
+            BigDecimal candidato = actual.multiply(factor)
+                                          .setScale(2, RoundingMode.HALF_UP);
 
-                producto.setCurrentPrice(nuevo);
-                productRepository.save(producto);
+            // 2) Suelo simétrico: basePrice * cfg.getMinMultiplier()
+            BigDecimal floor = basePrice.multiply(cfg.getMinMultiplier())
+                                        .setScale(2, RoundingMode.HALF_UP);
 
-                priceHistoryRepository.save(
-                    PriceHistory.builder()
-                        .product(producto)
-                        .price(nuevo)
-                        .build()
-                );
+            // 3) Aplica el suelo
+            BigDecimal nuevo = candidato.max(floor); // .max porque floor es el límite inferior
 
-                log.info("📉 Degradado {} a ${} ({} min sin compra)", producto.getName(), nuevo, minutos);
-            }
+            
+
+            // 4) Guarda el cambio
+            producto.setCurrentPrice(nuevo);
+            productRepository.save(producto);
+
+            priceHistoryRepository.save(
+                PriceHistory.builder()
+                    .product(producto)
+                    .price(nuevo)
+                    .build()
+            );
+
+            log.info("📉 Degradado {} a ${} ({} min sin venta)", 
+                     producto.getName(), nuevo, minutos);
         }
     }
 }

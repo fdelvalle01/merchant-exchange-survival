@@ -23,6 +23,24 @@
     animation: marquee 20s linear infinite;
   }
 
+@keyframes sbx-ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.sbx-ticker-track {
+  animation: sbx-ticker-scroll 28s linear infinite;
+  will-change: transform;
+}
+
+.sbx-ticker-track:hover {
+  animation-play-state: paused;
+}
+
   
   @font-face {
     font-family: 'DotMatrix';

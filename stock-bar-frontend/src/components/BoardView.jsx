@@ -13,7 +13,7 @@ export default function BoardView() {
 
   const fetchBoardData = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/products/board');
+      const res = await axios.get('/api/products/board');
       const data = res.data.map(p => {
         const diff = p.currentPrice - p.basePrice;
         const percentage = p.basePrice > 0
@@ -28,12 +28,12 @@ export default function BoardView() {
   };
 
   const simulateCrash = async () => {
-    await axios.post('http://localhost:8080/api/simulate/crash');
+    await axios.post('/api/simulate/crash');
     fetchBoardData();
   };
 
   const simulateBoom = async () => {
-    await axios.post('http://localhost:8080/api/simulate/boom');
+    await axios.post('/api/simulate/boom');
     fetchBoardData();
   };
 

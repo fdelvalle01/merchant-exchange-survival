@@ -16,14 +16,14 @@ export default function App() {
   }, []);
 
   const fetchProducts = () => {
-    axios.get("http://localhost:8080/api/products")
+    axios.get("/api/products")
       .then(res => setProducts(res.data))
       .catch(err => console.error("Error cargando productos", err));
   };
 
   const comprar = async (productId) => {
     try {
-      await axios.post("http://localhost:8080/api/sales", {
+      await axios.post("/api/sales", {
         productId,
         quantity: 1
       });
@@ -37,7 +37,7 @@ export default function App() {
   const verHistorial = async (productId) => {
     try {
       setSelectedProductId(productId);
-      const res = await axios.get(`http://localhost:8080/api/price-history?productId=${productId}`);
+      const res = await axios.get(`/api/price-history?productId=${productId}`);
       setPriceHistory(res.data);
 
       setProducts(prev =>
@@ -70,12 +70,12 @@ export default function App() {
                 >
                   Comprar 🍻
                 </button>
-                <button
+                {/* <button
                   onClick={() => verHistorial(p.id)}
                   className="bg-gray-200 text-sm px-3 py-2 rounded hover:bg-gray-300"
                 >
                   Ver historial 📈
-                </button>
+                </button> */}
               </div>
 
               {selectedProductId === p.id && priceHistory.length > 0 && (
