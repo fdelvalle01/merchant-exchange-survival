@@ -1,7 +1,7 @@
-import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
-import { API_BASE_URL, normalizeInstrument } from "./marketUtils";
-import type { DesktopAppId, FeedMode, TradingInstrument } from "./types";
+import { useEffect, useState } from "react";
+import { useDesktopWindows } from "./hooks/useDesktopWindows";
+import { useProductsFeed } from "./hooks/useProductsFeed";
+import type { TradingInstrument } from "./types";
 import Sidebar from "./components/Sidebar";
 import StatusBar from "./components/StatusBar";
 import TickerTape from "./components/TickerTape";
@@ -9,49 +9,41 @@ import TopBar from "./components/TopBar";
 import Workspace from "./components/Workspace";
 
 export default function TradingDesktop() {
-  const [activeApp, setActiveApp] = useState<DesktopAppId>("market");
-  const [productFeed, setProductFeed] = useState<TradingInstrument[]>([]);
-  const [feedMode, setFeedMode] = useState<FeedMode>("offline");
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<TradingInstrument["id"]>();
-
-  const fetchProducts = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/products`);
-      if (Array.isArray(response.data)) {
-        setProductFeed(response.data.map(normalizeInstrument));
-        setFeedMode("products-api");
-      }
-    } catch (error) {
-      console.error("Could not load products feed", error);
-      setProductFeed([]);
-      setFeedMode("offline");
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-    const interval = window.setInterval(fetchProducts, 5000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [fetchProducts]);
-
-  const instruments = productFeed;
+  const {
+    windows,
+    focusedWindowId,
+    focusedWindow,
+    openAppIds,
+    openWindow,
+    closeWindow,
+    focusWindow,
+    minimizeWindow,
+    restoreWindow,
+    updateWindowPosition,
+    updateWindowSize
+  } = useDesktopWindows();
+  const {
+    products,
+    isLoading,
+    error,
+    feedMode,
+    refreshProducts
+  } = useProductsFeed();
 
   useEffect(() => {
-    if (instruments.length === 0) return;
+    if (products.length === 0) return;
 
-    const selectedStillExists = instruments.some(
+    const selectedStillExists = products.some(
       (instrument) => String(instrument.id) === String(selectedInstrumentId)
     );
 
     if (!selectedInstrumentId || !selectedStillExists) {
-      setSelectedInstrumentId(instruments[0].id);
+      setSelectedInstrumentId(products[0].id);
     }
-  }, [instruments, selectedInstrumentId]);
+  }, [products, selectedInstrumentId]);
 
-  const selectedInstrument = instruments.find(
+  const selectedInstrument = products.find(
     (instrument) => String(instrument.id) === String(selectedInstrumentId)
   );
   const isLiveData = feedMode === "products-api";
@@ -59,18 +51,39 @@ export default function TradingDesktop() {
   return (
     <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[#060403] text-stone-100">
       <TopBar isLiveData={isLiveData} feedMode={feedMode} />
-      <TickerTape instruments={instruments} />
+      <TickerTape instruments={products} />
       <div className="grid min-h-0 flex-1 grid-cols-[82px_minmax(0,1fr)]">
-        <Sidebar activeApp={activeApp} onOpenApp={setActiveApp} />
+        <Sidebar
+          focusedApp={focusedWindow?.appId ?? null}
+          openAppIds={openAppIds}
+          onOpenApp={openWindow}
+        />
         <Workspace
-          activeApp={activeApp}
-          instruments={instruments}
-          selectedInstrument={selectedInstrument}
-          onSelectInstrument={(instrument) => setSelectedInstrumentId(instrument.id)}
-          onOrderSubmitted={fetchProducts}
+          windows={windows}
+          focusedWindowId={focusedWindowId}
+          products={products}
+          selectedProduct={selectedInstrument}
+          onSelectProduct={(product) => setSelectedInstrumentId(product.id)}
+          onOrderCreated={refreshProducts}
+          isLoadingProducts={isLoading}
+          productsError={error}
+          onRetryProducts={refreshProducts}
+          onOpenApp={openWindow}
+          onCloseWindow={closeWindow}
+          onFocusWindow={focusWindow}
+          onMinimizeWindow={minimizeWindow}
+          onWindowPositionChange={updateWindowPosition}
+          onWindowSizeChange={updateWindowSize}
         />
       </div>
-      <StatusBar isLiveData={isLiveData} feedMode={feedMode} instrumentCount={instruments.length} />
+      <StatusBar
+        isLiveData={isLiveData}
+        feedMode={feedMode}
+        instrumentCount={products.length}
+        windowCount={windows.length}
+        minimizedWindows={windows.filter((window) => window.minimized)}
+        onRestoreWindow={restoreWindow}
+      />
     </div>
   );
 }

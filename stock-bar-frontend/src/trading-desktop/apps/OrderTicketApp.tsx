@@ -1,70 +1,94 @@
-import axios from "axios";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { API_BASE_URL, money, percentFor, valueClass } from "../marketUtils";
-import type { TradingInstrument } from "../types";
+import { money, percentFor, valueClass } from "../marketUtils";
+import { createSale } from "../services/salesApi";
+import type { DesktopAppRenderProps, TradingInstrument } from "../types";
 
-type OrderTicketPanelProps = {
-  instruments: TradingInstrument[];
-  selectedInstrument?: TradingInstrument;
-  onSelectInstrument: (instrument: TradingInstrument) => void;
-  onOrderSubmitted: () => void;
-  isActive: boolean;
+type OrderStatus = {
+  type: "info" | "success" | "error";
+  message: string;
 };
 
-function isBackendProductId(id: TradingInstrument["id"]) {
-  return Number.isFinite(Number(id));
+function toBackendProductId(id: TradingInstrument["id"]) {
+  const productId = Number(id);
+  return Number.isFinite(productId) ? productId : null;
 }
 
-export default function OrderTicketPanel({
-  instruments,
-  selectedInstrument,
-  onSelectInstrument,
-  onOrderSubmitted,
+function statusClass(type: OrderStatus["type"]) {
+  if (type === "success") return "text-emerald-300";
+  if (type === "error") return "text-red-300";
+  return "text-stone-400";
+}
+
+export default function OrderTicketApp({
+  products,
+  selectedProduct,
+  onSelectProduct,
+  onOrderCreated,
   isActive
-}: OrderTicketPanelProps) {
+}: DesktopAppRenderProps) {
   const [quantity, setQuantity] = useState(1);
-  const [status, setStatus] = useState("Ready to buy");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<OrderStatus>({
+    type: "info",
+    message: "Ready to buy"
+  });
+  const [isBuying, setIsBuying] = useState(false);
 
   useEffect(() => {
-    if (selectedInstrument) {
-      setStatus(`Selected ${selectedInstrument.name}`);
+    if (selectedProduct) {
+      setStatus({
+        type: "info",
+        message: `Selected ${selectedProduct.name}`
+      });
     }
-  }, [selectedInstrument]);
+  }, [selectedProduct?.id, selectedProduct?.name]);
 
   const selectedPercent = useMemo(
-    () => (selectedInstrument ? percentFor(selectedInstrument) : 0),
-    [selectedInstrument]
+    () => (selectedProduct ? percentFor(selectedProduct) : 0),
+    [selectedProduct]
   );
-
-  const canSubmitToBackend = selectedInstrument && isBackendProductId(selectedInstrument.id);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedInstrument) {
-      setStatus("Select an instrument first");
+
+    if (!selectedProduct) {
+      setStatus({
+        type: "error",
+        message: "Select an instrument first."
+      });
+      return;
+    }
+
+    const productId = toBackendProductId(selectedProduct.id);
+    if (productId === null) {
+      setStatus({
+        type: "error",
+        message: "Producto sin id valido para backend."
+      });
       return;
     }
 
     const normalizedQuantity = Math.max(1, Number(quantity) || 1);
-    setIsSubmitting(true);
+    setIsBuying(true);
+    setStatus({
+      type: "info",
+      message: "Enviando compra..."
+    });
 
     try {
-      if (canSubmitToBackend) {
-        await axios.post(`${API_BASE_URL}/api/sales`, {
-          productId: Number(selectedInstrument.id),
-          quantity: normalizedQuantity
-        });
-        setStatus(`Compra enviada: ${normalizedQuantity} x ${selectedInstrument.name}`);
-        onOrderSubmitted();
-      } else {
-        setStatus(`Compra simulada: ${normalizedQuantity} x ${selectedInstrument.name}`);
-      }
+      await createSale(productId, normalizedQuantity);
+      setStatus({
+        type: "success",
+        message: `Compra enviada: ${normalizedQuantity} x ${selectedProduct.name}`
+      });
+      await onOrderCreated();
     } catch (error) {
       console.error("Order ticket submit failed", error);
-      setStatus("No se pudo registrar la compra en backend.");
+      setStatus({
+        type: "error",
+        message: "No se pudo registrar la compra en backend."
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsBuying(false);
     }
   }
 
@@ -96,18 +120,20 @@ export default function OrderTicketPanel({
             Product
           </label>
           <select
-            value={selectedInstrument ? String(selectedInstrument.id) : ""}
+            value={selectedProduct ? String(selectedProduct.id) : ""}
+            disabled={products.length === 0}
             onChange={(event) => {
-              const next = instruments.find(
-                (instrument) => String(instrument.id) === event.target.value
+              const next = products.find(
+                (product) => String(product.id) === event.target.value
               );
-              if (next) onSelectInstrument(next);
+              if (next) onSelectProduct(next);
             }}
-            className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-stone-100 outline-none focus:border-amber-600"
+            className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {instruments.map((instrument) => (
-              <option key={instrument.id} value={String(instrument.id)}>
-                {instrument.name}
+            {products.length === 0 && <option value="">No products</option>}
+            {products.map((product) => (
+              <option key={product.id} value={String(product.id)}>
+                {product.name}
               </option>
             ))}
           </select>
@@ -134,8 +160,9 @@ export default function OrderTicketPanel({
               type="number"
               min="1"
               value={quantity}
+              disabled={!selectedProduct || isBuying}
               onChange={(event) => setQuantity(Number(event.target.value))}
-              className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600"
+              className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
         </div>
@@ -149,19 +176,19 @@ export default function OrderTicketPanel({
             </span>
           </div>
           <div className="mt-2 flex items-center gap-3">
-            {selectedInstrument?.imageUrl && (
+            {selectedProduct?.imageUrl && (
               <img
-                src={selectedInstrument.imageUrl}
+                src={selectedProduct.imageUrl}
                 alt=""
                 className="h-12 w-12 rounded border border-[#4a3323] object-cover"
               />
             )}
             <div>
               <div className="font-mono text-xl text-stone-100">
-                {selectedInstrument ? money.format(selectedInstrument.currentPrice) : money.format(0)}
+                {selectedProduct ? money.format(selectedProduct.currentPrice) : money.format(0)}
               </div>
               <div className="text-xs text-stone-500">
-                Base {selectedInstrument ? money.format(selectedInstrument.basePrice) : money.format(0)}
+                Base {selectedProduct ? money.format(selectedProduct.basePrice) : money.format(0)}
               </div>
             </div>
           </div>
@@ -174,14 +201,14 @@ export default function OrderTicketPanel({
 
         <button
           type="submit"
-          disabled={isSubmitting || !selectedInstrument}
+          disabled={isBuying || !selectedProduct}
           className="rounded-md border border-amber-600/70 bg-amber-500/15 px-3 py-3 font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "Enviando..." : "Comprar"}
+          {isBuying ? "Enviando..." : "Comprar"}
         </button>
 
-        <div className="min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] text-stone-400">
-          {status}
+        <div className={`min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] ${statusClass(status.type)}`}>
+          {status.message}
         </div>
       </form>
     </section>

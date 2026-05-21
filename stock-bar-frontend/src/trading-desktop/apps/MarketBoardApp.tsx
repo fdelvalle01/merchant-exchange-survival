@@ -1,19 +1,47 @@
 import { changeFor, money, percentFor, signalFor, valueClass } from "../marketUtils";
-import type { TradingInstrument } from "../types";
+import type { DesktopAppRenderProps } from "../types";
 
-type MarketBoardPanelProps = {
-  instruments: TradingInstrument[];
-  selectedInstrumentId?: TradingInstrument["id"];
-  onSelectInstrument: (instrument: TradingInstrument) => void;
-  isActive: boolean;
-};
+function MarketStateRow({
+  message,
+  actionLabel,
+  onAction
+}: {
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <tr>
+      <td colSpan={6} className="py-8 text-center text-sm text-stone-500">
+        <div className="flex flex-col items-center gap-3">
+          <span>{message}</span>
+          {actionLabel && onAction && (
+            <button
+              type="button"
+              onClick={onAction}
+              className="rounded-md border border-amber-700/50 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+            >
+              {actionLabel}
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
 
-export default function MarketBoardPanel({
-  instruments,
-  selectedInstrumentId,
-  onSelectInstrument,
-  isActive
-}: MarketBoardPanelProps) {
+export default function MarketBoardApp({
+  products,
+  selectedProduct,
+  onSelectProduct,
+  isActive,
+  isLoadingProducts,
+  productsError,
+  onRetryProducts,
+  onOpenApp
+}: DesktopAppRenderProps) {
+  const hasProducts = products.length > 0;
+
   return (
     <section
       className={`min-h-[420px] overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
@@ -29,7 +57,9 @@ export default function MarketBoardPanel({
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
             Market Board
           </h2>
-          <p className="text-[11px] text-stone-500">Ale instruments, live tavern exchange</p>
+          <p className="text-[11px] text-stone-500">
+            {productsError && hasProducts ? "Feed con ultimo dato disponible" : "Ale instruments, live tavern exchange"}
+          </p>
         </div>
         <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
           MB-01
@@ -49,22 +79,27 @@ export default function MarketBoardPanel({
             </tr>
           </thead>
           <tbody>
-            {instruments.length === 0 && (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-sm text-stone-500">
-                  No hay productos cargados desde el backend.
-                </td>
-              </tr>
+            {isLoadingProducts && !hasProducts && <MarketStateRow message="Loading products..." />}
+            {!isLoadingProducts && productsError && !hasProducts && (
+              <MarketStateRow
+                message={productsError}
+                actionLabel="Retry"
+                onAction={onRetryProducts}
+              />
             )}
-            {instruments.map((instrument) => {
-              const change = changeFor(instrument);
-              const percent = percentFor(instrument);
-              const isSelected = String(selectedInstrumentId) === String(instrument.id);
+            {!isLoadingProducts && !productsError && !hasProducts && (
+              <MarketStateRow message="Empty products. No hay instrumentos disponibles." />
+            )}
+
+            {products.map((product) => {
+              const change = changeFor(product);
+              const percent = percentFor(product);
+              const isSelected = String(selectedProduct?.id) === String(product.id);
 
               return (
                 <tr
-                  key={instrument.id}
-                  onClick={() => onSelectInstrument(instrument)}
+                  key={product.id}
+                  onClick={() => onSelectProduct(product)}
                   className={`cursor-pointer border-b border-[#241811] transition ${
                     isSelected
                       ? "bg-amber-500/10 outline outline-1 outline-amber-700/40"
@@ -79,12 +114,12 @@ export default function MarketBoardPanel({
                         }`}
                       />
                       <span className="font-sans text-sm font-medium text-stone-100">
-                        {instrument.name}
+                        {product.name}
                       </span>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-right text-stone-100">
-                    {money.format(instrument.currentPrice)}
+                    {money.format(product.currentPrice)}
                   </td>
                   <td className={`px-3 py-3 text-right ${valueClass(change)}`}>
                     {change > 0 ? "+" : ""}
@@ -95,10 +130,21 @@ export default function MarketBoardPanel({
                     {percent.toFixed(2)}%
                   </td>
                   <td className="px-3 py-3 text-right text-stone-400">
-                    {money.format(instrument.maxPrice ?? instrument.currentPrice)}
+                    {money.format(product.maxPrice ?? product.currentPrice)}
                   </td>
-                  <td className={`pl-3 py-3 text-right ${valueClass(percent)}`}>
-                    {signalFor(instrument)}
+                  <td className="pl-3 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelectProduct(product);
+                        onOpenApp("ticket");
+                      }}
+                      className={`rounded border border-transparent px-2 py-1 text-[11px] transition hover:border-amber-700/50 hover:bg-amber-500/10 ${valueClass(percent)}`}
+                      title="Abrir Order Ticket"
+                    >
+                      {signalFor(product)}
+                    </button>
                   </td>
                 </tr>
               );

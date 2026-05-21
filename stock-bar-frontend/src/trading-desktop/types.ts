@@ -1,6 +1,4 @@
-export type DesktopAppId = "market" | "orders";
-
-export type OrderSide = "BUY" | "SELL";
+export type DesktopAppId = "market" | "ticket";
 
 export type FeedMode = "products-api" | "offline";
 
@@ -26,4 +24,28 @@ export type TradingInstrument = {
   maxPrice?: number;
   percentageDropFromMax?: number;
   history?: PricePoint[];
+};
+
+export type DesktopWindow = {
+  id: string;
+  appId: DesktopAppId;
+  title: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  zIndex: number;
+  minimized: boolean;
+};
+
+export type DesktopAppRenderProps = {
+  products: TradingInstrument[];
+  selectedProduct?: TradingInstrument;
+  onSelectProduct: (product: TradingInstrument) => void;
+  onOrderCreated: () => void | Promise<void>;
+  isActive: boolean;
+  isLoadingProducts: boolean;
+  productsError: string | null;
+  onRetryProducts: () => void;
+  onOpenApp: (appId: DesktopAppId) => void;
 };

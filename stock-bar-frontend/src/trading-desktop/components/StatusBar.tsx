@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import type { FeedMode } from "../types";
+import type { DesktopWindow, FeedMode } from "../types";
 
 type StatusBarProps = {
   isLiveData: boolean;
   feedMode: FeedMode;
   instrumentCount: number;
+  windowCount: number;
+  minimizedWindows: DesktopWindow[];
+  onRestoreWindow: (windowId: string) => void;
 };
 
 function feedLabel(feedMode: FeedMode) {
@@ -12,7 +15,14 @@ function feedLabel(feedMode: FeedMode) {
   return "OFFLINE";
 }
 
-export default function StatusBar({ isLiveData, feedMode, instrumentCount }: StatusBarProps) {
+export default function StatusBar({
+  isLiveData,
+  feedMode,
+  instrumentCount,
+  windowCount,
+  minimizedWindows,
+  onRestoreWindow
+}: StatusBarProps) {
   const [clock, setClock] = useState(() => new Date());
 
   useEffect(() => {
@@ -36,6 +46,22 @@ export default function StatusBar({ isLiveData, feedMode, instrumentCount }: Sta
         <span>{feedLabel(feedMode)}</span>
         <span>ENV LOCAL</span>
         <span>INSTRUMENTS {instrumentCount}</span>
+        <span>WINDOWS {windowCount}</span>
+        {minimizedWindows.length > 0 && (
+          <span className="flex items-center gap-1">
+            MIN
+            {minimizedWindows.map((window) => (
+              <button
+                key={window.id}
+                type="button"
+                onClick={() => onRestoreWindow(window.id)}
+                className="rounded border border-[#4a3323] bg-black/20 px-2 py-0.5 text-[10px] text-amber-300 hover:border-amber-700/60"
+              >
+                {window.title}
+              </button>
+            ))}
+          </span>
+        )}
         <span>{time}</span>
       </div>
       <div>SBX DESKTOP v0.1</div>
