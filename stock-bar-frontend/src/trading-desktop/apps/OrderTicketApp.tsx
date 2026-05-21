@@ -1,11 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { money, percentFor, valueClass } from "../marketUtils";
+import { normalizeApiError } from "../services/apiError";
 import { createSale } from "../services/salesApi";
 import type { DesktopAppRenderProps, TradingInstrument } from "../types";
 
 type OrderStatus = {
   type: "info" | "success" | "error";
   message: string;
+  details?: string;
 };
 
 function toBackendProductId(id: TradingInstrument["id"]) {
@@ -24,6 +26,9 @@ export default function OrderTicketApp({
   selectedProduct,
   onSelectProduct,
   onOrderCreated,
+  addFilledOrder,
+  addRejectedOrder,
+  onOpenApp,
   isActive
 }: DesktopAppRenderProps) {
   const [quantity, setQuantity] = useState(1);
@@ -68,6 +73,14 @@ export default function OrderTicketApp({
     }
 
     const normalizedQuantity = Math.max(1, Number(quantity) || 1);
+    const orderDraft = {
+      productId,
+      productName: selectedProduct.name,
+      side: "BUY" as const,
+      quantity: normalizedQuantity,
+      price: selectedProduct.currentPrice
+    };
+
     setIsBuying(true);
     setStatus({
       type: "info",
@@ -76,17 +89,28 @@ export default function OrderTicketApp({
 
     try {
       await createSale(productId, normalizedQuantity);
+      addFilledOrder(orderDraft);
       setStatus({
         type: "success",
         message: `Compra enviada: ${normalizedQuantity} x ${selectedProduct.name}`
       });
       await onOrderCreated();
+      onOpenApp("orders");
     } catch (error) {
       console.error("Order ticket submit failed", error);
+      const apiError = normalizeApiError(error);
+      addRejectedOrder({
+        ...orderDraft,
+        errorMessage: apiError.message,
+        errorStatus: apiError.status,
+        errorDetails: apiError.details
+      });
       setStatus({
         type: "error",
-        message: "No se pudo registrar la compra en backend."
+        message: apiError.message,
+        details: apiError.details
       });
+      onOpenApp("orders");
     } finally {
       setIsBuying(false);
     }
@@ -144,7 +168,8 @@ export default function OrderTicketApp({
             BUY
           </div>
           <div
-            className="rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-2 text-center font-semibold text-stone-600"
+            aria-disabled="true"
+            className="cursor-not-allowed rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-2 text-center font-semibold text-stone-600 opacity-70"
             title="El backend actual solo permite comprar"
           >
             SELL
@@ -195,8 +220,7 @@ export default function OrderTicketApp({
         </div>
 
         <div className="rounded-md border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
-          El precio no se envia en la orden. El motor del backend define el precio actual y sus
-          variaciones.
+          El precio no se envia al backend. El motor define el precio actual.
         </div>
 
         <button
@@ -204,11 +228,16 @@ export default function OrderTicketApp({
           disabled={isBuying || !selectedProduct}
           className="rounded-md border border-amber-600/70 bg-amber-500/15 px-3 py-3 font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isBuying ? "Enviando..." : "Comprar"}
+          {isBuying ? "Enviando..." : "ENVIAR ORDEN"}
         </button>
 
         <div className={`min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] ${statusClass(status.type)}`}>
-          {status.message}
+          <div>{status.message}</div>
+          {status.details && (
+            <div className="mt-1 truncate text-[10px] text-amber-200/80" title={status.details}>
+              Tech: {status.details}
+            </div>
+          )}
         </div>
       </form>
     </section>

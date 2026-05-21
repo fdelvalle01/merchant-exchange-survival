@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDesktopWindows } from "./hooks/useDesktopWindows";
+import { useLocalOrders } from "./hooks/useLocalOrders";
 import { useProductsFeed } from "./hooks/useProductsFeed";
 import type { TradingInstrument } from "./types";
 import Sidebar from "./components/Sidebar";
@@ -30,6 +31,12 @@ export default function TradingDesktop() {
     feedMode,
     refreshProducts
   } = useProductsFeed();
+  const {
+    orders,
+    addFilledOrder,
+    addRejectedOrder,
+    clearOrders
+  } = useLocalOrders();
 
   useEffect(() => {
     if (products.length === 0) return;
@@ -65,6 +72,10 @@ export default function TradingDesktop() {
           selectedProduct={selectedInstrument}
           onSelectProduct={(product) => setSelectedInstrumentId(product.id)}
           onOrderCreated={refreshProducts}
+          localOrders={orders}
+          addFilledOrder={addFilledOrder}
+          addRejectedOrder={addRejectedOrder}
+          clearOrders={clearOrders}
           isLoadingProducts={isLoading}
           productsError={error}
           onRetryProducts={refreshProducts}
@@ -78,9 +89,11 @@ export default function TradingDesktop() {
       </div>
       <StatusBar
         isLiveData={isLiveData}
+        isLoadingProducts={isLoading}
         feedMode={feedMode}
         instrumentCount={products.length}
         windowCount={windows.length}
+        orderCount={orders.length}
         minimizedWindows={windows.filter((window) => window.minimized)}
         onRestoreWindow={restoreWindow}
       />

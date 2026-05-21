@@ -1,8 +1,12 @@
-export type DesktopAppId = "market" | "ticket";
+export type DesktopAppId = "market" | "ticket" | "detail" | "orders";
 
 export type FeedMode = "products-api" | "offline";
 
 export type Trend = "up" | "down" | "flat";
+
+export type OrderSide = "BUY" | "SELL";
+
+export type LocalOrderStatus = "FILLED" | "REJECTED" | "PENDING";
 
 export type PricePoint = {
   timestamp: string;
@@ -43,9 +47,39 @@ export type DesktopAppRenderProps = {
   selectedProduct?: TradingInstrument;
   onSelectProduct: (product: TradingInstrument) => void;
   onOrderCreated: () => void | Promise<void>;
+  localOrders: LocalOrder[];
+  addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
+  addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
+  clearOrders: () => void;
   isActive: boolean;
   isLoadingProducts: boolean;
   productsError: string | null;
   onRetryProducts: () => void;
   onOpenApp: (appId: DesktopAppId) => void;
+};
+
+export type LocalOrder = {
+  id: string;
+  timestamp: string;
+  productId: number;
+  productName: string;
+  side: OrderSide;
+  quantity: number;
+  price: number;
+  status: LocalOrderStatus;
+  errorMessage?: string;
+  errorStatus?: number;
+  errorDetails?: string;
+  source: "LOCAL";
+};
+
+export type LocalOrderDraft = {
+  productId: number;
+  productName: string;
+  side: OrderSide;
+  quantity: number;
+  price: number;
+  errorMessage?: string;
+  errorStatus?: number;
+  errorDetails?: string;
 };

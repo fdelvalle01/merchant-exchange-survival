@@ -1,7 +1,9 @@
 import type { ComponentType } from "react";
-import { FaChartBar, FaExchangeAlt } from "react-icons/fa";
+import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch } from "react-icons/fa";
 import MarketBoardApp from "./apps/MarketBoardApp";
+import MyOrdersApp from "./apps/MyOrdersApp";
 import OrderTicketApp from "./apps/OrderTicketApp";
+import ProductDetailApp from "./apps/ProductDetailApp";
 import type { DesktopAppId, DesktopAppRenderProps } from "./types";
 
 export type DesktopAppDefinition = {
@@ -41,5 +43,23 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultSize: { width: 390, height: 590 },
     minSize: { width: 330, height: 420 },
     icon: FaExchangeAlt
+  },
+  detail: {
+    id: "detail",
+    title: "Product Detail",
+    component: ProductDetailApp,
+    defaultPosition: { x: 420, y: 70 },
+    defaultSize: { width: 620, height: 620 },
+    minSize: { width: 420, height: 420 },
+    icon: FaSearch
+  },
+  orders: {
+    id: "orders",
+    title: "My Orders",
+    component: MyOrdersApp,
+    defaultPosition: { x: 140, y: 300 },
+    defaultSize: { width: 780, height: 420 },
+    minSize: { width: 560, height: 300 },
+    icon: FaListAlt
   }
 };

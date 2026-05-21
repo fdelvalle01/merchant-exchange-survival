@@ -3,9 +3,11 @@ import type { DesktopWindow, FeedMode } from "../types";
 
 type StatusBarProps = {
   isLiveData: boolean;
+  isLoadingProducts: boolean;
   feedMode: FeedMode;
   instrumentCount: number;
   windowCount: number;
+  orderCount: number;
   minimizedWindows: DesktopWindow[];
   onRestoreWindow: (windowId: string) => void;
 };
@@ -15,11 +17,25 @@ function feedLabel(feedMode: FeedMode) {
   return "OFFLINE";
 }
 
+function connectionLabel(isLoadingProducts: boolean, isLiveData: boolean) {
+  if (isLoadingProducts) return "LOADING";
+  if (isLiveData) return "CONNECTED";
+  return "BACKEND OFFLINE";
+}
+
+function connectionDotClass(isLoadingProducts: boolean, isLiveData: boolean) {
+  if (isLoadingProducts) return "bg-amber-300";
+  if (isLiveData) return "bg-emerald-300";
+  return "bg-red-300";
+}
+
 export default function StatusBar({
   isLiveData,
+  isLoadingProducts,
   feedMode,
   instrumentCount,
   windowCount,
+  orderCount,
   minimizedWindows,
   onRestoreWindow
 }: StatusBarProps) {
@@ -39,14 +55,15 @@ export default function StatusBar({
   return (
     <footer className="flex h-7 shrink-0 items-center justify-between border-t border-[#3b2a1f] bg-[#0b0705] px-3 font-mono text-[11px] text-stone-500">
       <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${isLiveData ? "bg-emerald-300" : "bg-amber-300"}`} />
-        <span>{isLiveData ? "CONNECTED" : "OFFLINE"}</span>
+        <span className={`h-2 w-2 rounded-full ${connectionDotClass(isLoadingProducts, isLiveData)}`} />
+        <span>{connectionLabel(isLoadingProducts, isLiveData)}</span>
       </div>
       <div className="hidden items-center gap-4 sm:flex">
         <span>{feedLabel(feedMode)}</span>
         <span>ENV LOCAL</span>
         <span>INSTRUMENTS {instrumentCount}</span>
         <span>WINDOWS {windowCount}</span>
+        <span>ORDERS: {orderCount}</span>
         {minimizedWindows.length > 0 && (
           <span className="flex items-center gap-1">
             MIN

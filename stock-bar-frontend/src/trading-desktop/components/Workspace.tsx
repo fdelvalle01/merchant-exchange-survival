@@ -1,6 +1,12 @@
 import { desktopApps } from "../desktopApps";
 import DesktopWindowFrame from "./DesktopWindowFrame";
-import type { DesktopAppId, DesktopWindow, TradingInstrument } from "../types";
+import type {
+  DesktopAppId,
+  DesktopWindow,
+  LocalOrder,
+  LocalOrderDraft,
+  TradingInstrument
+} from "../types";
 
 type WorkspaceProps = {
   windows: DesktopWindow[];
@@ -9,6 +15,10 @@ type WorkspaceProps = {
   selectedProduct?: TradingInstrument;
   onSelectProduct: (product: TradingInstrument) => void;
   onOrderCreated: () => void | Promise<void>;
+  localOrders: LocalOrder[];
+  addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
+  addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
+  clearOrders: () => void;
   isLoadingProducts: boolean;
   productsError: string | null;
   onRetryProducts: () => void;
@@ -27,6 +37,10 @@ export default function Workspace({
   selectedProduct,
   onSelectProduct,
   onOrderCreated,
+  localOrders,
+  addFilledOrder,
+  addRejectedOrder,
+  clearOrders,
   isLoadingProducts,
   productsError,
   onRetryProducts,
@@ -95,6 +109,10 @@ export default function Workspace({
               selectedProduct={selectedProduct}
               onSelectProduct={onSelectProduct}
               onOrderCreated={onOrderCreated}
+              localOrders={localOrders}
+              addFilledOrder={addFilledOrder}
+              addRejectedOrder={addRejectedOrder}
+              clearOrders={clearOrders}
               isActive={focusedWindowId === window.id}
               isLoadingProducts={isLoadingProducts}
               productsError={productsError}

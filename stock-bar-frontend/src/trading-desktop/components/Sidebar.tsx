@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { FaChartBar, FaExchangeAlt } from "react-icons/fa";
+import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch } from "react-icons/fa";
 import type { DesktopAppId } from "../types";
 
 type SidebarProps = {
@@ -14,7 +14,9 @@ const apps: Array<{
   icon: ComponentType<{ className?: string }>;
 }> = [
   { id: "market", label: "Market", icon: FaChartBar },
-  { id: "ticket", label: "Ticket", icon: FaExchangeAlt }
+  { id: "ticket", label: "Ticket", icon: FaExchangeAlt },
+  { id: "detail", label: "Detail", icon: FaSearch },
+  { id: "orders", label: "Orders", icon: FaListAlt }
 ];
 
 export default function Sidebar({ focusedApp, openAppIds, onOpenApp }: SidebarProps) {

@@ -1,4 +1,4 @@
-import { changeFor, money, percentFor, signalFor, valueClass } from "../marketUtils";
+import { money, percentFor, signalFor, valueClass } from "../marketUtils";
 import type { DesktopAppRenderProps } from "../types";
 
 function MarketStateRow({
@@ -66,16 +66,16 @@ export default function MarketBoardApp({
         </div>
       </div>
 
-      <div className="overflow-x-auto p-3">
-        <table className="w-full min-w-[720px] border-collapse font-mono text-xs">
+      <div className="overflow-x-auto p-2.5">
+        <table className="w-full min-w-[580px] table-fixed border-collapse font-mono text-xs">
           <thead>
             <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-              <th className="py-2 pr-3 font-medium">Instrument</th>
-              <th className="px-3 py-2 text-right font-medium">Last Price</th>
-              <th className="px-3 py-2 text-right font-medium">Change</th>
-              <th className="px-3 py-2 text-right font-medium">Change %</th>
-              <th className="px-3 py-2 text-right font-medium">Peak</th>
-              <th className="pl-3 py-2 text-right font-medium">Signal</th>
+              <th className="w-[32%] py-2 pr-2 font-medium">Product</th>
+              <th className="w-[16%] px-2 py-2 text-right font-medium">Last</th>
+              <th className="w-[14%] px-2 py-2 text-right font-medium">Change %</th>
+              <th className="w-[16%] px-2 py-2 text-right font-medium">Peak</th>
+              <th className="w-[11%] px-2 py-2 text-right font-medium">Signal</th>
+              <th className="w-[11%] pl-2 py-2 text-right font-medium">Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -92,7 +92,6 @@ export default function MarketBoardApp({
             )}
 
             {products.map((product) => {
-              const change = changeFor(product);
               const percent = percentFor(product);
               const isSelected = String(selectedProduct?.id) === String(product.id);
 
@@ -106,33 +105,29 @@ export default function MarketBoardApp({
                       : "hover:bg-[#20160f]"
                   }`}
                 >
-                  <td className="py-3 pr-3">
+                  <td className="py-2.5 pr-2">
                     <div className="flex items-center gap-2">
                       <span
                         className={`h-2 w-2 rounded-full ${
                           isSelected ? "bg-amber-300" : "bg-stone-600"
                         }`}
                       />
-                      <span className="font-sans text-sm font-medium text-stone-100">
+                      <span className="truncate font-sans text-sm font-medium text-stone-100">
                         {product.name}
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-right text-stone-100">
+                  <td className="px-2 py-2.5 text-right text-stone-100">
                     {money.format(product.currentPrice)}
                   </td>
-                  <td className={`px-3 py-3 text-right ${valueClass(change)}`}>
-                    {change > 0 ? "+" : ""}
-                    {money.format(change)}
-                  </td>
-                  <td className={`px-3 py-3 text-right ${valueClass(percent)}`}>
+                  <td className={`px-2 py-2.5 text-right ${valueClass(percent)}`}>
                     {percent > 0 ? "+" : ""}
                     {percent.toFixed(2)}%
                   </td>
-                  <td className="px-3 py-3 text-right text-stone-400">
+                  <td className="px-2 py-2.5 text-right text-stone-400">
                     {money.format(product.maxPrice ?? product.currentPrice)}
                   </td>
-                  <td className="pl-3 py-3 text-right">
+                  <td className="px-2 py-2.5 text-right">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -144,6 +139,20 @@ export default function MarketBoardApp({
                       title="Abrir Order Ticket"
                     >
                       {signalFor(product)}
+                    </button>
+                  </td>
+                  <td className="pl-2 py-2.5 text-right">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelectProduct(product);
+                        onOpenApp("detail");
+                      }}
+                      className="rounded border border-transparent px-1.5 py-1 text-[11px] text-amber-200 transition hover:border-amber-700/50 hover:bg-amber-500/10"
+                      title="Abrir Product Detail"
+                    >
+                      INFO
                     </button>
                   </td>
                 </tr>
