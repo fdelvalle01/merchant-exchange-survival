@@ -1,4 +1,6 @@
+import { useEffect, useMemo, useState } from "react";
 import { changeFor, money, percentFor, valueClass } from "../marketUtils";
+import { getPriceHistory, type PriceHistoryPoint } from "../services/priceHistoryApi";
 import type { DesktopAppRenderProps, TradingInstrument } from "../types";
 
 function formatDate(value?: string) {
@@ -53,10 +55,81 @@ function ProductImage({ product }: { product: TradingInstrument }) {
   );
 }
 
+function formatHistoryTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("es-CL", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function HistoryBars({ history }: { history: PriceHistoryPoint[] }) {
+  const range = useMemo(() => {
+    const prices = history.map((point) => point.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return { min, spread: Math.max(max - min, 1) };
+  }, [history]);
+
+  return (
+    <div className="flex h-24 items-end gap-1 overflow-hidden">
+      {history.map((point, index) => {
+        const height = 18 + ((point.price - range.min) / range.spread) * 72;
+
+        return (
+          <span
+            key={`${point.timestamp}-${index}`}
+            title={`${formatHistoryTime(point.timestamp)} ${money.format(point.price)}`}
+            className="min-w-[5px] flex-1 rounded-t bg-amber-500/40"
+            style={{ height }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ProductDetailApp({
   selectedProduct,
   onOpenApp
 }: DesktopAppRenderProps) {
+  const [history, setHistory] = useState<PriceHistoryPoint[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedProduct) {
+      setHistory([]);
+      setHistoryError(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+
+    getPriceHistory(selectedProduct.id, 80)
+      .then((points) => {
+        if (!isMounted) return;
+        setHistory(points);
+      })
+      .catch((error) => {
+        console.error("Price history load failed", error);
+        if (!isMounted) return;
+        setHistory([]);
+        setHistoryError("No se pudo cargar price_history.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingHistory(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProduct?.id]);
+
   if (!selectedProduct) {
     return (
       <section
@@ -174,21 +247,33 @@ export default function ProductDetailApp({
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
-                Price chart coming soon
+                Price History
               </div>
               <p className="mt-1 text-xs text-stone-600">
-                El historial detallado se conectara en un requerimiento posterior.
+                Ultimos {history.length} registros desde /api/price-history.
               </p>
             </div>
-            <div className="hidden h-10 items-end gap-1 sm:flex">
-              {[35, 48, 44, 62, 58, 76, 70].map((height, index) => (
-                <span
-                  key={index}
-                  className="w-3 rounded-t bg-amber-500/35"
-                  style={{ height }}
-                />
-              ))}
-            </div>
+          </div>
+
+          <div className="mt-4">
+            {isLoadingHistory && (
+              <div className="grid h-24 place-items-center text-xs text-stone-500">
+                Loading price_history...
+              </div>
+            )}
+            {!isLoadingHistory && historyError && (
+              <div className="grid h-24 place-items-center text-xs text-red-300">
+                {historyError}
+              </div>
+            )}
+            {!isLoadingHistory && !historyError && history.length === 0 && (
+              <div className="grid h-24 place-items-center text-xs text-stone-500">
+                Sin registros de historial para este producto.
+              </div>
+            )}
+            {!isLoadingHistory && !historyError && history.length > 0 && (
+              <HistoryBars history={history} />
+            )}
           </div>
         </div>
       </div>

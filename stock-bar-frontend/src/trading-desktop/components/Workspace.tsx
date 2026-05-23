@@ -3,22 +3,30 @@ import DesktopWindowFrame from "./DesktopWindowFrame";
 import type {
   DesktopAppId,
   DesktopWindow,
+  DesktopUser,
   LocalOrder,
   LocalOrderDraft,
+  MarketEvent,
+  MarketEventDraft,
   TradingInstrument
 } from "../types";
 
 type WorkspaceProps = {
+  currentUser: DesktopUser;
   windows: DesktopWindow[];
   focusedWindowId: string | null;
   products: TradingInstrument[];
   selectedProduct?: TradingInstrument;
   onSelectProduct: (product: TradingInstrument) => void;
   onOrderCreated: () => void | Promise<void>;
+  onProductsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
   clearOrders: () => void;
+  marketEvents: MarketEvent[];
+  addMarketEvent: (eventData: MarketEventDraft) => MarketEvent;
+  clearMarketEvents: () => void;
   isLoadingProducts: boolean;
   productsError: string | null;
   onRetryProducts: () => void;
@@ -31,16 +39,21 @@ type WorkspaceProps = {
 };
 
 export default function Workspace({
+  currentUser,
   windows,
   focusedWindowId,
   products,
   selectedProduct,
   onSelectProduct,
   onOrderCreated,
+  onProductsChanged,
   localOrders,
   addFilledOrder,
   addRejectedOrder,
   clearOrders,
+  marketEvents,
+  addMarketEvent,
+  clearMarketEvents,
   isLoadingProducts,
   productsError,
   onRetryProducts,
@@ -105,14 +118,19 @@ export default function Workspace({
             onSizeChange={onWindowSizeChange}
           >
             <AppComponent
+              currentUser={currentUser}
               products={products}
               selectedProduct={selectedProduct}
               onSelectProduct={onSelectProduct}
               onOrderCreated={onOrderCreated}
+              onProductsChanged={onProductsChanged}
               localOrders={localOrders}
               addFilledOrder={addFilledOrder}
               addRejectedOrder={addRejectedOrder}
               clearOrders={clearOrders}
+              marketEvents={marketEvents}
+              addMarketEvent={addMarketEvent}
+              clearMarketEvents={clearMarketEvents}
               isActive={focusedWindowId === window.id}
               isLoadingProducts={isLoadingProducts}
               productsError={productsError}

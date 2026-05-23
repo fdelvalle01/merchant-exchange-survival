@@ -1,15 +1,18 @@
 package com.francisco.stockbar.controller;
 
-import com.francisco.stockbar.model.PriceHistory;
-import com.francisco.stockbar.model.Product;
+import com.francisco.stockbar.dto.PriceAdjustmentRequest;
+import com.francisco.stockbar.repository.MarketEventRepository;
 import com.francisco.stockbar.repository.PriceHistoryRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import com.francisco.stockbar.repository.PriceHistoryRepository;
-import com.francisco.stockbar.repository.SaleRepository;
 import com.francisco.stockbar.repository.ProductRepository;
-import java.util.List;
+import com.francisco.stockbar.repository.SaleRepository;
+import com.francisco.stockbar.services.AdminMarketService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -19,26 +22,56 @@ public class AdminController {
     private final PriceHistoryRepository priceHistoryRepo;
     private final SaleRepository saleRepo;
     private final ProductRepository productRepository;
+    private final MarketEventRepository marketEventRepository;
+    private final AdminMarketService adminMarketService;
 
     @DeleteMapping("/reset")
     public String resetDB() {
         priceHistoryRepo.deleteAll();
         saleRepo.deleteAll();
+        marketEventRepository.deleteAll();
         productRepository.deleteAll();
-        return "🔥 Base de datos limpiada";
+        return "Base de datos limpiada";
     }
 
-     @PostMapping("/reset-prices")
+    @PostMapping("/reset-prices")
     public String resetPrices() {
-        List<Product> products = productRepository.findAll();
+        return adminMarketService.resetMarket();
+    }
 
-        for (Product p : products) {
-            p.setCurrentPrice(p.getBasePrice());
-            p.setMaxPrice(p.getBasePrice());
-            p.setLastPurchasedAt(null); // opcional
-        }
+    @PostMapping("/market/crash")
+    public String crashMarket() {
+        return adminMarketService.crashMarket();
+    }
 
-        productRepository.saveAll(products);
-        return "✅ Precios reiniciados correctamente a basePrice.";
+    @PostMapping("/market/boom")
+    public String boomMarket() {
+        return adminMarketService.boomMarket();
+    }
+
+    @PostMapping("/market/reset")
+    public String resetMarket() {
+        return adminMarketService.resetMarket();
+    }
+
+    @PostMapping("/products/{id}/price/up")
+    public String increaseProductPrice(
+            @PathVariable Long id,
+            @RequestBody PriceAdjustmentRequest request
+    ) {
+        return adminMarketService.increaseProductPrice(id, request);
+    }
+
+    @PostMapping("/products/{id}/price/down")
+    public String decreaseProductPrice(
+            @PathVariable Long id,
+            @RequestBody PriceAdjustmentRequest request
+    ) {
+        return adminMarketService.decreaseProductPrice(id, request);
+    }
+
+    @PostMapping("/products/{id}/reset")
+    public String resetProductPrice(@PathVariable Long id) {
+        return adminMarketService.resetProductPrice(id);
     }
 }

@@ -1,10 +1,11 @@
 import type { ComponentType } from "react";
-import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch } from "react-icons/fa";
+import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch, FaUserShield } from "react-icons/fa";
+import AdminMarketControlsApp from "./apps/AdminMarketControlsApp";
 import MarketBoardApp from "./apps/MarketBoardApp";
 import MyOrdersApp from "./apps/MyOrdersApp";
 import OrderTicketApp from "./apps/OrderTicketApp";
 import ProductDetailApp from "./apps/ProductDetailApp";
-import type { DesktopAppId, DesktopAppRenderProps } from "./types";
+import type { DesktopAppId, DesktopAppRenderProps, UserRole } from "./types";
 
 export type DesktopAppDefinition = {
   id: DesktopAppId;
@@ -23,6 +24,7 @@ export type DesktopAppDefinition = {
     height: number;
   };
   icon: ComponentType<{ className?: string }>;
+  requiredRole?: UserRole;
 };
 
 export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
@@ -61,5 +63,15 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultSize: { width: 780, height: 420 },
     minSize: { width: 560, height: 300 },
     icon: FaListAlt
+  },
+  admin: {
+    id: "admin",
+    title: "Admin Market Controls",
+    component: AdminMarketControlsApp,
+    defaultPosition: { x: 170, y: 80 },
+    defaultSize: { width: 980, height: 680 },
+    minSize: { width: 760, height: 520 },
+    icon: FaUserShield,
+    requiredRole: "ADMIN"
   }
 };

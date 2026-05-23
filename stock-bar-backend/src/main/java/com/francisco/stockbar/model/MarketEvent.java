@@ -3,7 +3,6 @@ package com.francisco.stockbar.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,24 +11,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Sale {
+public class MarketEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private Product product;
+    private String type;
 
-    private int quantity;
+    @Column(length = 600)
+    private String description;
 
-    @Column(precision = 10, scale = 2)
-    private BigDecimal executedPrice;
-
-    @Column(precision = 12, scale = 2)
-    private BigDecimal totalAmount;
+    private String executedBy;
 
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    
 }

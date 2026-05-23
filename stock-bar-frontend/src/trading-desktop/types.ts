@@ -1,12 +1,32 @@
-export type DesktopAppId = "market" | "ticket" | "detail" | "orders";
+export type DesktopAppId = "market" | "ticket" | "detail" | "orders" | "admin";
 
 export type FeedMode = "products-api" | "offline";
 
 export type Trend = "up" | "down" | "flat";
 
+export type UserRole = "ADMIN" | "TRADER";
+
+export type DesktopUser = {
+  name: string;
+  role: UserRole;
+};
+
 export type OrderSide = "BUY" | "SELL";
 
 export type LocalOrderStatus = "FILLED" | "REJECTED" | "PENDING";
+
+export type MarketEventStatus = "SUCCESS" | "FAILED" | "LOCAL";
+
+export type MarketEventType =
+  | "SALE_REGISTERED"
+  | "PRICE_UPDATED"
+  | "MARKET_CRASH"
+  | "MARKET_BOOM"
+  | "MARKET_RESET"
+  | "PRODUCT_PRICE_UP"
+  | "PRODUCT_PRICE_DOWN"
+  | "VOLUME_CHANGE"
+  | "PRODUCT_PRICE_RESET";
 
 export type PricePoint = {
   timestamp: string;
@@ -43,14 +63,19 @@ export type DesktopWindow = {
 };
 
 export type DesktopAppRenderProps = {
+  currentUser: DesktopUser;
   products: TradingInstrument[];
   selectedProduct?: TradingInstrument;
   onSelectProduct: (product: TradingInstrument) => void;
   onOrderCreated: () => void | Promise<void>;
+  onProductsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
   clearOrders: () => void;
+  marketEvents: MarketEvent[];
+  addMarketEvent: (eventData: MarketEventDraft) => MarketEvent;
+  clearMarketEvents: () => void;
   isActive: boolean;
   isLoadingProducts: boolean;
   productsError: string | null;
@@ -82,4 +107,23 @@ export type LocalOrderDraft = {
   errorMessage?: string;
   errorStatus?: number;
   errorDetails?: string;
+};
+
+export type MarketEvent = {
+  id: string;
+  timestamp: string;
+  type: MarketEventType;
+  description: string;
+  user: string;
+  status: MarketEventStatus;
+  details?: string;
+  source?: "LOCAL" | "BACKEND";
+};
+
+export type MarketEventDraft = {
+  type: MarketEventType;
+  description: string;
+  user: string;
+  status: MarketEventStatus;
+  details?: string;
 };

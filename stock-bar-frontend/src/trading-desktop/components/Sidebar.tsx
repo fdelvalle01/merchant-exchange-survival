@@ -1,10 +1,12 @@
 import type { ComponentType } from "react";
-import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch } from "react-icons/fa";
-import type { DesktopAppId } from "../types";
+import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch, FaUserShield } from "react-icons/fa";
+import { desktopApps } from "../desktopApps";
+import type { DesktopAppId, UserRole } from "../types";
 
 type SidebarProps = {
   focusedApp: DesktopAppId | null;
   openAppIds: DesktopAppId[];
+  userRole: UserRole;
   onOpenApp: (appId: DesktopAppId) => void;
 };
 
@@ -16,14 +18,20 @@ const apps: Array<{
   { id: "market", label: "Market", icon: FaChartBar },
   { id: "ticket", label: "Ticket", icon: FaExchangeAlt },
   { id: "detail", label: "Detail", icon: FaSearch },
-  { id: "orders", label: "Orders", icon: FaListAlt }
+  { id: "orders", label: "Orders", icon: FaListAlt },
+  { id: "admin", label: "Admin", icon: FaUserShield }
 ];
 
-export default function Sidebar({ focusedApp, openAppIds, onOpenApp }: SidebarProps) {
+export default function Sidebar({ focusedApp, openAppIds, userRole, onOpenApp }: SidebarProps) {
   return (
     <aside className="flex min-h-0 w-[82px] shrink-0 flex-col border-r border-[#3b2a1f] bg-[#0d0906] px-2 py-3">
       <div className="flex flex-1 flex-col gap-2">
-        {apps.map((app) => {
+        {apps
+          .filter((app) => {
+            const requiredRole = desktopApps[app.id].requiredRole;
+            return !requiredRole || requiredRole === userRole;
+          })
+          .map((app) => {
           const Icon = app.icon;
           const isOpen = openAppIds.includes(app.id);
           const isFocused = focusedApp === app.id;

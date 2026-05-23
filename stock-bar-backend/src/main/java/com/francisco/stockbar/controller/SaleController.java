@@ -1,12 +1,16 @@
 package com.francisco.stockbar.controller;
 
 import com.francisco.stockbar.dto.SaleRequest;
-import com.francisco.stockbar.model.Product;
+import com.francisco.stockbar.dto.SaleResponse;
 import com.francisco.stockbar.model.Sale;
-import com.francisco.stockbar.repository.ProductRepository;
 import com.francisco.stockbar.repository.SaleRepository;
+import com.francisco.stockbar.services.SaleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -16,28 +20,12 @@ import java.util.List;
 public class SaleController {
 
     private final SaleRepository saleRepository;
-    private final ProductRepository productRepository;
+    private final SaleService saleService;
 
     @PostMapping
-    public Sale registerSale(@RequestBody SaleRequest request) {
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        Sale sale = Sale.builder()
-                .product(product)
-                .quantity(request.getQuantity())
-                .build();
-
-        // Guardamos la venta
-        Sale savedSale = saleRepository.save(sale);
-
-        // ✅ Actualizamos el campo lastPurchasedAt
-        product.setLastPurchasedAt(java.time.LocalDateTime.now());
-        productRepository.save(product);
-
-        return savedSale;
+    public SaleResponse registerSale(@RequestBody SaleRequest request) {
+        return saleService.registerSale(request);
     }
-
 
     @GetMapping
     public List<Sale> getAll() {
