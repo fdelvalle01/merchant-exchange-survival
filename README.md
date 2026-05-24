@@ -8,23 +8,17 @@ The concept is simple: beers and drinks are traded like assets in a stock exchan
 
 ## Screenshots
 
-Recommended screenshot folder:
+### Login
 
-```txt
-docs/
-  images/
-    login.png
-    trading-desktop.png
-    admin-market-controls.png
-```
-
-Example:
-
-```md
 ![Login](docs/images/login.png)
+
+### Trading Desktop
+
 ![Trading Desktop](docs/images/trading-desktop.png)
+
+### Admin Market Controls
+
 ![Admin Market Controls](docs/images/admin-market-controls.png)
-```
 
 ## Demo Concept
 
