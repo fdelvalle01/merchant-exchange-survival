@@ -22,6 +22,7 @@ function statusClass(type: OrderStatus["type"]) {
 }
 
 export default function OrderTicketApp({
+  currentUser,
   products,
   selectedProduct,
   onSelectProduct,
@@ -51,9 +52,18 @@ export default function OrderTicketApp({
     () => (selectedProduct ? percentFor(selectedProduct) : 0),
     [selectedProduct]
   );
+  const canSendOrders = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!canSendOrders) {
+      setStatus({
+        type: "error",
+        message: "Access denied. Tu rol no permite enviar ordenes."
+      });
+      return;
+    }
 
     if (!selectedProduct) {
       setStatus({
@@ -176,6 +186,12 @@ export default function OrderTicketApp({
           </div>
         </div>
 
+        {!canSendOrders && (
+          <div className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            Access denied. VIEWER puede mirar el mercado, pero no enviar ordenes.
+          </div>
+        )}
+
         <div className="grid gap-3">
           <div>
             <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-stone-500">
@@ -185,7 +201,7 @@ export default function OrderTicketApp({
               type="number"
               min="1"
               value={quantity}
-              disabled={!selectedProduct || isBuying}
+              disabled={!selectedProduct || isBuying || !canSendOrders}
               onChange={(event) => setQuantity(Number(event.target.value))}
               className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             />
@@ -225,7 +241,7 @@ export default function OrderTicketApp({
 
         <button
           type="submit"
-          disabled={isBuying || !selectedProduct}
+          disabled={isBuying || !selectedProduct || !canSendOrders}
           className="rounded-md border border-amber-600/70 bg-amber-500/15 px-3 py-3 font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isBuying ? "Enviando..." : "ENVIAR ORDEN"}

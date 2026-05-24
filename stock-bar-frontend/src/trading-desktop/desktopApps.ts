@@ -24,7 +24,7 @@ export type DesktopAppDefinition = {
     height: number;
   };
   icon: ComponentType<{ className?: string }>;
-  requiredRole?: UserRole;
+  allowedRoles?: UserRole[];
 };
 
 export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
@@ -35,7 +35,8 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 18, y: 18 },
     defaultSize: { width: 900, height: 560 },
     minSize: { width: 620, height: 320 },
-    icon: FaChartBar
+    icon: FaChartBar,
+    allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   ticket: {
     id: "ticket",
@@ -44,7 +45,8 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 950, y: 28 },
     defaultSize: { width: 390, height: 590 },
     minSize: { width: 330, height: 420 },
-    icon: FaExchangeAlt
+    icon: FaExchangeAlt,
+    allowedRoles: ["TRADER", "ADMIN_BAR"]
   },
   detail: {
     id: "detail",
@@ -53,7 +55,8 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 420, y: 70 },
     defaultSize: { width: 620, height: 620 },
     minSize: { width: 420, height: 420 },
-    icon: FaSearch
+    icon: FaSearch,
+    allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   orders: {
     id: "orders",
@@ -62,7 +65,8 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 140, y: 300 },
     defaultSize: { width: 780, height: 420 },
     minSize: { width: 560, height: 300 },
-    icon: FaListAlt
+    icon: FaListAlt,
+    allowedRoles: ["TRADER", "ADMIN_BAR"]
   },
   admin: {
     id: "admin",
@@ -72,6 +76,12 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultSize: { width: 980, height: 680 },
     minSize: { width: 760, height: 520 },
     icon: FaUserShield,
-    requiredRole: "ADMIN"
+    allowedRoles: ["ADMIN_BAR"]
   }
 };
+
+export function canOpenDesktopApp(appId: DesktopAppId, roles: UserRole[]) {
+  const allowedRoles = desktopApps[appId].allowedRoles;
+  if (!allowedRoles || allowedRoles.length === 0) return true;
+  return roles.some((role) => allowedRoles.includes(role));
+}

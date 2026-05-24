@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { desktopApps } from "./desktopApps";
+import { useAuth } from "../auth/AuthContext";
+import { canOpenDesktopApp } from "./desktopApps";
 import { useDesktopWindows } from "./hooks/useDesktopWindows";
 import { useLocalOrders } from "./hooks/useLocalOrders";
 import { useMarketEvents } from "./hooks/useMarketEvents";
@@ -11,12 +12,19 @@ import TickerTape from "./components/TickerTape";
 import TopBar from "./components/TopBar";
 import Workspace from "./components/Workspace";
 
-const currentUser: DesktopUser = {
-  name: "Francisco",
-  role: "ADMIN"
-};
-
 export default function TradingDesktop() {
+  const { user, hasAnyRole, logout } = useAuth();
+  const currentUser: DesktopUser = user ?? {
+    name: "Unknown",
+    username: "unknown",
+    role: "UNASSIGNED",
+    roles: []
+  };
+  const initialApps: DesktopAppId[] = hasAnyRole(["TRADER", "ADMIN_BAR"])
+    ? ["market", "ticket"]
+    : hasAnyRole(["VIEWER"])
+    ? ["market", "detail"]
+    : [];
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<TradingInstrument["id"]>();
   const {
     windows,
@@ -30,7 +38,7 @@ export default function TradingDesktop() {
     restoreWindow,
     updateWindowPosition,
     updateWindowSize
-  } = useDesktopWindows();
+  } = useDesktopWindows(initialApps);
   const {
     products,
     isLoading,
@@ -49,6 +57,7 @@ export default function TradingDesktop() {
     addMarketEvent,
     clearMarketEvents
   } = useMarketEvents();
+  const userRolesKey = currentUser.roles.join("|");
 
   useEffect(() => {
     if (products.length === 0) return;
@@ -62,25 +71,37 @@ export default function TradingDesktop() {
     }
   }, [products, selectedInstrumentId]);
 
+  useEffect(() => {
+    windows.forEach((window) => {
+      if (!canOpenDesktopApp(window.appId, currentUser.roles)) {
+        closeWindow(window.id);
+      }
+    });
+  }, [closeWindow, userRolesKey, windows]);
+
   const selectedInstrument = products.find(
     (instrument) => String(instrument.id) === String(selectedInstrumentId)
   );
   const isLiveData = feedMode === "products-api";
   const openAllowedWindow = (appId: DesktopAppId) => {
-    const requiredRole = desktopApps[appId].requiredRole;
-    if (requiredRole && requiredRole !== currentUser.role) return;
+    if (!canOpenDesktopApp(appId, currentUser.roles)) return;
     openWindow(appId);
   };
 
   return (
     <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[#060403] text-stone-100">
-      <TopBar isLiveData={isLiveData} feedMode={feedMode} />
+      <TopBar
+        isLiveData={isLiveData}
+        feedMode={feedMode}
+        currentUser={currentUser}
+        onLogout={logout}
+      />
       <TickerTape instruments={products} />
       <div className="grid min-h-0 flex-1 grid-cols-[82px_minmax(0,1fr)]">
         <Sidebar
           focusedApp={focusedWindow?.appId ?? null}
           openAppIds={openAppIds}
-          userRole={currentUser.role}
+          userRoles={currentUser.roles}
           onOpenApp={openAllowedWindow}
         />
         <Workspace

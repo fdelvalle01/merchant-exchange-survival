@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaBeer, FaChartLine, FaUserShield } from "react-icons/fa";
-import type { FeedMode } from "../types";
+import { FaBeer, FaChartLine, FaSignOutAlt, FaUserShield } from "react-icons/fa";
+import type { DesktopUser, FeedMode } from "../types";
 
 type TopBarProps = {
   isLiveData: boolean;
   feedMode: FeedMode;
+  currentUser: DesktopUser;
+  onLogout: () => void;
 };
 
 function feedLabel(feedMode: FeedMode) {
@@ -13,7 +15,11 @@ function feedLabel(feedMode: FeedMode) {
   return "Offline";
 }
 
-export default function TopBar({ isLiveData, feedMode }: TopBarProps) {
+function roleLabel(user: DesktopUser) {
+  return user.role === "UNASSIGNED" ? "SIN ROL" : user.role;
+}
+
+export default function TopBar({ isLiveData, feedMode, currentUser, onLogout }: TopBarProps) {
   const [clock, setClock] = useState(() => new Date());
 
   useEffect(() => {
@@ -64,7 +70,8 @@ export default function TopBar({ isLiveData, feedMode }: TopBarProps) {
       <div className="flex items-center gap-3">
         <div className="hidden items-center gap-2 rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-1.5 text-xs text-stone-400 sm:flex">
           <FaUserShield className="text-amber-500" aria-hidden="true" />
-          <span>Session: Tavern Desk</span>
+          <span className="max-w-[180px] truncate">{currentUser.username}</span>
+          <span className="text-amber-300">{roleLabel(currentUser)}</span>
         </div>
         <div className="hidden items-center gap-2 rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-1.5 text-xs text-stone-400 sm:flex">
           <FaChartLine className={isLiveData ? "text-emerald-300" : "text-amber-300"} aria-hidden="true" />
@@ -73,6 +80,14 @@ export default function TopBar({ isLiveData, feedMode }: TopBarProps) {
         <div className="rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-1.5 font-mono text-xs text-stone-300">
           {time}
         </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="grid h-8 w-8 place-items-center rounded-md border border-[#3b2a1f] bg-black/25 text-stone-500 transition hover:border-amber-700/50 hover:text-stone-100"
+          title="Logout"
+        >
+          <FaSignOutAlt aria-hidden="true" />
+        </button>
       </div>
     </header>
   );

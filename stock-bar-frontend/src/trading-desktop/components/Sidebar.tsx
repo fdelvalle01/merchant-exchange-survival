@@ -1,12 +1,12 @@
 import type { ComponentType } from "react";
 import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch, FaUserShield } from "react-icons/fa";
-import { desktopApps } from "../desktopApps";
+import { canOpenDesktopApp } from "../desktopApps";
 import type { DesktopAppId, UserRole } from "../types";
 
 type SidebarProps = {
   focusedApp: DesktopAppId | null;
   openAppIds: DesktopAppId[];
-  userRole: UserRole;
+  userRoles: UserRole[];
   onOpenApp: (appId: DesktopAppId) => void;
 };
 
@@ -22,15 +22,12 @@ const apps: Array<{
   { id: "admin", label: "Admin", icon: FaUserShield }
 ];
 
-export default function Sidebar({ focusedApp, openAppIds, userRole, onOpenApp }: SidebarProps) {
+export default function Sidebar({ focusedApp, openAppIds, userRoles, onOpenApp }: SidebarProps) {
   return (
     <aside className="flex min-h-0 w-[82px] shrink-0 flex-col border-r border-[#3b2a1f] bg-[#0d0906] px-2 py-3">
       <div className="flex flex-1 flex-col gap-2">
         {apps
-          .filter((app) => {
-            const requiredRole = desktopApps[app.id].requiredRole;
-            return !requiredRole || requiredRole === userRole;
-          })
+          .filter((app) => canOpenDesktopApp(app.id, userRoles))
           .map((app) => {
           const Icon = app.icon;
           const isOpen = openAppIds.includes(app.id);

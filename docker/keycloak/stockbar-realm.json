@@ -1,0 +1,106 @@
+{
+  "realm": "stockbar",
+  "enabled": true,
+  "displayName": "Stock Bar Exchange",
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN_BAR",
+        "description": "Full Stock Bar administrator"
+      },
+      {
+        "name": "TRADER",
+        "description": "Can view market data and place buy orders"
+      },
+      {
+        "name": "VIEWER",
+        "description": "Read-only market user"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "stockbar-frontend",
+      "name": "Stock Bar Frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://127.0.0.1:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "stockbar-api",
+      "name": "Stock Bar API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN_BAR"
+      ]
+    },
+    {
+      "username": "trader",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "trader",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "TRADER"
+      ]
+    },
+    {
+      "username": "viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "viewer",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "VIEWER"
+      ]
+    }
+  ]
+}

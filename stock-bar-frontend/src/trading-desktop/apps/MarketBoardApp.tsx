@@ -31,6 +31,7 @@ function MarketStateRow({
 }
 
 export default function MarketBoardApp({
+  currentUser,
   products,
   selectedProduct,
   onSelectProduct,
@@ -41,6 +42,7 @@ export default function MarketBoardApp({
   onOpenApp
 }: DesktopAppRenderProps) {
   const hasProducts = products.length > 0;
+  const canOpenTicket = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
 
   return (
     <section
@@ -133,10 +135,12 @@ export default function MarketBoardApp({
                       onClick={(event) => {
                         event.stopPropagation();
                         onSelectProduct(product);
-                        onOpenApp("ticket");
+                        if (canOpenTicket) {
+                          onOpenApp("ticket");
+                        }
                       }}
                       className={`rounded border border-transparent px-2 py-1 text-[11px] transition hover:border-amber-700/50 hover:bg-amber-500/10 ${valueClass(percent)}`}
-                      title="Abrir Order Ticket"
+                      title={canOpenTicket ? "Abrir Order Ticket" : "Ticket restringido por rol"}
                     >
                       {signalFor(product)}
                     </button>

@@ -171,7 +171,7 @@ export default function AdminMarketControlsApp({
     }
   }
 
-  if (currentUser.role !== "ADMIN") {
+  if (!currentUser.roles.includes("ADMIN_BAR")) {
     return (
       <section className="grid min-h-full place-items-center rounded-md border border-[#3b2a1f] bg-[#120d09]/95 p-5 text-center shadow-2xl">
         <div>
@@ -179,7 +179,7 @@ export default function AdminMarketControlsApp({
             Admin Market Controls
           </h2>
           <p className="mt-3 max-w-sm text-sm text-red-300">
-            Acceso restringido. Esta ventana solo esta disponible para rol ADMIN.
+            Acceso restringido. Esta ventana solo esta disponible para rol ADMIN_BAR.
           </p>
         </div>
       </section>
@@ -204,7 +204,7 @@ export default function AdminMarketControlsApp({
           <p className="text-[11px] text-stone-500">Panel de control del mercado simulado</p>
         </div>
         <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
-          ADMIN
+          ADMIN_BAR
         </div>
       </div>
 

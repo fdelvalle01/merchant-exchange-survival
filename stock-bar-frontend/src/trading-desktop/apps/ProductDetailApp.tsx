@@ -92,6 +92,7 @@ function HistoryBars({ history }: { history: PriceHistoryPoint[] }) {
 }
 
 export default function ProductDetailApp({
+  currentUser,
   selectedProduct,
   onOpenApp
 }: DesktopAppRenderProps) {
@@ -158,6 +159,7 @@ export default function ProductDetailApp({
   const trendClass = valueClass(changePercent);
   const enabledLabel = selectedProduct.enabled === false ? "Disabled" : "Enabled";
   const enabledClass = selectedProduct.enabled === false ? "text-red-300" : "text-emerald-300";
+  const canOpenTicket = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
 
   return (
     <section
@@ -215,8 +217,10 @@ export default function ProductDetailApp({
 
             <button
               type="button"
+              disabled={!canOpenTicket}
               onClick={() => onOpenApp("ticket")}
-              className="mt-4 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25"
+              className="mt-4 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+              title={canOpenTicket ? "Abrir Order Ticket" : "Ticket restringido por rol"}
             >
               Buy / Open Ticket
             </button>

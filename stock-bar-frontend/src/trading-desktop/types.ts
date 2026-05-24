@@ -4,11 +4,13 @@ export type FeedMode = "products-api" | "offline";
 
 export type Trend = "up" | "down" | "flat";
 
-export type UserRole = "ADMIN" | "TRADER";
+export type UserRole = "ADMIN_BAR" | "TRADER" | "VIEWER";
 
 export type DesktopUser = {
   name: string;
-  role: UserRole;
+  username: string;
+  role: UserRole | "UNASSIGNED";
+  roles: UserRole[];
 };
 
 export type OrderSide = "BUY" | "SELL";

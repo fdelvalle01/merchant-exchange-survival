@@ -31,3 +31,27 @@ cd stock-bar-backend
 cd ../stock-bar-frontend
 npm install
 npm run dev
+
+```
+
+## Docker Compose demo
+
+Levantar toda la demo local desde la raiz del repo:
+
+```bash
+docker compose up -d --build
+```
+
+URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend Swagger: `http://localhost:8080/swagger-ui/index.html`
+- Keycloak Admin: `http://localhost:8081`
+
+Usuarios de prueba:
+
+- `admin / admin` -> `ADMIN_BAR`
+- `trader / trader` -> `TRADER`
+- `viewer / viewer` -> `VIEWER`
+
+Detalle completo: `docs/REQ-008-docker-compose.md`
