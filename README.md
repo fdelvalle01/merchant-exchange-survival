@@ -1,57 +1,89 @@
-# 🍺 Stock Bar
+# 🍺 Stock Bar Exchange
 
-Sistema de simulación de precios dinámicos tipo "Bolsa de Valores" para productos de un bar, como cervezas.
+**Stock Bar Exchange** is a full-stack trading desktop simulation where bar products behave like financial instruments.
 
-## 🔧 Tecnologías
-- Backend: Java + Spring Boot
-- Frontend: React + TailwindCSS + Vite
-- Base de datos: PostgreSQL
-- Gráficos: Recharts
-- APIs REST con actualización en tiempo real cada 30s
+The project combines a real-time market board, order entry, price simulation, market admin controls, price history, role-based access control and a movable desktop-like frontend interface.
 
-## 📈 Lógica del sistema
-- El precio base sube si hay compras recientes (últimos 2 minutos).
-- Si no hay actividad, el precio comienza a degradarse lentamente.
-- Se registra el precio máximo alcanzado (`maxPrice`).
-- Las variaciones se muestran en tiempo real en el dashboard.
+The concept is simple: beers and drinks are traded like assets in a stock exchange.
 
-## 🚀 Simulaciones
-Puedes usar los botones:
-- 💥 `Simular Crash`: degrada todos los precios artificialmente.
-- 🚀 `Simular Boom`: aumenta todos los precios para probar picos.
+---
 
-## 📦 Instalación local
+## 🚀 Demo Concept
 
-```bash
-# Backend
-cd stock-bar-backend
-./mvnw spring-boot:run
+Stock Bar Exchange simulates a tavern marketplace where each product has:
 
-# Frontend
-cd ../stock-bar-frontend
-npm install
-npm run dev
+- Base price
+- Current market price
+- Price variation
+- Historical prices
+- Market events
+- Buy orders
+- Admin-controlled market movements
 
-```
+Users can interact with the system depending on their role:
 
-## Docker Compose demo
+| Role | Permissions |
+|---|---|
+| VIEWER | View market, product detail and ticker |
+| TRADER | View market and send buy orders |
+| ADMIN_BAR | Full access, including market controls |
 
-Levantar toda la demo local desde la raiz del repo:
+---
 
-```bash
-docker compose up -d --build
-```
+## 🧩 Main Features
 
-URLs:
+### Frontend
 
-- Frontend: `http://localhost:5173`
-- Backend Swagger: `http://localhost:8080/swagger-ui/index.html`
-- Keycloak Admin: `http://localhost:8081`
+- Trading desktop web interface
+- Medieval / nordic / fantasy market visual style
+- Movable internal windows
+- Market Board
+- Product Detail
+- Order Ticket
+- My Orders
+- Admin Market Controls
+- Ticker Tape
+- Keycloak login
+- Role-based UI
 
-Usuarios de prueba:
+### Backend
 
-- `admin / admin` -> `ADMIN_BAR`
-- `trader / trader` -> `TRADER`
-- `viewer / viewer` -> `VIEWER`
+- Spring Boot REST API
+- PostgreSQL persistence
+- JWT authentication with Keycloak
+- Role-based endpoint protection
+- Product management
+- Sales registration
+- Executed price snapshot
+- Price history
+- Market events
+- Admin market simulation endpoints
 
-Detalle completo: `docs/REQ-008-docker-compose.md`
+---
+
+## 🖥️ Trading Desktop
+
+The frontend works like a small desktop operating system for trading apps.
+
+Internal apps:
+
+- **Market Board**: displays products and market prices.
+- **Product Detail**: shows selected product data and price history.
+- **Order Ticket**: sends buy orders to the backend.
+- **My Orders**: shows local session orders as FILLED or REJECTED.
+- **Admin Market Controls**: allows an admin user to simulate crash, boom, reset and product price movements.
+
+---
+
+## 🏗️ Architecture
+
+```txt
+React Trading Desktop
+        ↓
+Keycloak Login
+        ↓
+Axios with Bearer Token
+        ↓
+Spring Boot API
+        ↓
+PostgreSQL
