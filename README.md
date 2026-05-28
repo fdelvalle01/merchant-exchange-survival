@@ -14,13 +14,13 @@ The player controls a merchant company in a medieval/fantasy market world. The g
 
 ![Trading Desktop](docs/images/trading-news.png)
 
-### Trading Desktop
+<!-- ### Trading Desktop -->
 
-![Trading Desktop](docs/images/trading-desktop.png)
+<!-- ![Trading Desktop](docs/images/trading-desktop.png) -->
 
-### Admin Market Controls
+<!-- ### Admin Market Controls -->
 
-![Admin Market Controls](docs/images/admin-market-controls.png)
+<!-- ![Admin Market Controls](docs/images/admin-market-controls.png) -->
 
 ## Technical Documentation
 
