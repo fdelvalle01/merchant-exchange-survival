@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { money, percentFor, valueClass } from "../marketUtils";
 import { normalizeApiError } from "../services/apiError";
-import { createSale } from "../services/salesApi";
-import type { DesktopAppRenderProps, TradingInstrument } from "../types";
+import { createOrder } from "../services/ordersApi";
+import type { DesktopAppRenderProps, OrderSide, TradingInstrument } from "../types";
 
 type OrderStatus = {
   type: "info" | "success" | "error";
@@ -27,7 +27,6 @@ export default function OrderTicketApp({
   selectedProduct,
   onSelectProduct,
   onOrderCreated,
-  addFilledOrder,
   addRejectedOrder,
   onOpenApp,
   isActive
@@ -35,9 +34,10 @@ export default function OrderTicketApp({
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<OrderStatus>({
     type: "info",
-    message: "Ready to buy"
+    message: "Ready to invest"
   });
-  const [isBuying, setIsBuying] = useState(false);
+  const [side, setSide] = useState<OrderSide>("BUY");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (selectedProduct) {
@@ -68,7 +68,7 @@ export default function OrderTicketApp({
     if (!selectedProduct) {
       setStatus({
         type: "error",
-        message: "Select an instrument first."
+        message: "Select an asset first."
       });
       return;
     }
@@ -77,7 +77,7 @@ export default function OrderTicketApp({
     if (productId === null) {
       setStatus({
         type: "error",
-        message: "Producto sin id valido para backend."
+        message: "Activo sin id valido para backend."
       });
       return;
     }
@@ -86,43 +86,54 @@ export default function OrderTicketApp({
     const orderDraft = {
       productId,
       productName: selectedProduct.name,
-      side: "BUY" as const,
+      side,
       quantity: normalizedQuantity,
       price: selectedProduct.currentPrice
     };
 
-    setIsBuying(true);
+    setIsSubmitting(true);
     setStatus({
       type: "info",
-      message: "Enviando compra..."
+      message: `Enviando ${side.toLowerCase()}...`
     });
 
     try {
-      await createSale(productId, normalizedQuantity);
-      addFilledOrder(orderDraft);
+      const response = await createOrder(productId, side, normalizedQuantity);
       setStatus({
         type: "success",
-        message: `Compra enviada: ${normalizedQuantity} x ${selectedProduct.name}`
+        message: `${response.side} filled: ${normalizedQuantity} x ${selectedProduct.name}`
       });
       await onOrderCreated();
       onOpenApp("orders");
     } catch (error) {
       console.error("Order ticket submit failed", error);
       const apiError = normalizeApiError(error);
+      const isInsufficientFunds =
+        apiError.status === 409 && apiError.message.toLowerCase().includes("insufficient funds");
+      const isInsufficientHoldings =
+        side === "SELL" &&
+        apiError.status === 409 &&
+        (apiError.message.toLowerCase().includes("holding") ||
+          apiError.message.toLowerCase().includes("sell"));
+      const userMessage = isInsufficientFunds
+        ? "Insufficient funds. Tu compania no tiene cash suficiente."
+        : isInsufficientHoldings
+        ? "Not enough holdings to sell this asset."
+        : apiError.message;
       addRejectedOrder({
         ...orderDraft,
-        errorMessage: apiError.message,
+        errorMessage: userMessage,
         errorStatus: apiError.status,
         errorDetails: apiError.details
       });
       setStatus({
         type: "error",
-        message: apiError.message,
+        message: userMessage,
         details: apiError.details
       });
       onOpenApp("orders");
     } finally {
-      setIsBuying(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -139,9 +150,9 @@ export default function OrderTicketApp({
       <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Order Ticket
+            Investment Ticket
           </h2>
-          <p className="text-[11px] text-stone-500">Compra real contra /api/sales</p>
+          <p className="text-[11px] text-stone-500">Ordenes contra /api/orders</p>
         </div>
         <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
           OT-01
@@ -151,7 +162,7 @@ export default function OrderTicketApp({
       <form onSubmit={handleSubmit} className="grid gap-4 p-4 text-sm">
         <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
           <label className="mb-2 block text-xs uppercase tracking-[0.14em] text-stone-500">
-            Product
+            Asset
           </label>
           <select
             value={selectedProduct ? String(selectedProduct.id) : ""}
@@ -164,7 +175,7 @@ export default function OrderTicketApp({
             }}
             className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {products.length === 0 && <option value="">No products</option>}
+            {products.length === 0 && <option value="">No assets</option>}
             {products.map((product) => (
               <option key={product.id} value={String(product.id)}>
                 {product.name}
@@ -174,16 +185,30 @@ export default function OrderTicketApp({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-md border border-emerald-400 bg-emerald-400/15 px-3 py-2 text-center font-semibold text-emerald-200">
+          <button
+            type="button"
+            onClick={() => setSide("BUY")}
+            disabled={isSubmitting}
+            className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
+              side === "BUY"
+                ? "border-emerald-400 bg-emerald-400/15 text-emerald-200"
+                : "border-[#3b2a1f] bg-black/25 text-stone-500 hover:text-stone-100"
+            } disabled:cursor-not-allowed disabled:opacity-60`}
+          >
             BUY
-          </div>
-          <div
-            aria-disabled="true"
-            className="cursor-not-allowed rounded-md border border-[#3b2a1f] bg-black/25 px-3 py-2 text-center font-semibold text-stone-600 opacity-70"
-            title="El backend actual solo permite comprar"
+          </button>
+          <button
+            type="button"
+            onClick={() => setSide("SELL")}
+            disabled={isSubmitting}
+            className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
+              side === "SELL"
+                ? "border-red-400 bg-red-400/15 text-red-200"
+                : "border-[#3b2a1f] bg-black/25 text-stone-500 hover:text-stone-100"
+            } disabled:cursor-not-allowed disabled:opacity-60`}
           >
             SELL
-          </div>
+          </button>
         </div>
 
         {!canSendOrders && (
@@ -201,7 +226,7 @@ export default function OrderTicketApp({
               type="number"
               min="1"
               value={quantity}
-              disabled={!selectedProduct || isBuying || !canSendOrders}
+              disabled={!selectedProduct || isSubmitting || !canSendOrders}
               onChange={(event) => setQuantity(Number(event.target.value))}
               className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             />
@@ -241,10 +266,14 @@ export default function OrderTicketApp({
 
         <button
           type="submit"
-          disabled={isBuying || !selectedProduct || !canSendOrders}
-          className="rounded-md border border-amber-600/70 bg-amber-500/15 px-3 py-3 font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isSubmitting || !selectedProduct || !canSendOrders}
+          className={`rounded-md border px-3 py-3 font-semibold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            side === "SELL"
+              ? "border-red-500/70 bg-red-500/15 text-red-100 hover:bg-red-500/25"
+              : "border-amber-600/70 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25"
+          }`}
         >
-          {isBuying ? "Enviando..." : "ENVIAR ORDEN"}
+          {isSubmitting ? "Enviando..." : `ENVIAR ${side}`}
         </button>
 
         <div className={`min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] ${statusClass(status.type)}`}>

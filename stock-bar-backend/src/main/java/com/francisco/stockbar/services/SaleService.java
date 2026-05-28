@@ -2,72 +2,32 @@ package com.francisco.stockbar.services;
 
 import com.francisco.stockbar.dto.SaleRequest;
 import com.francisco.stockbar.dto.SaleResponse;
+import com.francisco.stockbar.dto.OrderRequest;
+import com.francisco.stockbar.dto.OrderResponse;
 import com.francisco.stockbar.exception.ApiException;
-import com.francisco.stockbar.model.MarketEvent;
-import com.francisco.stockbar.model.Product;
-import com.francisco.stockbar.model.Sale;
-import com.francisco.stockbar.repository.MarketEventRepository;
-import com.francisco.stockbar.repository.ProductRepository;
-import com.francisco.stockbar.repository.SaleRepository;
+import com.francisco.stockbar.model.OrderSide;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class SaleService {
 
-    private final SaleRepository saleRepository;
-    private final ProductRepository productRepository;
-    private final MarketEventRepository marketEventRepository;
+    private final OrderService orderService;
 
     @Transactional
     public SaleResponse registerSale(SaleRequest request) {
         validateRequest(request);
 
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Producto no encontrado."));
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setAssetId(request.getProductId());
+        orderRequest.setSide(OrderSide.BUY);
+        orderRequest.setQuantity(request.getQuantity());
 
-        if (Boolean.FALSE.equals(product.getEnabled())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Producto deshabilitado para venta.");
-        }
-
-        BigDecimal executedPrice = product.getCurrentPrice();
-        if (executedPrice == null) {
-            throw new ApiException(HttpStatus.CONFLICT, "Producto sin precio actual configurado.");
-        }
-
-        BigDecimal totalAmount = executedPrice
-                .multiply(BigDecimal.valueOf(request.getQuantity()))
-                .setScale(2, RoundingMode.HALF_UP);
-        LocalDateTime now = LocalDateTime.now();
-
-        Sale sale = Sale.builder()
-                .product(product)
-                .quantity(request.getQuantity())
-                .executedPrice(executedPrice)
-                .totalAmount(totalAmount)
-                .timestamp(now)
-                .build();
-
-        Sale savedSale = saleRepository.save(sale);
-        product.setLastPurchasedAt(now);
-        productRepository.save(product);
-        marketEventRepository.save(
-                MarketEvent.builder()
-                        .type("SALE_REGISTERED")
-                        .description(product.getName() + " venta registrada x" + request.getQuantity())
-                        .executedBy("SYSTEM")
-                        .timestamp(now)
-                        .build()
-        );
-
-        return SaleResponse.from(savedSale);
+        OrderResponse order = orderService.createOrder(orderRequest);
+        return SaleResponse.from(order);
     }
 
     private void validateRequest(SaleRequest request) {

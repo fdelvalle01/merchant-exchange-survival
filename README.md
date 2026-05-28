@@ -20,6 +20,13 @@ The concept is simple: beers and drinks are traded like assets in a stock exchan
 
 ![Admin Market Controls](docs/images/admin-market-controls.png)
 
+## Technical Documentation
+
+- [Resumen tecnico integral del proyecto](docs/RESUMEN-TECNICO-TRADING-BAR-EXCHANGE.md)
+- [REQ-001 Trading Desktop](docs/REQ-001-trading-desktop.md)
+- [REQ-007 Keycloak](docs/REQ-007-keycloak.md)
+- [REQ-008 Docker Compose](docs/REQ-008-docker-compose.md)
+
 ## Demo Concept
 
 Stock Bar Exchange simulates a tavern marketplace where each product has market behavior similar to a financial instrument.

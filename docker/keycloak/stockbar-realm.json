@@ -1,12 +1,12 @@
 {
   "realm": "stockbar",
   "enabled": true,
-  "displayName": "Stock Bar Exchange",
+  "displayName": "Merchant Exchange Survival",
   "roles": {
     "realm": [
       {
         "name": "ADMIN_BAR",
-        "description": "Full Stock Bar administrator"
+        "description": "Full Merchant Exchange administrator"
       },
       {
         "name": "TRADER",
@@ -21,7 +21,7 @@
   "clients": [
     {
       "clientId": "stockbar-frontend",
-      "name": "Stock Bar Frontend",
+      "name": "Merchant Exchange Frontend",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": true,
@@ -43,7 +43,7 @@
     },
     {
       "clientId": "stockbar-api",
-      "name": "Stock Bar API",
+      "name": "Merchant Exchange API",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
@@ -57,6 +57,9 @@
     {
       "username": "admin",
       "enabled": true,
+      "email": "admin@merchant-exchange.local",
+      "firstName": "Merchant",
+      "lastName": "Admin",
       "emailVerified": true,
       "requiredActions": [],
       "credentials": [
@@ -73,6 +76,9 @@
     {
       "username": "trader",
       "enabled": true,
+      "email": "trader@merchant-exchange.local",
+      "firstName": "Guild",
+      "lastName": "Trader",
       "emailVerified": true,
       "requiredActions": [],
       "credentials": [
@@ -89,6 +95,9 @@
     {
       "username": "viewer",
       "enabled": true,
+      "email": "viewer@merchant-exchange.local",
+      "firstName": "Market",
+      "lastName": "Viewer",
       "emailVerified": true,
       "requiredActions": [],
       "credentials": [

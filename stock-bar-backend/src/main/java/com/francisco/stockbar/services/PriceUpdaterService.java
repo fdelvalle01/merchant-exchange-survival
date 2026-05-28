@@ -78,7 +78,7 @@ public class PriceUpdaterService {
                 marketEventRepository.save(
                         MarketEvent.builder()
                                 .type("PRICE_UPDATED")
-                                .description(producto.getName() + " subio a " + newPrice + " por " + totalVendidas + " ventas recientes")
+                                .description(producto.getName() + " subio a " + newPrice + " por " + totalVendidas + " trades recientes")
                                 .executedBy("SCHEDULER")
                                 .build()
                 );

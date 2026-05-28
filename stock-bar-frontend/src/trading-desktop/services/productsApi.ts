@@ -8,6 +8,7 @@ export type ProductResponse = {
   basePrice: number;
   currentPrice: number;
   imageUrl?: string;
+  sector?: string;
   enabled?: boolean;
   createdAt?: string;
   lastPurchasedAt?: string;

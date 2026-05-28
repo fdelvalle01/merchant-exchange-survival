@@ -27,6 +27,8 @@ public class Product {
 
     private String imageUrl;
 
+    private String sector;
+
     private Boolean enabled;
 
     private LocalDateTime createdAt = LocalDateTime.now();

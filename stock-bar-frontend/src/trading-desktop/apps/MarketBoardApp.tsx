@@ -60,7 +60,7 @@ export default function MarketBoardApp({
             Market Board
           </h2>
           <p className="text-[11px] text-stone-500">
-            {productsError && hasProducts ? "Feed con ultimo dato disponible" : "Ale instruments, live tavern exchange"}
+            {productsError && hasProducts ? "Feed con ultimo dato disponible" : "Guild assets, live kingdom exchange"}
           </p>
         </div>
         <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
@@ -72,7 +72,7 @@ export default function MarketBoardApp({
         <table className="w-full min-w-[580px] table-fixed border-collapse font-mono text-xs">
           <thead>
             <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-              <th className="w-[32%] py-2 pr-2 font-medium">Product</th>
+              <th className="w-[32%] py-2 pr-2 font-medium">Asset</th>
               <th className="w-[16%] px-2 py-2 text-right font-medium">Last</th>
               <th className="w-[14%] px-2 py-2 text-right font-medium">Change %</th>
               <th className="w-[16%] px-2 py-2 text-right font-medium">Peak</th>
@@ -81,7 +81,7 @@ export default function MarketBoardApp({
             </tr>
           </thead>
           <tbody>
-            {isLoadingProducts && !hasProducts && <MarketStateRow message="Loading products..." />}
+            {isLoadingProducts && !hasProducts && <MarketStateRow message="Loading assets..." />}
             {!isLoadingProducts && productsError && !hasProducts && (
               <MarketStateRow
                 message={productsError}
@@ -90,7 +90,7 @@ export default function MarketBoardApp({
               />
             )}
             {!isLoadingProducts && !productsError && !hasProducts && (
-              <MarketStateRow message="Empty products. No hay instrumentos disponibles." />
+              <MarketStateRow message="Empty assets. No hay instrumentos disponibles." />
             )}
 
             {products.map((product) => {
@@ -140,7 +140,7 @@ export default function MarketBoardApp({
                         }
                       }}
                       className={`rounded border border-transparent px-2 py-1 text-[11px] transition hover:border-amber-700/50 hover:bg-amber-500/10 ${valueClass(percent)}`}
-                      title={canOpenTicket ? "Abrir Order Ticket" : "Ticket restringido por rol"}
+                      title={canOpenTicket ? "Abrir Investment Ticket" : "Ticket restringido por rol"}
                     >
                       {signalFor(product)}
                     </button>
@@ -154,7 +154,7 @@ export default function MarketBoardApp({
                         onOpenApp("detail");
                       }}
                       className="rounded border border-transparent px-1.5 py-1 text-[11px] text-amber-200 transition hover:border-amber-700/50 hover:bg-amber-500/10"
-                      title="Abrir Product Detail"
+                      title="Abrir Asset Detail"
                     >
                       INFO
                     </button>

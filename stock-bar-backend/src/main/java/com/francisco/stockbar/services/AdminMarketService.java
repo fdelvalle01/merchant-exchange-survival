@@ -33,7 +33,7 @@ public class AdminMarketService {
         List<Product> products = productRepository.findAll();
         applyMarketMove(products, DEFAULT_MARKET_MOVE_PERCENT.negate());
         recordEvent("MARKET_CRASH", "Crash general aplicado: -" + DEFAULT_MARKET_MOVE_PERCENT + "%");
-        return "Crash general aplicado a " + products.size() + " productos.";
+        return "Crash general aplicado a " + products.size() + " activos.";
     }
 
     @Transactional
@@ -41,7 +41,7 @@ public class AdminMarketService {
         List<Product> products = productRepository.findAll();
         applyMarketMove(products, DEFAULT_MARKET_MOVE_PERCENT);
         recordEvent("MARKET_BOOM", "Boom general aplicado: +" + DEFAULT_MARKET_MOVE_PERCENT + "%");
-        return "Boom general aplicado a " + products.size() + " productos.";
+        return "Boom general aplicado a " + products.size() + " activos.";
     }
 
     @Transactional
@@ -58,7 +58,7 @@ public class AdminMarketService {
         }
 
         recordEvent("MARKET_RESET", "Reset general aplicado: precios a basePrice");
-        return "Reset market aplicado a " + products.size() + " productos.";
+        return "Reset market aplicado a " + products.size() + " activos.";
     }
 
     @Transactional
@@ -117,7 +117,7 @@ public class AdminMarketService {
         }
 
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Producto no encontrado."));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Activo no encontrado."));
     }
 
     private BigDecimal validatePercent(PriceAdjustmentRequest request) {
@@ -142,7 +142,7 @@ public class AdminMarketService {
 
     private BigDecimal requireBasePrice(Product product) {
         if (product.getBasePrice() == null) {
-            throw new ApiException(HttpStatus.CONFLICT, "Producto sin basePrice configurado.");
+            throw new ApiException(HttpStatus.CONFLICT, "Activo sin basePrice configurado.");
         }
 
         return product.getBasePrice();

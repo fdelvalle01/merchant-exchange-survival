@@ -18,7 +18,7 @@ export default function TickerBar() {
             }`}
           >
             {p.name.toUpperCase()}-${p.currentPrice.toFixed(2)}
-            {p.trend === 'up' ? '▲' : p.trend === 'down' ? '▼' : ''}
+            {p.trend === 'up' ? ' UP' : p.trend === 'down' ? ' DOWN' : ''}
           </span>
         ))}
       </div>

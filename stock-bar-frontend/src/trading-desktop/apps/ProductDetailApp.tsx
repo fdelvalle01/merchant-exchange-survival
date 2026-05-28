@@ -143,10 +143,10 @@ export default function ProductDetailApp({
         <div className="grid min-h-[260px] place-items-center text-center">
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-              Product Detail
+              Asset Detail
             </h2>
             <p className="mt-3 max-w-sm text-sm text-stone-500">
-              Selecciona un producto desde Market Board para ver el detalle.
+              Selecciona un activo desde Market Board para ver el detalle.
             </p>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function ProductDetailApp({
       <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Product Detail
+            Asset Detail
           </h2>
           <p className="text-[11px] text-stone-500">Ficha de instrumento seleccionado</p>
         </div>
@@ -189,7 +189,7 @@ export default function ProductDetailApp({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">
-                  Selected Product
+                  Selected Asset
                 </div>
                 <h3 className="mt-1 text-lg font-semibold text-stone-100">
                   {selectedProduct.name}
@@ -220,7 +220,7 @@ export default function ProductDetailApp({
               disabled={!canOpenTicket}
               onClick={() => onOpenApp("ticket")}
               className="mt-4 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
-              title={canOpenTicket ? "Abrir Order Ticket" : "Ticket restringido por rol"}
+              title={canOpenTicket ? "Abrir Investment Ticket" : "Ticket restringido por rol"}
             >
               Buy / Open Ticket
             </button>
@@ -244,7 +244,7 @@ export default function ProductDetailApp({
             value={money.format(selectedProduct.maxPrice ?? selectedProduct.currentPrice)}
           />
           <DetailMetric label="Created" value={formatDate(selectedProduct.createdAt)} />
-          <DetailMetric label="Last Purchase" value={formatDate(selectedProduct.lastPurchasedAt)} />
+          <DetailMetric label="Last Trade" value={formatDate(selectedProduct.lastPurchasedAt)} />
         </div>
 
         <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-4">
@@ -272,7 +272,7 @@ export default function ProductDetailApp({
             )}
             {!isLoadingHistory && !historyError && history.length === 0 && (
               <div className="grid h-24 place-items-center text-xs text-stone-500">
-                Sin registros de historial para este producto.
+                Sin registros de historial para este activo.
               </div>
             )}
             {!isLoadingHistory && !historyError && history.length > 0 && (

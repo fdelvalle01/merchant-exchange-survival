@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { money } from "../marketUtils";
+import { FaSyncAlt } from "react-icons/fa";
+import { money, valueClass } from "../marketUtils";
 import type { DesktopAppRenderProps, LocalOrder, LocalOrderStatus, OrderSide } from "../types";
 
-type OrderFilter = "ALL" | "BUY" | "FILLED" | "REJECTED";
+type OrderFilter = "ALL" | "BUY" | "SELL" | "FILLED" | "REJECTED";
 
-const filters: OrderFilter[] = ["ALL", "BUY", "FILLED", "REJECTED"];
+const filters: OrderFilter[] = ["ALL", "BUY", "SELL", "FILLED", "REJECTED"];
 
 function formatTime(timestamp: string) {
   const date = new Date(timestamp);
@@ -38,12 +39,16 @@ function statusClass(status: LocalOrderStatus) {
 function matchesFilter(order: LocalOrder, filter: OrderFilter) {
   if (filter === "ALL") return true;
   if (filter === "BUY") return order.side === "BUY";
+  if (filter === "SELL") return order.side === "SELL";
   return order.status === filter;
 }
 
 export default function MyOrdersApp({
   localOrders,
   clearOrders,
+  isLoadingOrders,
+  ordersError,
+  onOrdersChanged,
   isActive
 }: DesktopAppRenderProps) {
   const [activeFilter, setActiveFilter] = useState<OrderFilter>("ALL");
@@ -51,6 +56,7 @@ export default function MyOrdersApp({
     () => localOrders.filter((order) => matchesFilter(order, activeFilter)),
     [activeFilter, localOrders]
   );
+  const hasLocalOrders = localOrders.some((order) => order.source === "LOCAL");
 
   return (
     <section
@@ -65,16 +71,32 @@ export default function MyOrdersApp({
       <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            My Orders
+            Trade History
           </h2>
-          <p className="text-[11px] text-stone-500">Historial local de esta sesión</p>
+          <p className="text-[11px] text-stone-500">Historial remoto de /api/orders</p>
         </div>
-        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
-          MO-01
-        </div>
+        <button
+          type="button"
+          onClick={onOrdersChanged}
+          className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
+          title="Refresh orders"
+        >
+          <FaSyncAlt aria-hidden="true" />
+        </button>
       </div>
 
       <div className="grid gap-3 p-3">
+        {isLoadingOrders && (
+          <div className="rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
+            Loading orders...
+          </div>
+        )}
+        {ordersError && (
+          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            {ordersError}
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1">
             {filters.map((filter) => (
@@ -96,39 +118,41 @@ export default function MyOrdersApp({
           <button
             type="button"
             onClick={clearOrders}
-            disabled={localOrders.length === 0}
+            disabled={!hasLocalOrders}
             className="rounded border border-[#3b2a1f] bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-stone-500 transition hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Clear
+            Clear Local
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[680px] table-fixed border-collapse font-mono text-xs">
+          <table className="w-full min-w-[860px] table-fixed border-collapse font-mono text-xs">
             <thead>
               <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-                <th className="w-[16%] py-2 pr-2 font-medium">Order ID</th>
-                <th className="w-[13%] px-2 py-2 font-medium">Time</th>
-                <th className="w-[25%] px-2 py-2 font-medium">Product</th>
-                <th className="w-[9%] px-2 py-2 text-right font-medium">Side</th>
-                <th className="w-[10%] px-2 py-2 text-right font-medium">Qty</th>
-                <th className="w-[14%] px-2 py-2 text-right font-medium">Price</th>
-                <th className="w-[13%] pl-2 py-2 text-right font-medium">Status</th>
+                <th className="w-[14%] py-2 pr-2 font-medium">Order ID</th>
+                <th className="w-[11%] px-2 py-2 font-medium">Time</th>
+                <th className="w-[23%] px-2 py-2 font-medium">Asset</th>
+                <th className="w-[8%] px-2 py-2 text-right font-medium">Side</th>
+                <th className="w-[8%] px-2 py-2 text-right font-medium">Qty</th>
+                <th className="w-[12%] px-2 py-2 text-right font-medium">Price</th>
+                <th className="w-[12%] px-2 py-2 text-right font-medium">Total</th>
+                <th className="w-[12%] px-2 py-2 text-right font-medium">Realized</th>
+                <th className="w-[10%] pl-2 py-2 text-right font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
-              {localOrders.length === 0 && (
+              {!isLoadingOrders && localOrders.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-sm text-stone-500">
-                    Aún no hay órdenes en esta sesión.
+                  <td colSpan={9} className="py-8 text-center text-sm text-stone-500">
+                    Aun no hay ordenes.
                   </td>
                 </tr>
               )}
 
               {localOrders.length > 0 && filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-sm text-stone-500">
-                    No hay órdenes para el filtro seleccionado.
+                  <td colSpan={9} className="py-8 text-center text-sm text-stone-500">
+                    No hay ordenes para el filtro seleccionado.
                   </td>
                 </tr>
               )}
@@ -158,6 +182,12 @@ export default function MyOrdersApp({
                   <td className="px-2 py-2.5 text-right text-stone-300">{order.quantity}</td>
                   <td className="px-2 py-2.5 text-right text-stone-300">
                     {money.format(order.price)}
+                  </td>
+                  <td className="px-2 py-2.5 text-right text-stone-300">
+                    {money.format(order.totalAmount ?? order.price * order.quantity)}
+                  </td>
+                  <td className={`px-2 py-2.5 text-right ${order.side === "SELL" ? valueClass(order.realizedPnl ?? 0) : "text-stone-600"}`}>
+                    {order.side === "SELL" ? money.format(order.realizedPnl ?? 0) : "-"}
                   </td>
                   <td className={`pl-2 py-2.5 text-right ${statusClass(order.status)}`}>
                     {order.status}

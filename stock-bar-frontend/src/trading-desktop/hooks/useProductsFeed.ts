@@ -24,7 +24,7 @@ export function useProductsFeed(refreshRateMillis = 5000): ProductsFeedState {
       setFeedMode("products-api");
     } catch (loadError) {
       console.error("Could not load products feed", loadError);
-      setError("Backend offline. Esperando conexion con /api/products...");
+      setError("Backend offline. Esperando activos desde /api/products...");
       setFeedMode("offline");
     } finally {
       setIsLoading(false);

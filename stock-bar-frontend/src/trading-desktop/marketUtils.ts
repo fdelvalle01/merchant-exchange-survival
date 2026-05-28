@@ -34,6 +34,7 @@ export function normalizeInstrument(
           : 0,
     trend: product.trend,
     imageUrl: product.imageUrl,
+    sector: product.sector,
     maxPrice: Number(product.maxPrice ?? currentPrice),
     percentageDropFromMax: Number(product.percentageDropFromMax ?? 0),
     history: product.history

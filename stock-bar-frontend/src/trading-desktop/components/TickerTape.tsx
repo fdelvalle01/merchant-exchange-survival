@@ -13,7 +13,7 @@ export default function TickerTape({ instruments }: TickerTapeProps) {
       <div className="sbx-ticker-track flex h-full w-max items-center gap-8 px-6 font-mono text-sm">
         {instruments.length === 0 && (
           <div className="flex h-full items-center whitespace-nowrap text-stone-500">
-            Esperando productos del backend...
+            Esperando activos del backend...
           </div>
         )}
 

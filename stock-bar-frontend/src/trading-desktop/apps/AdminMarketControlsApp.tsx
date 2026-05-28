@@ -9,12 +9,15 @@ import {
   simulateMarketBoom,
   simulateMarketCrash
 } from "../services/adminApi";
+import { generateRandomNewsEvent, triggerNewsEvent } from "../services/newsApi";
 import type {
   DesktopAppRenderProps,
   MarketEvent,
   MarketEventStatus,
   MarketEventType,
-  TradingInstrument
+  TradingInstrument,
+  WorldEventType,
+  WorldNewsItem
 } from "../types";
 
 type ControlStatus = {
@@ -22,6 +25,17 @@ type ControlStatus = {
   message: string;
   details?: string;
 };
+
+const worldEventButtons: Array<{ type: WorldEventType; label: string }> = [
+  { type: "ROYAL_CONTRACT", label: "Royal Contract" },
+  { type: "MINING_ACCIDENT", label: "Mining Accident" },
+  { type: "PORT_BLOCKADE", label: "Port Blockade" },
+  { type: "BANKING_CRISIS", label: "Banking Crisis" },
+  { type: "HARVEST_BOOM", label: "Harvest Boom" },
+  { type: "PLAGUE_OUTBREAK", label: "Plague Outbreak" },
+  { type: "WAR_RUMORS", label: "War Rumors" },
+  { type: "MAGIC_DISCOVERY", label: "Magic Discovery" }
+];
 
 function formatTime(timestamp: string) {
   const date = new Date(timestamp);
@@ -47,8 +61,27 @@ function eventStatusClass(status: MarketEventStatus) {
 }
 
 function eventTypeClass(type: MarketEventType) {
-  if (type === "MARKET_CRASH" || type === "PRODUCT_PRICE_DOWN") return "text-red-300";
-  if (type === "MARKET_BOOM" || type === "PRODUCT_PRICE_UP" || type === "SALE_REGISTERED") {
+  if (
+    type === "MINING_ACCIDENT" ||
+    type === "PORT_BLOCKADE" ||
+    type === "BANKING_CRISIS" ||
+    type === "PLAGUE_OUTBREAK"
+  ) {
+    return "text-red-300";
+  }
+  if (type === "ROYAL_CONTRACT" || type === "HARVEST_BOOM" || type === "MAGIC_DISCOVERY") {
+    return "text-emerald-300";
+  }
+  if (type === "WAR_RUMORS") return "text-amber-300";
+  if (type === "MARKET_CRASH" || type === "PRODUCT_PRICE_DOWN" || type === "ORDER_SELL_FILLED") {
+    return "text-red-300";
+  }
+  if (
+    type === "MARKET_BOOM" ||
+    type === "PRODUCT_PRICE_UP" ||
+    type === "SALE_REGISTERED" ||
+    type === "ORDER_BUY_FILLED"
+  ) {
     return "text-emerald-300";
   }
   return "text-amber-300";
@@ -89,6 +122,10 @@ export default function AdminMarketControlsApp({
   selectedProduct,
   onSelectProduct,
   onProductsChanged,
+  onCompanyChanged,
+  onPortfolioChanged,
+  onNewsChanged,
+  onOpenApp,
   marketEvents,
   addMarketEvent,
   clearMarketEvents,
@@ -151,7 +188,7 @@ export default function AdminMarketControlsApp({
         message: description,
         details: result
       });
-      await onProductsChanged();
+      await Promise.all([onProductsChanged(), onCompanyChanged(), onPortfolioChanged()]);
     } catch (error) {
       const apiError = normalizeApiError(error);
       addMarketEvent({
@@ -171,12 +208,104 @@ export default function AdminMarketControlsApp({
     }
   }
 
+  async function runWorldNewsAction({
+    type,
+    label,
+    action
+  }: {
+    type: WorldEventType;
+    label: string;
+    action: () => Promise<WorldNewsItem>;
+  }) {
+    setIsSubmitting(true);
+    setStatus({
+      type: "info",
+      message: `Publishing ${label}...`
+    });
+
+    try {
+      const news = await action();
+      addMarketEvent({
+        type,
+        description: news.title,
+        user: currentUser.name,
+        status: "SUCCESS",
+        details: `${news.summary} | ${news.impactPercent > 0 ? "+" : ""}${news.impactPercent.toFixed(1)}%`
+      });
+      setStatus({
+        type: "success",
+        message: news.title,
+        details: news.summary
+      });
+      await Promise.all([onProductsChanged(), onNewsChanged(), onCompanyChanged(), onPortfolioChanged()]);
+      onOpenApp("herald");
+    } catch (error) {
+      const apiError = normalizeApiError(error);
+      addMarketEvent({
+        type,
+        description: label,
+        user: currentUser.name,
+        status: "FAILED",
+        details: apiError.status ? `HTTP ${apiError.status} | ${apiError.details ?? apiError.message}` : apiError.details ?? apiError.message
+      });
+      setStatus({
+        type: "error",
+        message: apiError.message,
+        details: apiError.details
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function runRandomWorldNewsAction() {
+    setIsSubmitting(true);
+    setStatus({
+      type: "info",
+      message: "Publishing random news event..."
+    });
+
+    try {
+      const news = await generateRandomNewsEvent();
+      addMarketEvent({
+        type: news.type,
+        description: news.title,
+        user: currentUser.name,
+        status: "SUCCESS",
+        details: `${news.summary} | ${news.impactPercent > 0 ? "+" : ""}${news.impactPercent.toFixed(1)}%`
+      });
+      setStatus({
+        type: "success",
+        message: news.title,
+        details: news.summary
+      });
+      await Promise.all([onProductsChanged(), onNewsChanged(), onCompanyChanged(), onPortfolioChanged()]);
+      onOpenApp("herald");
+    } catch (error) {
+      const apiError = normalizeApiError(error);
+      addMarketEvent({
+        type: "WAR_RUMORS",
+        description: "Random News Event",
+        user: currentUser.name,
+        status: "FAILED",
+        details: apiError.status ? `HTTP ${apiError.status} | ${apiError.details ?? apiError.message}` : apiError.details ?? apiError.message
+      });
+      setStatus({
+        type: "error",
+        message: apiError.message,
+        details: apiError.details
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   if (!currentUser.roles.includes("ADMIN_BAR")) {
     return (
       <section className="grid min-h-full place-items-center rounded-md border border-[#3b2a1f] bg-[#120d09]/95 p-5 text-center shadow-2xl">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Admin Market Controls
+            Game Master Controls
           </h2>
           <p className="mt-3 max-w-sm text-sm text-red-300">
             Acceso restringido. Esta ventana solo esta disponible para rol ADMIN_BAR.
@@ -199,9 +328,9 @@ export default function AdminMarketControlsApp({
       <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Admin Market Controls
+            Game Master Controls
           </h2>
-          <p className="text-[11px] text-stone-500">Panel de control del mercado simulado</p>
+          <p className="text-[11px] text-stone-500">Panel de control del mercado del reino</p>
         </div>
         <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
           ADMIN_BAR
@@ -280,7 +409,7 @@ export default function AdminMarketControlsApp({
 
           <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
-              Movimiento por producto
+              Movimiento por activo
             </h3>
             <p className="mt-1 text-[11px] text-stone-500">
               Control real de precio por backend; volumen queda como evento local
@@ -296,7 +425,7 @@ export default function AdminMarketControlsApp({
                 }}
                 className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-sm text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {products.length === 0 && <option value="">No products</option>}
+                {products.length === 0 && <option value="">No assets</option>}
                 {products.map((product) => (
                   <option key={product.id} value={String(product.id)}>
                     {product.name}
@@ -379,7 +508,7 @@ export default function AdminMarketControlsApp({
                     recordLocalEvent(
                       "VOLUME_CHANGE",
                       `${activeProduct.name}: cambiar volumen a ${volume}`,
-                      "Evento local. El backend aun no expone volumen por producto."
+                      "Evento local. El backend aun no expone volumen por activo."
                     );
                   }}
                   className="rounded-md border border-amber-700/50 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -408,12 +537,53 @@ export default function AdminMarketControlsApp({
         </div>
 
         <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
+                World News Engine
+              </h3>
+              <p className="text-[11px] text-stone-500">
+                Publica noticias de reino que mueven precios y aparecen en Guild Herald
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={runRandomWorldNewsAction}
+              className="rounded-md border border-amber-700/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Generate Random News Event
+            </button>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {worldEventButtons.map((event) => (
+              <button
+                key={event.type}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() =>
+                  runWorldNewsAction({
+                    type: event.type,
+                    label: event.label,
+                    action: () => triggerNewsEvent(event.type)
+                  })
+                }
+                className="rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-xs font-semibold text-stone-200 transition hover:border-amber-700/60 hover:bg-amber-500/10 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {event.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
                 Market Events
               </h3>
-              <p className="text-[11px] text-stone-500">Bitacora local de acciones admin</p>
+              <p className="text-[11px] text-stone-500">Bitacora local de acciones del Game Master</p>
             </div>
             <button
               type="button"

@@ -13,7 +13,7 @@ type StatusBarProps = {
 };
 
 function feedLabel(feedMode: FeedMode) {
-  if (feedMode === "products-api") return "PRODUCTS API";
+  if (feedMode === "products-api") return "ASSETS API";
   return "OFFLINE";
 }
 
@@ -61,7 +61,7 @@ export default function StatusBar({
       <div className="hidden items-center gap-4 sm:flex">
         <span>{feedLabel(feedMode)}</span>
         <span>ENV LOCAL</span>
-        <span>INSTRUMENTS {instrumentCount}</span>
+        <span>ASSETS {instrumentCount}</span>
         <span>WINDOWS {windowCount}</span>
         <span>ORDERS: {orderCount}</span>
         {minimizedWindows.length > 0 && (
@@ -81,7 +81,7 @@ export default function StatusBar({
         )}
         <span>{time}</span>
       </div>
-      <div>SBX DESKTOP v0.1</div>
+      <div>MES DESK v0.1</div>
     </footer>
   );
 }

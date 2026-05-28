@@ -14,8 +14,8 @@
     <groupId>com.francisco</groupId>
     <artifactId>stock-bar-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>stock-bar-backend</name>
-    <description>Bar tipo bolsa</description>
+    <name>merchant-exchange-survival-backend</name>
+    <description>Economic survival exchange game backend</description>
     <packaging>jar</packaging>
 
     <properties>
@@ -73,6 +73,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

@@ -40,13 +40,13 @@ export default function BoardView() {
   return (
     <div className="pt-[104px] p-4 bg-black text-white min-h-screen font-mono">
       <h2 className="text-2xl font-bold mb-4 text-blue-400 flex items-center gap-2">
-        📊 Market Board
+        Market Board
       </h2>
 
       <table className="w-full border-collapse text-sm">
         <thead className="bg-blue-900 text-white uppercase text-xs tracking-wide">
           <tr>
-            <th className="p-2 text-left">Producto</th>
+            <th className="p-2 text-left">Activo</th>
             <th className="p-2 text-right">Inicial</th>
             <th className="p-2 text-right">Actual</th>
             <th className="p-2 text-right">Cambio $</th>
@@ -67,7 +67,7 @@ export default function BoardView() {
                 {p.diff > 0 ? '+' : ''}{p.diff.toFixed(2)}
               </td>
               <td className={`p-2 text-right ${p.percentage > 0 ? 'text-green-500' : p.percentage < 0 ? 'text-red-500' : 'text-gray-400'}`}>
-                {p.percentage > 0 ? '▲' : p.percentage < 0 ? '▼' : ''} {p.percentage}%
+                {p.percentage > 0 ? 'UP' : p.percentage < 0 ? 'DOWN' : ''} {p.percentage}%
               </td>
               <td className="p-2 text-right">${p.maxPrice.toFixed(2)}</td>
               <td
@@ -80,8 +80,8 @@ export default function BoardView() {
                 }`}
               >
                 {p.percentageDropFromMax > 0
-                  ? `↓ ${p.percentageDropFromMax.toFixed(2)}%`
-                  : '—'}
+                  ? `DOWN ${p.percentageDropFromMax.toFixed(2)}%`
+                  : '-'}
               </td>
               <td className="p-2 w-28">
                 <MiniChart data={p.history} />
@@ -93,10 +93,10 @@ export default function BoardView() {
 
       <div className="mt-6 flex gap-4">
         <button onClick={simulateCrash} className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded text-white font-bold">
-          💥 Simular Crash
+          Simular Crash
         </button>
         <button onClick={simulateBoom} className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded text-white font-bold">
-          🚀 Simular Boom
+          Simular Boom
         </button>
       </div>
     </div>

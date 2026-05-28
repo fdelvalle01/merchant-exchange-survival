@@ -100,6 +100,7 @@ public class ProductController {
                         .percentageDropFromMax(percentageDropFromMax)
                         .trend(trend)
                         .imageUrl(p.getImageUrl())
+                        .sector(p.getSector())
                         .history(history)
                         .build();
                 })

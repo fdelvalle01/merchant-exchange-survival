@@ -2,8 +2,8 @@ import type { TradingInstrument } from "./types";
 
 export const mockInstruments: TradingInstrument[] = [
   {
-    id: "mock-lager",
-    name: "Lager Draft",
+    id: "mock-ironhill-mines",
+    name: "Ironhill Mines",
     basePrice: 4200,
     currentPrice: 4620,
     priceChange: 420,
@@ -19,8 +19,8 @@ export const mockInstruments: TradingInstrument[] = [
     ]
   },
   {
-    id: "mock-ipa",
-    name: "House IPA",
+    id: "mock-black-harbor",
+    name: "Black Harbor Shipping",
     basePrice: 5200,
     currentPrice: 4990,
     priceChange: -210,
@@ -36,8 +36,8 @@ export const mockInstruments: TradingInstrument[] = [
     ]
   },
   {
-    id: "mock-stout",
-    name: "Black Stout",
+    id: "mock-silvercrown-bank",
+    name: "Silvercrown Bank",
     basePrice: 5600,
     currentPrice: 5600,
     priceChange: 0,
@@ -53,8 +53,8 @@ export const mockInstruments: TradingInstrument[] = [
     ]
   },
   {
-    id: "mock-pilsner",
-    name: "Pilsner Reserve",
+    id: "mock-arcane-guild",
+    name: "Arcane Research Guild",
     basePrice: 4500,
     currentPrice: 4815,
     priceChange: 315,

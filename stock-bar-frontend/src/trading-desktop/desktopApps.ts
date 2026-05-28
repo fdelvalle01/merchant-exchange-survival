@@ -1,9 +1,12 @@
 import type { ComponentType } from "react";
-import { FaChartBar, FaExchangeAlt, FaListAlt, FaSearch, FaUserShield } from "react-icons/fa";
+import { FaBriefcase, FaChartBar, FaExchangeAlt, FaListAlt, FaNewspaper, FaSearch, FaUserShield, FaWallet } from "react-icons/fa";
 import AdminMarketControlsApp from "./apps/AdminMarketControlsApp";
+import CompanyDashboardApp from "./apps/CompanyDashboardApp";
+import GuildHeraldApp from "./apps/GuildHeraldApp";
 import MarketBoardApp from "./apps/MarketBoardApp";
 import MyOrdersApp from "./apps/MyOrdersApp";
 import OrderTicketApp from "./apps/OrderTicketApp";
+import PortfolioApp from "./apps/PortfolioApp";
 import ProductDetailApp from "./apps/ProductDetailApp";
 import type { DesktopAppId, DesktopAppRenderProps, UserRole } from "./types";
 
@@ -28,11 +31,21 @@ export type DesktopAppDefinition = {
 };
 
 export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
+  company: {
+    id: "company",
+    title: "Company Dashboard",
+    component: CompanyDashboardApp,
+    defaultPosition: { x: 18, y: 18 },
+    defaultSize: { width: 760, height: 540 },
+    minSize: { width: 520, height: 360 },
+    icon: FaBriefcase,
+    allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
+  },
   market: {
     id: "market",
     title: "Market Board",
     component: MarketBoardApp,
-    defaultPosition: { x: 18, y: 18 },
+    defaultPosition: { x: 120, y: 72 },
     defaultSize: { width: 900, height: 560 },
     minSize: { width: 620, height: 320 },
     icon: FaChartBar,
@@ -40,7 +53,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
   },
   ticket: {
     id: "ticket",
-    title: "Order Ticket",
+    title: "Investment Ticket",
     component: OrderTicketApp,
     defaultPosition: { x: 950, y: 28 },
     defaultSize: { width: 390, height: 590 },
@@ -50,7 +63,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
   },
   detail: {
     id: "detail",
-    title: "Product Detail",
+    title: "Asset Detail",
     component: ProductDetailApp,
     defaultPosition: { x: 420, y: 70 },
     defaultSize: { width: 620, height: 620 },
@@ -58,9 +71,19 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     icon: FaSearch,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
+  portfolio: {
+    id: "portfolio",
+    title: "Portfolio",
+    component: PortfolioApp,
+    defaultPosition: { x: 220, y: 180 },
+    defaultSize: { width: 840, height: 420 },
+    minSize: { width: 620, height: 320 },
+    icon: FaWallet,
+    allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
+  },
   orders: {
     id: "orders",
-    title: "My Orders",
+    title: "Trade History",
     component: MyOrdersApp,
     defaultPosition: { x: 140, y: 300 },
     defaultSize: { width: 780, height: 420 },
@@ -68,9 +91,19 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     icon: FaListAlt,
     allowedRoles: ["TRADER", "ADMIN_BAR"]
   },
+  herald: {
+    id: "herald",
+    title: "Guild Herald",
+    component: GuildHeraldApp,
+    defaultPosition: { x: 260, y: 96 },
+    defaultSize: { width: 720, height: 560 },
+    minSize: { width: 460, height: 360 },
+    icon: FaNewspaper,
+    allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
+  },
   admin: {
     id: "admin",
-    title: "Admin Market Controls",
+    title: "Game Master Controls",
     component: AdminMarketControlsApp,
     defaultPosition: { x: 170, y: 80 },
     defaultSize: { width: 980, height: 680 },

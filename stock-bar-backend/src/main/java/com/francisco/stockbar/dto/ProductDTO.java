@@ -18,6 +18,7 @@ public class ProductDTO {
     private double percentageChange;
     private String trend;
     private String imageUrl;
+    private String sector;
     private double percentageDropFromMax;
 
 }

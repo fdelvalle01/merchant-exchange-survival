@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/stockbar}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    username: ${SPRING_DATASOURCE_USERNAME:stockbar}
+    password: ${SPRING_DATASOURCE_PASSWORD:stockbar}
   jpa:
     defer-datasource-initialization: ${SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION:false}
     hibernate:
@@ -27,6 +27,11 @@ app:
   security:
     keycloak:
       resource-client-id: ${KEYCLOAK_RESOURCE_CLIENT_ID:stockbar-api}
+
+game:
+  events:
+    enabled: ${GAME_EVENTS_ENABLED:false}
+    fixed-rate-millis: ${GAME_EVENTS_FIXED_RATE_MILLIS:60000}
 
 logging:
   level:

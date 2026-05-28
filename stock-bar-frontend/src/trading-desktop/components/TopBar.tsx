@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaBeer, FaChartLine, FaSignOutAlt, FaUserShield } from "react-icons/fa";
+import { FaChartLine, FaSignOutAlt, FaUserShield } from "react-icons/fa";
 import type { DesktopUser, FeedMode } from "../types";
 
 type TopBarProps = {
@@ -11,7 +11,7 @@ type TopBarProps = {
 };
 
 function feedLabel(feedMode: FeedMode) {
-  if (feedMode === "products-api") return "Products API";
+  if (feedMode === "products-api") return "Assets API";
   return "Offline";
 }
 
@@ -42,13 +42,13 @@ export default function TopBar({ isLiveData, feedMode, currentUser, onLogout }: 
     >
       <div className="flex min-w-0 items-center gap-3">
         <div className="grid h-9 w-9 place-items-center rounded-md border border-amber-600/50 bg-black/30 text-amber-300 shadow-inner">
-          <FaBeer aria-hidden="true" />
+          <FaChartLine aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <div className="truncate text-base font-semibold tracking-wide text-stone-50">
-            Stock Bar Exchange
+            Merchant Exchange Survival
           </div>
-          <div className="text-xs text-stone-500">Trading Desktop</div>
+          <div className="text-xs text-stone-500">Merchant Command Desk</div>
         </div>
       </div>
 
@@ -57,13 +57,13 @@ export default function TopBar({ isLiveData, feedMode, currentUser, onLogout }: 
           to="/products"
           className="rounded-md border border-[#3b2a1f] bg-black/20 px-3 py-1.5 text-stone-400 hover:border-amber-700/50 hover:text-stone-100"
         >
-          Productos
+          Assets
         </Link>
         <Link
           to="/board"
           className="rounded-md border border-[#3b2a1f] bg-black/20 px-3 py-1.5 text-stone-400 hover:border-amber-700/50 hover:text-stone-100"
         >
-          Board clasico
+          Classic board
         </Link>
       </nav>
 

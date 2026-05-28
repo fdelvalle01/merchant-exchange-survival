@@ -46,16 +46,11 @@ public class ProductService {
                 
     
             String trend;
-            System.out.println(p.getName());
-            System.out.println("currenPrice: "+currentPrice +" basePrice: " + basePrice);
             if (currentPrice.compareTo(basePrice) > 0) {
                 trend = "up";
-                System.out.println("Subiendo Precios"+currentPrice +" > " + basePrice);
             } else if (currentPrice.compareTo(basePrice) < 0) {
-                System.out.println("Bajando Precios (currenPrice:)"+currentPrice +" <" + basePrice);
                 trend = "down";
             } else {
-                System.out.println("Vuelta a precios base");
                 trend = "flat";
             }
     
@@ -69,6 +64,7 @@ public class ProductService {
                 .percentageDropFromMax(percentageDropFromMax)
                 .trend(trend)
                 .imageUrl(p.getImageUrl())
+                .sector(p.getSector())
                 .build();
         }).collect(Collectors.toList());
     }

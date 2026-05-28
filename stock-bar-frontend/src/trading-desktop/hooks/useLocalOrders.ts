@@ -1,13 +1,66 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getOrders, type OrderResponse } from "../services/ordersApi";
 import type { LocalOrder, LocalOrderDraft, LocalOrderStatus } from "../types";
 
 function formatOrderId(nextValue: number) {
   return `ORD-${String(nextValue).padStart(6, "0")}`;
 }
 
-export function useLocalOrders() {
+function mapBackendOrder(order: OrderResponse): LocalOrder {
+  return {
+    id: `ORD-${String(order.id).padStart(6, "0")}`,
+    timestamp: order.timestamp,
+    productId: order.assetId,
+    productName: order.assetName,
+    side: order.side,
+    quantity: order.quantity,
+    price: Number(order.executedPrice ?? 0),
+    totalAmount: Number(order.totalAmount ?? 0),
+    realizedPnl: Number(order.realizedPnl ?? 0),
+    status: order.status,
+    source: "BACKEND"
+  };
+}
+
+export function useLocalOrders(enabled = true) {
   const orderSequence = useRef(1);
-  const [orders, setOrders] = useState<LocalOrder[]>([]);
+  const [backendOrders, setBackendOrders] = useState<LocalOrder[]>([]);
+  const [localOrders, setLocalOrders] = useState<LocalOrder[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  const refreshOrders = useCallback(async () => {
+    if (!enabled) {
+      setBackendOrders([]);
+      setOrdersError(null);
+      setIsLoadingOrders(false);
+      return;
+    }
+
+    setIsLoadingOrders(true);
+    try {
+      const nextOrders = await getOrders();
+      setBackendOrders(nextOrders.map(mapBackendOrder));
+      setOrdersError(null);
+    } catch (error) {
+      console.error("Could not load orders", error);
+      setOrdersError("No se pudo cargar el historial de ordenes.");
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    refreshOrders();
+  }, [refreshOrders]);
+
+  const orders = useMemo(
+    () =>
+      [...localOrders, ...backendOrders].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      ),
+    [backendOrders, localOrders]
+  );
 
   const addOrder = useCallback((orderData: LocalOrderDraft, status: LocalOrderStatus) => {
     const nextOrder: LocalOrder = {
@@ -18,6 +71,7 @@ export function useLocalOrders() {
       side: orderData.side,
       quantity: orderData.quantity,
       price: orderData.price,
+      totalAmount: orderData.price * orderData.quantity,
       status,
       errorMessage: orderData.errorMessage,
       errorStatus: orderData.errorStatus,
@@ -26,7 +80,7 @@ export function useLocalOrders() {
     };
 
     orderSequence.current += 1;
-    setOrders((currentOrders) => [nextOrder, ...currentOrders]);
+    setLocalOrders((currentOrders) => [nextOrder, ...currentOrders]);
     return nextOrder;
   }, []);
 
@@ -41,12 +95,15 @@ export function useLocalOrders() {
   );
 
   const clearOrders = useCallback(() => {
-    setOrders([]);
+    setLocalOrders([]);
     orderSequence.current = 1;
   }, []);
 
   return {
     orders,
+    isLoadingOrders,
+    ordersError,
+    refreshOrders,
     addFilledOrder,
     addRejectedOrder,
     clearOrders

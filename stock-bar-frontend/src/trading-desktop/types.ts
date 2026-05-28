@@ -1,4 +1,18 @@
-export type DesktopAppId = "market" | "ticket" | "detail" | "orders" | "admin";
+import type { PlayerCompanyResponse } from "./services/companyApi";
+import type { OrderResponse } from "./services/ordersApi";
+import type { PortfolioHoldingResponse } from "./services/portfolioApi";
+
+export type { OrderResponse, PlayerCompanyResponse, PortfolioHoldingResponse };
+
+export type DesktopAppId =
+  | "company"
+  | "market"
+  | "ticket"
+  | "detail"
+  | "portfolio"
+  | "orders"
+  | "herald"
+  | "admin";
 
 export type FeedMode = "products-api" | "offline";
 
@@ -21,6 +35,16 @@ export type MarketEventStatus = "SUCCESS" | "FAILED" | "LOCAL";
 
 export type MarketEventType =
   | "SALE_REGISTERED"
+  | "ORDER_BUY_FILLED"
+  | "ORDER_SELL_FILLED"
+  | "ROYAL_CONTRACT"
+  | "MINING_ACCIDENT"
+  | "PORT_BLOCKADE"
+  | "BANKING_CRISIS"
+  | "HARVEST_BOOM"
+  | "PLAGUE_OUTBREAK"
+  | "WAR_RUMORS"
+  | "MAGIC_DISCOVERY"
   | "PRICE_UPDATED"
   | "MARKET_CRASH"
   | "MARKET_BOOM"
@@ -35,6 +59,36 @@ export type PricePoint = {
   price: number;
 };
 
+export type WorldEventType =
+  | "ROYAL_CONTRACT"
+  | "MINING_ACCIDENT"
+  | "PORT_BLOCKADE"
+  | "BANKING_CRISIS"
+  | "HARVEST_BOOM"
+  | "PLAGUE_OUTBREAK"
+  | "WAR_RUMORS"
+  | "MAGIC_DISCOVERY";
+
+export type NewsSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type NewsDirection = "POSITIVE" | "NEGATIVE" | "MIXED" | "NEUTRAL";
+
+export type WorldNewsItem = {
+  id: number;
+  type: WorldEventType;
+  category: string;
+  title: string;
+  summary: string;
+  description: string;
+  severity: NewsSeverity;
+  affectedSector?: string | null;
+  affectedAssetName?: string | null;
+  impactPercent: number;
+  direction: NewsDirection;
+  isRead?: boolean;
+  timestamp: string;
+};
+
 export type TradingInstrument = {
   id: number | string;
   name: string;
@@ -47,6 +101,7 @@ export type TradingInstrument = {
   percentageChange?: number;
   trend?: Trend | string;
   imageUrl?: string;
+  sector?: string;
   maxPrice?: number;
   percentageDropFromMax?: number;
   history?: PricePoint[];
@@ -66,19 +121,34 @@ export type DesktopWindow = {
 
 export type DesktopAppRenderProps = {
   currentUser: DesktopUser;
+  company: PlayerCompanyResponse | null;
+  portfolio: PortfolioHoldingResponse[];
   products: TradingInstrument[];
   selectedProduct?: TradingInstrument;
   onSelectProduct: (product: TradingInstrument) => void;
   onOrderCreated: () => void | Promise<void>;
   onProductsChanged: () => void | Promise<void>;
+  onCompanyChanged: () => void | Promise<void>;
+  onPortfolioChanged: () => void | Promise<void>;
+  onOrdersChanged: () => void | Promise<void>;
+  onNewsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
   clearOrders: () => void;
+  isLoadingOrders: boolean;
+  ordersError: string | null;
+  worldNews: WorldNewsItem[];
+  isLoadingNews: boolean;
+  newsError: string | null;
   marketEvents: MarketEvent[];
   addMarketEvent: (eventData: MarketEventDraft) => MarketEvent;
   clearMarketEvents: () => void;
   isActive: boolean;
+  isLoadingCompany: boolean;
+  companyError: string | null;
+  isLoadingPortfolio: boolean;
+  portfolioError: string | null;
   isLoadingProducts: boolean;
   productsError: string | null;
   onRetryProducts: () => void;
@@ -93,11 +163,13 @@ export type LocalOrder = {
   side: OrderSide;
   quantity: number;
   price: number;
+  totalAmount?: number;
+  realizedPnl?: number;
   status: LocalOrderStatus;
   errorMessage?: string;
   errorStatus?: number;
   errorDetails?: string;
-  source: "LOCAL";
+  source: "LOCAL" | "BACKEND";
 };
 
 export type LocalOrderDraft = {

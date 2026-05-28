@@ -3,16 +3,16 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: stockbar-db
+    container_name: merchant-exchange-backend-db
     restart: always
     environment:
       POSTGRES_DB: stockbar
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: stockbar
+      POSTGRES_PASSWORD: stockbar
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - merchant-exchange-backend-pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  merchant-exchange-backend-pgdata:

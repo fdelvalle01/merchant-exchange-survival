@@ -7,7 +7,7 @@ import {
   useMemo,
   useState
 } from "react";
-import { FaBeer, FaDoorOpen } from "react-icons/fa";
+import { FaChartLine, FaDoorOpen } from "react-icons/fa";
 import { setAccessTokenProvider } from "../trading-desktop/services/apiClient";
 import type { DesktopUser, UserRole } from "../trading-desktop/types";
 import { initKeycloak, keycloak } from "./keycloak";
@@ -89,11 +89,11 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
       <section className="w-full max-w-md rounded-md border border-[#3b2a1f] bg-[#100b08]/95 p-6 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-md border border-amber-600/50 bg-black/30 text-amber-300">
-            <FaBeer aria-hidden="true" />
+            <FaChartLine aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-wide">Stock Bar Exchange</h1>
-            <p className="text-xs text-stone-500">Trading Desktop protegido por Keycloak</p>
+            <h1 className="text-lg font-semibold tracking-wide">Merchant Exchange Survival</h1>
+            <p className="text-xs text-stone-500">Merchant Command Desk protegido por Keycloak</p>
           </div>
         </div>
 

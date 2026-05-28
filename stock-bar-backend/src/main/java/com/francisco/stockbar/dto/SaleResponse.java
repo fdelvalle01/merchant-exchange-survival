@@ -32,4 +32,16 @@ public class SaleResponse {
                 .timestamp(sale.getTimestamp())
                 .build();
     }
+
+    public static SaleResponse from(OrderResponse order) {
+        return SaleResponse.builder()
+                .id(order.getId())
+                .productId(order.getAssetId())
+                .productName(order.getAssetName())
+                .quantity(order.getQuantity())
+                .executedPrice(order.getExecutedPrice())
+                .totalAmount(order.getTotalAmount())
+                .timestamp(order.getTimestamp())
+                .build();
+    }
 }

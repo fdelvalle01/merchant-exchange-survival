@@ -21,6 +21,7 @@ public class ProductBoardDTO {
     private double percentageChange;
     private String trend;
     private String imageUrl;
+    private String sector;
     private double percentageDropFromMax;
     private List<Map<String, Object>> history;
     private double maxPrice;
