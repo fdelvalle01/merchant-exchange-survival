@@ -4,6 +4,32 @@
 
 The player controls a merchant company in a medieval/fantasy market world. The goal is to survive, grow and become wealthy by buying and selling fictional assets, managing cash, building a portfolio, reacting to world news, and handling financial risk.
 
+## Screenshots
+
+### Login
+
+![Login](docs/images/login.png)
+
+### Trading News
+
+![Trading Desktop](docs/images/trading-news.png)
+
+### Trading Desktop
+
+![Trading Desktop](docs/images/trading-desktop.png)
+
+### Admin Market Controls
+
+![Admin Market Controls](docs/images/admin-market-controls.png)
+
+## Technical Documentation
+
+- [Resumen tecnico integral del proyecto](docs/RESUMEN-TECNICO-TRADING-BAR-EXCHANGE.md)
+- [REQ-001 Trading Desktop](docs/REQ-001-trading-desktop.md)
+- [REQ-007 Keycloak](docs/REQ-007-keycloak.md)
+- [REQ-008 Docker Compose](docs/REQ-008-docker-compose.md)
+
+
 The project combines:
 
 * A desktop-style trading UI.
