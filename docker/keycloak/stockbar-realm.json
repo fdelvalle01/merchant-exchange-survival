@@ -2,6 +2,7 @@
   "realm": "stockbar",
   "enabled": true,
   "displayName": "Merchant Exchange Survival",
+  "loginTheme": "merchant-exchange",
   "roles": {
     "realm": [
       {

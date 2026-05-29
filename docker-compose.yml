@@ -27,6 +27,9 @@ services:
       - --http-port=8080
       - --hostname=http://localhost:8081
       - --hostname-strict=false
+      - --spi-theme-cache-themes=false
+      - --spi-theme-cache-templates=false
+      - --spi-theme-static-max-age=-1
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -36,12 +39,34 @@ services:
       - "8081:8080"
     volumes:
       - ./docker/keycloak/stockbar-realm.json:/opt/keycloak/data/import/stockbar-realm.json:ro
+      - ./docker/keycloak/themes:/opt/keycloak/themes:ro
       - merchant-exchange-keycloak-data:/opt/keycloak/data
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'"]
       interval: 10s
       timeout: 5s
       retries: 30
+
+  keycloak-config:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: merchant-exchange-keycloak-config
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - >
+        /opt/keycloak/bin/kcadm.sh config credentials
+        --server http://keycloak:8080
+        --realm master
+        --user admin
+        --password admin
+        &&
+        /opt/keycloak/bin/kcadm.sh update realms/stockbar
+        -s loginTheme=merchant-exchange
+    restart: "no"
 
   backend:
     build:

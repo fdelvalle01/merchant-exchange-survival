@@ -7,7 +7,7 @@ import {
   useMemo,
   useState
 } from "react";
-import { FaChartLine, FaDoorOpen } from "react-icons/fa";
+import { FaDoorOpen, FaShieldAlt } from "react-icons/fa";
 import { setAccessTokenProvider } from "../trading-desktop/services/apiClient";
 import type { DesktopUser, UserRole } from "../trading-desktop/types";
 import { initKeycloak, keycloak } from "./keycloak";
@@ -80,31 +80,47 @@ function buildUser(): DesktopUser | null {
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   return (
     <div
-      className="grid min-h-screen place-items-center bg-[#060403] p-6 text-stone-100"
+      className="grid min-h-screen place-items-center overflow-hidden bg-[#060403] p-6 text-stone-100"
       style={{
         backgroundImage:
-          "radial-gradient(circle at 20% 0%, rgba(132, 85, 38, 0.22), transparent 32%), linear-gradient(180deg, #080604 0%, #050403 100%)"
+          "linear-gradient(135deg, rgba(116, 72, 33, 0.18), transparent 34%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 20px), linear-gradient(180deg, #080604 0%, #050403 100%)"
       }}
     >
-      <section className="w-full max-w-md rounded-md border border-[#3b2a1f] bg-[#100b08]/95 p-6 shadow-2xl">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-md border border-amber-600/50 bg-black/30 text-amber-300">
-            <FaChartLine aria-hidden="true" />
+      <section className="w-full max-w-[460px] rounded-md border border-[#4a3324] bg-[#100b08]/95 p-6 shadow-2xl">
+        <div className="grid justify-items-center gap-4 text-center">
+          <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-md border border-amber-700/60 bg-black/35 p-2 shadow-[0_0_0_1px_rgba(245,158,11,0.12)]">
+            <img
+              src="/branding/merchant-logo.png"
+              alt="Merchant Exchange Survival emblem"
+              className="h-full w-full object-contain"
+            />
           </div>
           <div>
-            <h1 className="text-lg font-semibold tracking-wide">Merchant Exchange Survival</h1>
-            <p className="text-xs text-stone-500">Merchant Command Desk protegido por Keycloak</p>
+            <div className="mb-2 inline-flex items-center gap-2 rounded border border-amber-700/40 bg-black/25 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">
+              <FaShieldAlt aria-hidden="true" />
+              Guild Access
+            </div>
+            <h1 className="text-2xl font-semibold tracking-wide text-stone-50">
+              Merchant Exchange Survival
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-stone-400">
+              Enter the guild desk, watch the kingdom markets, and defend your company through rumor, risk, and trade.
+            </p>
           </div>
         </div>
 
         <button
           type="button"
           onClick={onLogin}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
         >
           <FaDoorOpen aria-hidden="true" />
-          Iniciar sesion
+          Enter Market
         </button>
+
+        <p className="mt-4 text-center text-[11px] text-stone-500">
+          Authentication is handled by the guild gatekeeper.
+        </p>
       </section>
     </div>
   );
