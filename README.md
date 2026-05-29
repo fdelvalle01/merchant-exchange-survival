@@ -9,10 +9,11 @@ The player controls a merchant company in a medieval/fantasy market world. The g
 ### Login
 
 ![Login](docs/images/login.png)
-
+![Login](docs/images/login_data.png)
 ### Trading News
 
 ![Trading Desktop](docs/images/trading-news.png)
+![Trading Desktop](docs/images/news_critical.png)
 
 <!-- ### Trading Desktop -->
 
@@ -20,7 +21,7 @@ The player controls a merchant company in a medieval/fantasy market world. The g
 
 <!-- ### Admin Market Controls -->
 
-<!-- ![Admin Market Controls](docs/images/admin-market-controls.png) -->
+![Admin Market Controls](docs/images/admin-market-controls.png)
 
 ## Technical Documentation
 
