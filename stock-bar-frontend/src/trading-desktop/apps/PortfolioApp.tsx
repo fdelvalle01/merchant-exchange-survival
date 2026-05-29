@@ -4,6 +4,9 @@ import type { DesktopAppRenderProps } from "../types";
 
 export default function PortfolioApp({
   portfolio,
+  products,
+  selectedProduct,
+  onSelectProduct,
   isLoadingPortfolio,
   portfolioError,
   onPortfolioChanged,
@@ -12,6 +15,8 @@ export default function PortfolioApp({
   const visiblePortfolio = portfolio.filter((holding) => holding.quantity > 0);
   const marketValue = visiblePortfolio.reduce((total, holding) => total + holding.marketValue, 0);
   const totalPnl = visiblePortfolio.reduce((total, holding) => total + holding.unrealizedPnl, 0);
+  const productForHolding = (assetId: number) =>
+    products.find((product) => String(product.id) === String(assetId));
 
   return (
     <section
@@ -76,30 +81,63 @@ export default function PortfolioApp({
                 </tr>
               )}
 
-              {visiblePortfolio.map((holding) => (
-                <tr key={holding.assetId} className="border-b border-[#241811] hover:bg-[#20160f]">
-                  <td className="truncate py-2.5 pr-2 font-sans text-sm text-stone-100">
-                    {holding.assetName}
-                  </td>
-                  <td className="px-2 py-2.5 text-right text-stone-300">{holding.quantity}</td>
-                  <td className="px-2 py-2.5 text-right text-stone-300">
-                    {money.format(holding.averagePrice)}
-                  </td>
-                  <td className="px-2 py-2.5 text-right text-stone-300">
-                    {money.format(holding.currentPrice)}
-                  </td>
-                  <td className="px-2 py-2.5 text-right text-stone-100">
-                    {money.format(holding.marketValue)}
-                  </td>
-                  <td className={`px-2 py-2.5 text-right ${valueClass(holding.unrealizedPnl)}`}>
-                    {money.format(holding.unrealizedPnl)}
-                  </td>
-                  <td className={`pl-2 py-2.5 text-right ${valueClass(holding.unrealizedPnlPercent)}`}>
-                    {holding.unrealizedPnlPercent > 0 ? "+" : ""}
-                    {holding.unrealizedPnlPercent.toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
+              {visiblePortfolio.map((holding) => {
+                const product = productForHolding(holding.assetId);
+                const isSelected = String(selectedProduct?.id) === String(holding.assetId);
+
+                return (
+                  <tr
+                    key={holding.assetId}
+                    onClick={() => {
+                      if (product) onSelectProduct(product);
+                    }}
+                    onKeyDown={(event) => {
+                      if (!product || (event.key !== "Enter" && event.key !== " ")) return;
+                      event.preventDefault();
+                      onSelectProduct(product);
+                    }}
+                    tabIndex={product ? 0 : undefined}
+                    title={product ? "Click to select asset" : "Asset not available in market feed"}
+                    className={`border-b border-[#241811] transition ${
+                      isSelected
+                        ? "bg-amber-500/10 outline outline-1 outline-amber-700/40"
+                        : product
+                        ? "cursor-pointer hover:bg-[#20160f]"
+                        : "opacity-70"
+                    }`}
+                  >
+                    <td className="py-2.5 pr-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            isSelected ? "bg-amber-300" : "bg-stone-600"
+                          }`}
+                        />
+                        <span className="truncate font-sans text-sm text-stone-100">
+                          {holding.assetName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-stone-300">{holding.quantity}</td>
+                    <td className="px-2 py-2.5 text-right text-stone-300">
+                      {money.format(holding.averagePrice)}
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-stone-300">
+                      {money.format(holding.currentPrice)}
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-stone-100">
+                      {money.format(holding.marketValue)}
+                    </td>
+                    <td className={`px-2 py-2.5 text-right ${valueClass(holding.unrealizedPnl)}`}>
+                      {money.format(holding.unrealizedPnl)}
+                    </td>
+                    <td className={`pl-2 py-2.5 text-right ${valueClass(holding.unrealizedPnlPercent)}`}>
+                      {holding.unrealizedPnlPercent > 0 ? "+" : ""}
+                      {holding.unrealizedPnlPercent.toFixed(2)}%
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

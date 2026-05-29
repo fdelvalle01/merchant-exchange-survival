@@ -49,6 +49,9 @@ function AlertIcon({ icon }: { icon: RiskAlert["icon"] }) {
 export default function CompanyDashboardApp({
   company,
   portfolio,
+  products,
+  selectedProduct,
+  onSelectProduct,
   isLoadingCompany,
   companyError,
   onCompanyChanged,
@@ -63,6 +66,8 @@ export default function CompanyDashboardApp({
   const realizedPnl = company?.realizedPnl ?? 0;
   const cash = company?.cash ?? 0;
   const companyValue = company?.companyValue ?? 0;
+  const productForHolding = (assetId: number) =>
+    products.find((product) => String(product.id) === String(assetId));
   const largestHolding = visiblePortfolio.reduce(
     (largest, holding) => Math.max(largest, holding.marketValue),
     0
@@ -235,18 +240,35 @@ export default function CompanyDashboardApp({
             {visiblePortfolio.length === 0 && (
               <div className="py-4 text-center text-xs text-stone-500">No holdings yet.</div>
             )}
-            {visiblePortfolio.slice(0, 4).map((holding) => (
-              <div
-                key={holding.assetId}
-                className="flex items-center justify-between gap-3 border-t border-[#241811] py-2 font-mono text-xs"
-              >
-                <span className="truncate text-stone-200">{holding.assetName}</span>
-                <span className="text-stone-500">x{holding.quantity}</span>
-                <span className={valueClass(holding.unrealizedPnl)}>
-                  {money.format(holding.unrealizedPnl)}
-                </span>
-              </div>
-            ))}
+            {visiblePortfolio.slice(0, 4).map((holding) => {
+              const product = productForHolding(holding.assetId);
+              const isSelected = String(selectedProduct?.id) === String(holding.assetId);
+
+              return (
+                <button
+                  key={holding.assetId}
+                  type="button"
+                  onClick={() => {
+                    if (product) onSelectProduct(product);
+                  }}
+                  disabled={!product}
+                  title={product ? "Click to select asset" : "Asset not available in market feed"}
+                  className={`flex w-full items-center justify-between gap-3 border-t border-[#241811] px-2 py-2 text-left font-mono text-xs transition ${
+                    isSelected
+                      ? "bg-amber-500/10 text-amber-100 outline outline-1 outline-amber-700/40"
+                      : product
+                      ? "hover:bg-[#20160f]"
+                      : "cursor-not-allowed opacity-70"
+                  }`}
+                >
+                  <span className="truncate text-stone-200">{holding.assetName}</span>
+                  <span className="text-stone-500">x{holding.quantity}</span>
+                  <span className={valueClass(holding.unrealizedPnl)}>
+                    {money.format(holding.unrealizedPnl)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
