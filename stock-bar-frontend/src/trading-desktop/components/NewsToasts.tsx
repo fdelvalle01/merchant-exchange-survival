@@ -1,9 +1,17 @@
 import { FaTimes } from "react-icons/fa";
 import { valueClass } from "../marketUtils";
-import type { NewsSeverity, WorldNewsItem } from "../types";
+import {
+  holdingImpactClass,
+  holdingImpactMeta,
+  newsAffectsHolding,
+  newsImpactLabel
+} from "../newsUtils";
+import type { NewsSeverity, PortfolioHoldingResponse, TradingInstrument, WorldNewsItem } from "../types";
 
 type NewsToastsProps = {
   items: WorldNewsItem[];
+  portfolio: PortfolioHoldingResponse[];
+  products: TradingInstrument[];
   onDismiss: (id: number) => void;
   onOpenNews: () => void;
 };
@@ -16,15 +24,16 @@ function severityClass(severity: NewsSeverity) {
 }
 
 function impactLabel(news: WorldNewsItem) {
-  if (news.direction === "MIXED") {
-    return `Mixed ${Math.abs(news.impactPercent).toFixed(1)}%`;
-  }
-
-  const prefix = news.impactPercent > 0 ? "+" : "";
-  return `${prefix}${news.impactPercent.toFixed(1)}%`;
+  return newsImpactLabel(news);
 }
 
-export default function NewsToasts({ items, onDismiss, onOpenNews }: NewsToastsProps) {
+export default function NewsToasts({
+  items,
+  portfolio,
+  products,
+  onDismiss,
+  onOpenNews
+}: NewsToastsProps) {
   if (items.length === 0) return null;
 
   return (
@@ -46,6 +55,15 @@ export default function NewsToasts({ items, onDismiss, onOpenNews }: NewsToastsP
               </div>
               <div className="mt-1 truncate text-sm font-semibold text-stone-100">{item.title}</div>
               <div className="mt-1 text-xs text-stone-300">{item.summary}</div>
+              {newsAffectsHolding(item, portfolio, products) &&
+                (() => {
+                  const impactMeta = holdingImpactMeta(item.direction);
+                  return (
+                    <div className={`mt-2 rounded border px-2 py-1 text-[11px] font-semibold ${holdingImpactClass(impactMeta.tone)}`}>
+                      {impactMeta.toastMessage}
+                    </div>
+                  );
+                })()}
               <div className="mt-2 flex items-center justify-between gap-2 font-mono text-[11px]">
                 <span className="truncate text-stone-400">
                   {item.affectedAssetName ?? item.affectedSector ?? "Kingdom Market"}

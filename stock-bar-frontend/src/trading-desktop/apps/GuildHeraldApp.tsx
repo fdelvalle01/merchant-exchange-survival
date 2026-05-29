@@ -1,6 +1,24 @@
+import { useMemo, useState } from "react";
 import { FaBolt, FaExclamationTriangle, FaScroll, FaSyncAlt } from "react-icons/fa";
 import { valueClass } from "../marketUtils";
+import {
+  holdingImpactCardClass,
+  holdingImpactClass,
+  holdingImpactMeta,
+  newsAffectsHolding,
+  newsImpactLabel
+} from "../newsUtils";
 import type { DesktopAppRenderProps, NewsSeverity, WorldNewsItem } from "../types";
+
+type NewsFilter = "ALL" | "MY_PORTFOLIO" | "POSITIVE" | "NEGATIVE" | "CRITICAL";
+
+const filters: Array<{ id: NewsFilter; label: string }> = [
+  { id: "ALL", label: "All" },
+  { id: "MY_PORTFOLIO", label: "My Portfolio" },
+  { id: "POSITIVE", label: "Positive" },
+  { id: "NEGATIVE", label: "Negative" },
+  { id: "CRITICAL", label: "Critical" }
+];
 
 function formatTime(timestamp: string) {
   const date = new Date(timestamp);
@@ -28,9 +46,7 @@ function impactClass(news: WorldNewsItem) {
 }
 
 function impactLabel(news: WorldNewsItem) {
-  if (news.direction === "MIXED") return `Mixed ${Math.abs(news.impactPercent).toFixed(1)}%`;
-  if (news.direction === "NEUTRAL") return "Neutral";
-  return `${news.impactPercent > 0 ? "+" : ""}${news.impactPercent.toFixed(1)}%`;
+  return newsImpactLabel(news);
 }
 
 function NewsIcon({ severity }: { severity: NewsSeverity }) {
@@ -43,9 +59,17 @@ function NewsIcon({ severity }: { severity: NewsSeverity }) {
   return <FaScroll aria-hidden="true" />;
 }
 
-function NewsCard({ news }: { news: WorldNewsItem }) {
+function NewsCard({ news, affectsYou }: { news: WorldNewsItem; affectsYou: boolean }) {
+  const impactMeta = holdingImpactMeta(news.direction);
+
   return (
-    <article className="rounded-md border border-[#3b2a1f] bg-black/25 p-3 transition hover:bg-black/35">
+    <article
+      className={`rounded-md border p-3 transition hover:bg-black/35 ${
+        affectsYou
+          ? holdingImpactCardClass(impactMeta.tone)
+          : "border-[#3b2a1f] bg-black/25"
+      }`}
+    >
       <div className="flex items-start gap-3">
         <div className={`grid h-9 w-9 shrink-0 place-items-center rounded border text-sm ${severityClass(news.severity)}`}>
           <NewsIcon severity={news.severity} />
@@ -57,6 +81,11 @@ function NewsCard({ news }: { news: WorldNewsItem }) {
             </span>
             <span className="font-mono text-[11px] text-stone-500">{formatTime(news.timestamp)}</span>
             <span className="font-mono text-[11px] text-stone-600">{news.category}</span>
+            {affectsYou && (
+              <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${holdingImpactClass(impactMeta.tone)}`}>
+                {impactMeta.label}
+              </span>
+            )}
           </div>
 
           <div className="mt-2 flex items-start justify-between gap-3">
@@ -86,12 +115,35 @@ function NewsCard({ news }: { news: WorldNewsItem }) {
 }
 
 export default function GuildHeraldApp({
+  portfolio,
+  products,
   worldNews,
   isLoadingNews,
   newsError,
   onNewsChanged,
   isActive
 }: DesktopAppRenderProps) {
+  const [activeFilter, setActiveFilter] = useState<NewsFilter>("ALL");
+  const newsWithImpact = useMemo(
+    () =>
+      worldNews.map((news) => ({
+        news,
+        affectsYou: newsAffectsHolding(news, portfolio, products)
+      })),
+    [portfolio, products, worldNews]
+  );
+  const filteredNews = useMemo(
+    () =>
+      newsWithImpact.filter(({ news, affectsYou }) => {
+        if (activeFilter === "ALL") return true;
+        if (activeFilter === "MY_PORTFOLIO") return affectsYou;
+        if (activeFilter === "POSITIVE") return news.direction === "POSITIVE";
+        if (activeFilter === "NEGATIVE") return news.direction === "NEGATIVE";
+        return news.severity === "CRITICAL";
+      }),
+    [activeFilter, newsWithImpact]
+  );
+
   return (
     <section
       className={`min-h-full overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
@@ -120,6 +172,23 @@ export default function GuildHeraldApp({
       </div>
 
       <div className="grid gap-3 p-3">
+        <div className="flex flex-wrap gap-1">
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setActiveFilter(filter.id)}
+              className={`rounded border px-2.5 py-1 text-[11px] font-semibold transition ${
+                activeFilter === filter.id
+                  ? "border-amber-600/70 bg-amber-500/15 text-amber-100"
+                  : "border-[#3b2a1f] bg-black/20 text-stone-500 hover:text-stone-100"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
         {isLoadingNews && (
           <div className="rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
             Loading Guild Herald...
@@ -135,8 +204,13 @@ export default function GuildHeraldApp({
             No kingdom news yet.
           </div>
         )}
-        {worldNews.map((news) => (
-          <NewsCard key={news.id} news={news} />
+        {!isLoadingNews && worldNews.length > 0 && filteredNews.length === 0 && (
+          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-8 text-center text-sm text-stone-500">
+            No news matches this filter.
+          </div>
+        )}
+        {filteredNews.map(({ news, affectsYou }) => (
+          <NewsCard key={news.id} news={news} affectsYou={affectsYou} />
         ))}
       </div>
     </section>

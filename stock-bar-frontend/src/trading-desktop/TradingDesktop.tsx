@@ -199,6 +199,8 @@ export default function TradingDesktop() {
       </div>
       <NewsToasts
         items={newsToasts}
+        portfolio={portfolio}
+        products={products}
         onDismiss={dismissNewsToast}
         onOpenNews={() => openAllowedWindow("herald")}
       />

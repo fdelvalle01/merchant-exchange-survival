@@ -1,4 +1,4 @@
-import { FaSyncAlt } from "react-icons/fa";
+import { FaChartPie, FaExclamationTriangle, FaSyncAlt, FaWallet } from "react-icons/fa";
 import { money, valueClass } from "../marketUtils";
 import type { DesktopAppRenderProps } from "../types";
 
@@ -26,6 +26,26 @@ function riskClass(riskLevel?: string) {
   return "text-emerald-300";
 }
 
+type RiskAlert = {
+  id: string;
+  label: string;
+  detail: string;
+  tone: "amber" | "orange" | "red";
+  icon: "cash" | "concentration" | "warning";
+};
+
+function alertClass(tone: RiskAlert["tone"]) {
+  if (tone === "red") return "border-red-600/60 bg-red-500/10 text-red-200";
+  if (tone === "orange") return "border-orange-600/60 bg-orange-500/10 text-orange-200";
+  return "border-amber-600/60 bg-amber-500/10 text-amber-100";
+}
+
+function AlertIcon({ icon }: { icon: RiskAlert["icon"] }) {
+  if (icon === "cash") return <FaWallet aria-hidden="true" />;
+  if (icon === "concentration") return <FaChartPie aria-hidden="true" />;
+  return <FaExclamationTriangle aria-hidden="true" />;
+}
+
 export default function CompanyDashboardApp({
   company,
   portfolio,
@@ -41,6 +61,60 @@ export default function CompanyDashboardApp({
   const totalPnl = visiblePortfolio.reduce((total, holding) => total + holding.unrealizedPnl, 0);
   const portfolioValue = company?.portfolioValue ?? totalMarketValue;
   const realizedPnl = company?.realizedPnl ?? 0;
+  const cash = company?.cash ?? 0;
+  const companyValue = company?.companyValue ?? 0;
+  const largestHolding = visiblePortfolio.reduce(
+    (largest, holding) => Math.max(largest, holding.marketValue),
+    0
+  );
+  const concentrationPercent = portfolioValue > 0 ? (largestHolding / portfolioValue) * 100 : 0;
+  const lowCashThreshold = Math.max(10000, companyValue * 0.1);
+  const riskAlerts: RiskAlert[] = [
+    ...(company && cash < lowCashThreshold
+      ? [
+          {
+            id: "low-cash",
+            label: "Low cash",
+            detail: `${money.format(cash)} available`,
+            tone: "amber" as const,
+            icon: "cash" as const
+          }
+        ]
+      : []),
+    ...(concentrationPercent >= 50
+      ? [
+          {
+            id: "high-concentration",
+            label: "High concentration",
+            detail: `${concentrationPercent.toFixed(0)}% in one position`,
+            tone: "orange" as const,
+            icon: "concentration" as const
+          }
+        ]
+      : []),
+    ...(totalPnl < 0
+      ? [
+          {
+            id: "negative-pnl",
+            label: "Negative unrealized P/L",
+            detail: money.format(totalPnl),
+            tone: "orange" as const,
+            icon: "warning" as const
+          }
+        ]
+      : []),
+    ...(company?.riskLevel === "CRITICAL"
+      ? [
+          {
+            id: "critical-risk",
+            label: "Critical risk",
+            detail: "Company value or drawdown is under pressure",
+            tone: "red" as const,
+            icon: "warning" as const
+          }
+        ]
+      : [])
+  ];
 
   async function refreshAll() {
     await Promise.all([onCompanyChanged(), onPortfolioChanged()]);
@@ -96,6 +170,46 @@ export default function CompanyDashboardApp({
           <Metric label="Reputation" value={String(company?.reputation ?? 0)} />
           <Metric label="Risk Level" value={company?.riskLevel ?? "N/A"} className={riskClass(company?.riskLevel)} />
           <Metric label="Unrealized P/L" value={money.format(totalPnl)} className={valueClass(totalPnl)} />
+        </div>
+
+        <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
+              Risk Alerts
+            </div>
+            <div className={`font-mono text-[11px] ${riskClass(company?.riskLevel)}`}>
+              {company?.riskLevel ?? "N/A"}
+            </div>
+          </div>
+
+          {riskAlerts.length === 0 && (
+            <div className="rounded border border-emerald-700/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+              Risk desk clear.
+            </div>
+          )}
+
+          {riskAlerts.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {riskAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`flex items-center gap-3 rounded border px-3 py-2 ${alertClass(alert.tone)}`}
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded border border-current/30 bg-black/20 text-xs">
+                    <AlertIcon icon={alert.icon} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold uppercase tracking-[0.12em]">
+                      {alert.label}
+                    </div>
+                    <div className="truncate font-mono text-[11px] text-stone-400">
+                      {alert.detail}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-3">
