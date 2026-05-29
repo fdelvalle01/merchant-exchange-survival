@@ -1,5 +1,8 @@
-import { FaChartPie, FaExclamationTriangle, FaSyncAlt, FaWallet } from "react-icons/fa";
+import { useState } from "react";
+import { FaChartPie, FaExclamationTriangle, FaHourglassHalf, FaSyncAlt, FaWallet } from "react-icons/fa";
 import { money, valueClass } from "../marketUtils";
+import { normalizeApiError } from "../services/apiError";
+import { endDay } from "../services/gameApi";
 import type { DesktopAppRenderProps } from "../types";
 
 function Metric({
@@ -31,7 +34,7 @@ type RiskAlert = {
   label: string;
   detail: string;
   tone: "amber" | "orange" | "red";
-  icon: "cash" | "concentration" | "warning";
+  icon: "cash" | "concentration" | "runway" | "warning";
 };
 
 function alertClass(tone: RiskAlert["tone"]) {
@@ -43,6 +46,7 @@ function alertClass(tone: RiskAlert["tone"]) {
 function AlertIcon({ icon }: { icon: RiskAlert["icon"] }) {
   if (icon === "cash") return <FaWallet aria-hidden="true" />;
   if (icon === "concentration") return <FaChartPie aria-hidden="true" />;
+  if (icon === "runway") return <FaHourglassHalf aria-hidden="true" />;
   return <FaExclamationTriangle aria-hidden="true" />;
 }
 
@@ -54,11 +58,18 @@ export default function CompanyDashboardApp({
   onSelectProduct,
   isLoadingCompany,
   companyError,
+  onProductsChanged,
   onCompanyChanged,
   onPortfolioChanged,
+  onOrdersChanged,
+  onNewsChanged,
+  onMarketEventsChanged,
   onOpenApp,
   isActive
 }: DesktopAppRenderProps) {
+  const [isEndingDay, setIsEndingDay] = useState(false);
+  const [dayResult, setDayResult] = useState<string | null>(null);
+  const [dayError, setDayError] = useState<string | null>(null);
   const visiblePortfolio = portfolio.filter((holding) => holding.quantity > 0);
   const totalMarketValue = visiblePortfolio.reduce((total, holding) => total + holding.marketValue, 0);
   const totalPnl = visiblePortfolio.reduce((total, holding) => total + holding.unrealizedPnl, 0);
@@ -66,6 +77,12 @@ export default function CompanyDashboardApp({
   const realizedPnl = company?.realizedPnl ?? 0;
   const cash = company?.cash ?? 0;
   const companyValue = company?.companyValue ?? 0;
+  const gameDay = company?.gameDay ?? 1;
+  const companyStatus = company?.status ?? "ACTIVE";
+  const dailyBurnRate = company?.dailyBurnRate ?? 500;
+  const cashRunwayDays = company?.cashRunwayDays ?? 0;
+  const criticalDays = company?.criticalDays ?? 0;
+  const isTerminalStatus = companyStatus === "BANKRUPT" || companyStatus === "VICTORIOUS";
   const productForHolding = (assetId: number) =>
     products.find((product) => String(product.id) === String(assetId));
   const largestHolding = visiblePortfolio.reduce(
@@ -75,6 +92,28 @@ export default function CompanyDashboardApp({
   const concentrationPercent = portfolioValue > 0 ? (largestHolding / portfolioValue) * 100 : 0;
   const lowCashThreshold = Math.max(10000, companyValue * 0.1);
   const riskAlerts: RiskAlert[] = [
+    ...(company && cash < 0
+      ? [
+          {
+            id: "liquidity-crisis",
+            label: "Liquidity crisis",
+            detail: "Cash is negative. Recover within 3 days.",
+            tone: "red" as const,
+            icon: "cash" as const
+          }
+        ]
+      : []),
+    ...(company && cash >= 0 && cashRunwayDays <= 3
+      ? [
+          {
+            id: "cash-runway",
+            label: "Low cash runway",
+            detail: `${cashRunwayDays.toFixed(1)} days remaining`,
+            tone: "amber" as const,
+            icon: "runway" as const
+          }
+        ]
+      : []),
     ...(company && cash < lowCashThreshold
       ? [
           {
@@ -113,7 +152,7 @@ export default function CompanyDashboardApp({
           {
             id: "critical-risk",
             label: "Critical risk",
-            detail: "Company value or drawdown is under pressure",
+            detail: criticalDays > 0 ? `${criticalDays} critical day(s)` : "Company value or liquidity is under pressure",
             tone: "red" as const,
             icon: "warning" as const
           }
@@ -123,6 +162,39 @@ export default function CompanyDashboardApp({
 
   async function refreshAll() {
     await Promise.all([onCompanyChanged(), onPortfolioChanged()]);
+  }
+
+  async function handleEndDay() {
+    if (!company || isTerminalStatus) return;
+
+    setIsEndingDay(true);
+    setDayError(null);
+    setDayResult(null);
+
+    try {
+      const nextState = await endDay();
+      if (nextState.status === "BANKRUPT") {
+        setDayResult(nextState.bankruptcyReason ?? "Bankruptcy declared.");
+      } else if (nextState.status === "VICTORIOUS") {
+        setDayResult(nextState.victoryMessage ?? "Victory achieved.");
+      } else {
+        setDayResult(`Day ${nextState.gameDay ?? gameDay + 1} processed. Operating costs paid.`);
+      }
+
+      await Promise.all([
+        onProductsChanged(),
+        onCompanyChanged(),
+        onPortfolioChanged(),
+        onOrdersChanged(),
+        onNewsChanged(),
+        onMarketEventsChanged()
+      ]);
+    } catch (error) {
+      const apiError = normalizeApiError(error);
+      setDayError(apiError.message);
+    } finally {
+      setIsEndingDay(false);
+    }
   }
 
   return (
@@ -144,14 +216,25 @@ export default function CompanyDashboardApp({
             {company?.companyName ?? "Merchant company"}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={refreshAll}
-          className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
-          title="Refresh company"
-        >
-          <FaSyncAlt aria-hidden="true" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleEndDay}
+            disabled={!company || isEndingDay || isTerminalStatus}
+            className="rounded border border-amber-600/70 bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+            title={isTerminalStatus ? `Game status: ${companyStatus}` : "Process next game day"}
+          >
+            {isEndingDay ? "Ending..." : "End Day"}
+          </button>
+          <button
+            type="button"
+            onClick={refreshAll}
+            className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
+            title="Refresh company"
+          >
+            <FaSyncAlt aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3 p-4">
@@ -165,8 +248,34 @@ export default function CompanyDashboardApp({
             {companyError}
           </div>
         )}
+        {companyStatus === "BANKRUPT" && (
+          <div className="rounded border border-red-700/60 bg-red-500/15 px-3 py-2 text-xs text-red-100">
+            Bankruptcy declared. {company?.bankruptcyReason ?? "The guild has seized your trading license."}
+          </div>
+        )}
+        {companyStatus === "VICTORIOUS" && (
+          <div className="rounded border border-emerald-700/60 bg-emerald-500/15 px-3 py-2 text-xs text-emerald-100">
+            Victory achieved. Your merchant house dominates the exchange.
+          </div>
+        )}
+        {dayResult && (
+          <div className="rounded border border-amber-700/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+            {dayResult}
+          </div>
+        )}
+        {dayError && (
+          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            {dayError}
+          </div>
+        )}
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <Metric label="Day" value={String(gameDay)} className="text-amber-100" />
+          <Metric label="Status" value={String(companyStatus)} className={riskClass(companyStatus === "ACTIVE" ? company?.riskLevel : companyStatus === "VICTORIOUS" ? "LOW" : "CRITICAL")} />
+          <Metric label="Daily Burn" value={money.format(dailyBurnRate)} className="text-orange-200" />
+          <Metric label="Cash Runway" value={`${cashRunwayDays.toFixed(1)} days`} className={cashRunwayDays <= 3 ? "text-red-300" : cashRunwayDays <= 10 ? "text-amber-200" : "text-emerald-300"} />
+          <Metric label="Critical Days" value={String(criticalDays)} className={criticalDays > 0 ? "text-red-300" : "text-stone-100"} />
+          <Metric label="Victory Target" value={money.format(company?.victoryTarget ?? 1000000)} className="text-stone-100" />
           <Metric label="Cash" value={money.format(company?.cash ?? 0)} className="text-emerald-300" />
           <Metric label="Debt" value={money.format(company?.debt ?? 0)} className="text-red-300" />
           <Metric label="Company Value" value={money.format(company?.companyValue ?? 0)} />

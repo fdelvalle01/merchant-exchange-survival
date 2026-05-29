@@ -50,6 +50,10 @@ export type MarketEventType =
   | "PRICE_PRESSURE_DOWN"
   | "PRICE_REVERSION"
   | "MARKET_ENGINE_TICK"
+  | "DAILY_BURN_APPLIED"
+  | "DEBT_INTEREST_APPLIED"
+  | "BANKRUPTCY_DECLARED"
+  | "VICTORY_ACHIEVED"
   | "MARKET_CRASH"
   | "MARKET_BOOM"
   | "MARKET_RESET"
@@ -136,6 +140,7 @@ export type DesktopAppRenderProps = {
   onPortfolioChanged: () => void | Promise<void>;
   onOrdersChanged: () => void | Promise<void>;
   onNewsChanged: () => void | Promise<void>;
+  onMarketEventsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;

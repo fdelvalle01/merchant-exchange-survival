@@ -102,13 +102,19 @@ public class MarketEngineService {
     }
 
     private BigDecimal pressurePercent(long netPressure) {
-        if (netPressure == 0) {
+        long pressureMagnitude = Math.abs(netPressure);
+        if (netPressure == 0 || pressureMagnitude < cfg.getMinPressureThreshold()) {
             return BigDecimal.ZERO;
         }
 
         BigDecimal factor = netPressure > 0 ? cfg.getBuyImpactFactor() : cfg.getSellImpactFactor();
-        BigDecimal magnitude = factor
-                .multiply(BigDecimal.valueOf(Math.abs(netPressure)))
+        BigDecimal liquidityDepth = cfg.getDefaultLiquidityDepth().compareTo(BigDecimal.ZERO) > 0
+                ? cfg.getDefaultLiquidityDepth()
+                : BigDecimal.ONE;
+        BigDecimal pressureRatio = BigDecimal.valueOf(pressureMagnitude)
+                .divide(liquidityDepth, 6, RoundingMode.HALF_UP);
+        BigDecimal magnitude = pressureRatio
+                .multiply(factor)
                 .min(cfg.getMaxPressureImpactPct());
 
         return netPressure > 0 ? magnitude : magnitude.negate();
@@ -116,7 +122,9 @@ public class MarketEngineService {
 
     private BigDecimal applyFairValueReversion(BigDecimal price, BigDecimal basePrice) {
         int comparison = price.compareTo(basePrice);
-        if (comparison == 0 || cfg.getReversionRatePct().compareTo(BigDecimal.ZERO) <= 0) {
+        if (!cfg.isReversionEnabled()
+                || comparison == 0
+                || cfg.getReversionRatePct().compareTo(BigDecimal.ZERO) <= 0) {
             return price;
         }
 

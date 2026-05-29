@@ -9,15 +9,15 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class PlayerCompanyResponse {
-    private Long id;
-    private String username;
+public class GameStateResponse {
+    private Long companyId;
     private String companyName;
     private BigDecimal cash;
     private BigDecimal debt;
     private BigDecimal companyValue;
-    private BigDecimal realizedPnl;
     private BigDecimal portfolioValue;
+    private BigDecimal realizedPnl;
+    private BigDecimal unrealizedPnl;
     private Integer reputation;
     private String riskLevel;
     private Integer gameDay;
@@ -26,37 +26,39 @@ public class PlayerCompanyResponse {
     private BigDecimal cashRunwayDays;
     private Integer criticalDays;
     private BigDecimal victoryTarget;
-    private LocalDateTime lastDayProcessedAt;
     private String bankruptcyReason;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String victoryMessage;
+    private LocalDateTime lastDayProcessedAt;
 
-    public static PlayerCompanyResponse from(PlayerCompany company) {
-        return from(company, BigDecimal.ZERO);
-    }
+    public static GameStateResponse from(
+            PlayerCompany company,
+            BigDecimal portfolioValue,
+            BigDecimal unrealizedPnl
+    ) {
+        String status = company.getStatus() != null ? company.getStatus().name() : null;
 
-    public static PlayerCompanyResponse from(PlayerCompany company, BigDecimal portfolioValue) {
-        return PlayerCompanyResponse.builder()
-                .id(company.getId())
-                .username(company.getUsername())
+        return GameStateResponse.builder()
+                .companyId(company.getId())
                 .companyName(company.getCompanyName())
                 .cash(company.getCash())
                 .debt(company.getDebt())
                 .companyValue(company.getCompanyValue())
-                .realizedPnl(company.getRealizedPnl())
                 .portfolioValue(portfolioValue)
+                .realizedPnl(company.getRealizedPnl())
+                .unrealizedPnl(unrealizedPnl)
                 .reputation(company.getReputation())
                 .riskLevel(company.getRiskLevel())
                 .gameDay(company.getGameDay())
-                .status(company.getStatus() != null ? company.getStatus().name() : null)
+                .status(status)
                 .dailyBurnRate(company.getDailyBurnRate())
                 .cashRunwayDays(company.getCashRunwayDays())
                 .criticalDays(company.getCriticalDays())
                 .victoryTarget(company.getVictoryTarget())
-                .lastDayProcessedAt(company.getLastDayProcessedAt())
                 .bankruptcyReason(company.getBankruptcyReason())
-                .createdAt(company.getCreatedAt())
-                .updatedAt(company.getUpdatedAt())
+                .victoryMessage("VICTORIOUS".equals(status)
+                        ? "Your merchant house has become a dominant market power."
+                        : null)
+                .lastDayProcessedAt(company.getLastDayProcessedAt())
                 .build();
     }
 }

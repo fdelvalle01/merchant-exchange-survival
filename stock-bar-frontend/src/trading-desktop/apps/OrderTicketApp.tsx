@@ -23,6 +23,7 @@ function statusClass(type: OrderStatus["type"]) {
 
 export default function OrderTicketApp({
   currentUser,
+  company,
   products,
   selectedProduct,
   onSelectProduct,
@@ -52,15 +53,32 @@ export default function OrderTicketApp({
     () => (selectedProduct ? percentFor(selectedProduct) : 0),
     [selectedProduct]
   );
-  const canSendOrders = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
+  const hasOrderAccess = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
+  const companyStatus = company?.status ?? "ACTIVE";
+  const canTradeCompany = companyStatus === "ACTIVE";
+  const canSendOrders = hasOrderAccess && canTradeCompany;
+  const tradingDisabledMessage =
+    companyStatus === "BANKRUPT"
+      ? "Trading disabled: company is BANKRUPT."
+      : companyStatus === "VICTORIOUS"
+      ? "Trading disabled: victory achieved."
+      : null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!canSendOrders) {
+    if (!hasOrderAccess) {
       setStatus({
         type: "error",
         message: "Access denied. Tu rol no permite enviar ordenes."
+      });
+      return;
+    }
+
+    if (!canTradeCompany) {
+      setStatus({
+        type: "error",
+        message: tradingDisabledMessage ?? `Trading disabled: company is ${companyStatus}.`
       });
       return;
     }
@@ -188,7 +206,7 @@ export default function OrderTicketApp({
           <button
             type="button"
             onClick={() => setSide("BUY")}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canTradeCompany}
             className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
               side === "BUY"
                 ? "border-emerald-400 bg-emerald-400/15 text-emerald-200"
@@ -200,7 +218,7 @@ export default function OrderTicketApp({
           <button
             type="button"
             onClick={() => setSide("SELL")}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canTradeCompany}
             className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
               side === "SELL"
                 ? "border-red-400 bg-red-400/15 text-red-200"
@@ -211,9 +229,14 @@ export default function OrderTicketApp({
           </button>
         </div>
 
-        {!canSendOrders && (
+        {!hasOrderAccess && (
           <div className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
             Access denied. VIEWER puede mirar el mercado, pero no enviar ordenes.
+          </div>
+        )}
+        {tradingDisabledMessage && (
+          <div className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            {tradingDisabledMessage}
           </div>
         )}
 

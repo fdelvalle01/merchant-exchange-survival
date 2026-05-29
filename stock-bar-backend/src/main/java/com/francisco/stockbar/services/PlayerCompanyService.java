@@ -3,6 +3,7 @@ package com.francisco.stockbar.services;
 import com.francisco.stockbar.exception.ApiException;
 import com.francisco.stockbar.model.Holding;
 import com.francisco.stockbar.model.PlayerCompany;
+import com.francisco.stockbar.model.PlayerCompanyStatus;
 import com.francisco.stockbar.repository.HoldingRepository;
 import com.francisco.stockbar.repository.PlayerCompanyRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class PlayerCompanyService {
 
     private static final BigDecimal INITIAL_CASH = BigDecimal.valueOf(100000).setScale(2, RoundingMode.HALF_UP);
     private static final BigDecimal INITIAL_DEBT = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    private static final BigDecimal DEFAULT_DAILY_BURN_RATE = BigDecimal.valueOf(500).setScale(2, RoundingMode.HALF_UP);
+    private static final BigDecimal DEFAULT_VICTORY_TARGET = BigDecimal.valueOf(1_000_000).setScale(2, RoundingMode.HALF_UP);
     private static final int INITIAL_REPUTATION = 50;
     private static final String INITIAL_RISK_LEVEL = "LOW";
 
@@ -45,6 +48,12 @@ public class PlayerCompanyService {
                                 .realizedPnl(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP))
                                 .reputation(INITIAL_REPUTATION)
                                 .riskLevel(INITIAL_RISK_LEVEL)
+                                .gameDay(1)
+                                .status(PlayerCompanyStatus.ACTIVE)
+                                .dailyBurnRate(DEFAULT_DAILY_BURN_RATE)
+                                .cashRunwayDays(INITIAL_CASH.divide(DEFAULT_DAILY_BURN_RATE, 1, RoundingMode.HALF_UP))
+                                .criticalDays(0)
+                                .victoryTarget(DEFAULT_VICTORY_TARGET)
                                 .build()
                 ));
     }
@@ -57,6 +66,7 @@ public class PlayerCompanyService {
         if (company.getRealizedPnl() == null) {
             company.setRealizedPnl(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
         }
+        applySurvivalDefaults(company);
 
         company.setCompanyValue(
                 money(company.getCash())
@@ -64,6 +74,7 @@ public class PlayerCompanyService {
                         .subtract(money(company.getDebt()))
                         .setScale(2, RoundingMode.HALF_UP)
         );
+        updateCashRunway(company);
         company.setRiskLevel(calculateRiskLevel(company, portfolioValue, costBasis));
         return playerCompanyRepository.save(company);
     }
@@ -78,7 +89,8 @@ public class PlayerCompanyService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getPortfolioCostBasis(PlayerCompany company) {
+    @Transactional(readOnly = true)
+    public BigDecimal getPortfolioCostBasis(PlayerCompany company) {
         return holdingRepository.findByPlayerCompany(company)
                 .stream()
                 .filter(holding -> holding.getQuantity() != null && holding.getQuantity() > 0)
@@ -100,6 +112,40 @@ public class PlayerCompanyService {
         return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
     }
 
+    public void applySurvivalDefaults(PlayerCompany company) {
+        if (company.getGameDay() == null || company.getGameDay() < 1) {
+            company.setGameDay(1);
+        }
+        if (company.getStatus() == null) {
+            company.setStatus(PlayerCompanyStatus.ACTIVE);
+        }
+        if (company.getDailyBurnRate() == null || company.getDailyBurnRate().compareTo(BigDecimal.ZERO) <= 0) {
+            company.setDailyBurnRate(DEFAULT_DAILY_BURN_RATE);
+        }
+        if (company.getCashRunwayDays() == null) {
+            company.setCashRunwayDays(BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP));
+        }
+        if (company.getCriticalDays() == null || company.getCriticalDays() < 0) {
+            company.setCriticalDays(0);
+        }
+        if (company.getVictoryTarget() == null || company.getVictoryTarget().compareTo(BigDecimal.ZERO) <= 0) {
+            company.setVictoryTarget(DEFAULT_VICTORY_TARGET);
+        }
+    }
+
+    public BigDecimal updateCashRunway(PlayerCompany company) {
+        BigDecimal dailyBurnRate = money(company.getDailyBurnRate());
+        BigDecimal cash = money(company.getCash());
+        BigDecimal runway = BigDecimal.ZERO.setScale(1, RoundingMode.HALF_UP);
+
+        if (dailyBurnRate.compareTo(BigDecimal.ZERO) > 0 && cash.compareTo(BigDecimal.ZERO) > 0) {
+            runway = cash.divide(dailyBurnRate, 1, RoundingMode.HALF_UP);
+        }
+
+        company.setCashRunwayDays(runway);
+        return runway;
+    }
+
     private String calculateRiskLevel(PlayerCompany company, BigDecimal portfolioValue, BigDecimal costBasis) {
         BigDecimal companyValue = money(company.getCompanyValue());
         BigDecimal debt = money(company.getDebt());
@@ -117,18 +163,27 @@ public class PlayerCompanyService {
             debtRatio = debt.divide(companyValue, 6, RoundingMode.HALF_UP);
         }
 
+        BigDecimal cash = money(company.getCash());
+        BigDecimal cashRunwayDays = company.getCashRunwayDays() == null
+                ? BigDecimal.ZERO
+                : company.getCashRunwayDays();
+
         if (companyValue.compareTo(BigDecimal.ZERO) <= 0
+                || cash.compareTo(BigDecimal.ZERO) < 0
+                || cashRunwayDays.compareTo(BigDecimal.valueOf(2)) <= 0
                 || debtRatio.compareTo(BigDecimal.valueOf(0.60)) >= 0
                 || unrealizedPnlPercent.compareTo(BigDecimal.valueOf(-30)) <= 0) {
             return "CRITICAL";
         }
 
-        if (debtRatio.compareTo(BigDecimal.valueOf(0.35)) >= 0
+        if (cashRunwayDays.compareTo(BigDecimal.valueOf(5)) <= 0
+                || debtRatio.compareTo(BigDecimal.valueOf(0.35)) >= 0
                 || unrealizedPnlPercent.compareTo(BigDecimal.valueOf(-15)) <= 0) {
             return "HIGH";
         }
 
-        if (debtRatio.compareTo(BigDecimal.valueOf(0.15)) >= 0
+        if (cashRunwayDays.compareTo(BigDecimal.valueOf(10)) <= 0
+                || debtRatio.compareTo(BigDecimal.valueOf(0.15)) >= 0
                 || unrealizedPnlPercent.compareTo(BigDecimal.valueOf(-5)) <= 0) {
             return "MEDIUM";
         }

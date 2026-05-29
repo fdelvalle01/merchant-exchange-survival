@@ -91,6 +91,7 @@ class OrderServiceTest {
         assertThat(response.getExecutedPrice()).isEqualByComparingTo("4400.00");
         assertThat(response.getTotalAmount()).isEqualByComparingTo("13200.00");
         assertThat(response.getRealizedPnl()).isEqualByComparingTo("0.00");
+        assertThat(product.getCurrentPrice()).isEqualByComparingTo("4400.00");
         assertThat(product.getLastPurchasedAt()).isNotNull();
         assertThat(company.getCash()).isEqualByComparingTo("86800.00");
         verify(saleRepository).save(any(Sale.class));
@@ -147,6 +148,7 @@ class OrderServiceTest {
         assertThat(response.getSide()).isEqualTo(OrderSide.SELL);
         assertThat(response.getTotalAmount()).isEqualByComparingTo("8800.00");
         assertThat(response.getRealizedPnl()).isEqualByComparingTo("800.00");
+        assertThat(product.getCurrentPrice()).isEqualByComparingTo("4400.00");
         assertThat(company.getCash()).isEqualByComparingTo("18800.00");
         assertThat(company.getRealizedPnl()).isEqualByComparingTo("800.00");
         assertThat(holding.getQuantity()).isEqualTo(3);

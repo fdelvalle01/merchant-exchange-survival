@@ -36,12 +36,22 @@ game:
     enabled: ${GAME_MARKET_ENGINE_ENABLED:true}
     update-rate-millis: ${GAME_MARKET_ENGINE_UPDATE_RATE_MILLIS:30000}
     pressure-lookback-seconds: ${GAME_MARKET_ENGINE_PRESSURE_LOOKBACK_SECONDS:60}
-    buy-impact-factor: ${GAME_MARKET_ENGINE_BUY_IMPACT_FACTOR:0.002}
-    sell-impact-factor: ${GAME_MARKET_ENGINE_SELL_IMPACT_FACTOR:0.0025}
-    max-pressure-impact-pct: ${GAME_MARKET_ENGINE_MAX_PRESSURE_IMPACT_PCT:0.08}
-    reversion-rate-pct: ${GAME_MARKET_ENGINE_REVERSION_RATE_PCT:0.01}
+    min-pressure-threshold: ${GAME_MARKET_ENGINE_MIN_PRESSURE_THRESHOLD:5}
+    default-liquidity-depth: ${GAME_MARKET_ENGINE_DEFAULT_LIQUIDITY_DEPTH:100}
+    buy-impact-factor: ${GAME_MARKET_ENGINE_BUY_IMPACT_FACTOR:0.001}
+    sell-impact-factor: ${GAME_MARKET_ENGINE_SELL_IMPACT_FACTOR:0.0015}
+    max-pressure-impact-pct: ${GAME_MARKET_ENGINE_MAX_PRESSURE_IMPACT_PCT:0.04}
+    reversion-rate-pct: ${GAME_MARKET_ENGINE_REVERSION_RATE_PCT:0.005}
+    reversion-enabled: ${GAME_MARKET_ENGINE_REVERSION_ENABLED:true}
     min-price-multiplier: ${GAME_MARKET_ENGINE_MIN_PRICE_MULTIPLIER:0.20}
     max-price-multiplier: ${GAME_MARKET_ENGINE_MAX_PRICE_MULTIPLIER:5.00}
+  survival:
+    daily-burn-rate: ${GAME_SURVIVAL_DAILY_BURN_RATE:500}
+    debt-daily-interest-pct: ${GAME_SURVIVAL_DEBT_DAILY_INTEREST_PCT:0.001}
+    random-event-on-end-day-enabled: ${GAME_SURVIVAL_RANDOM_EVENT_ON_END_DAY_ENABLED:true}
+    random-event-chance: ${GAME_SURVIVAL_RANDOM_EVENT_CHANCE:0.35}
+    forced-liquidation-enabled: ${GAME_SURVIVAL_FORCED_LIQUIDATION_ENABLED:false}
+    forced-liquidation-discount-pct: ${GAME_SURVIVAL_FORCED_LIQUIDATION_DISCOUNT_PCT:0.10}
 
 logging:
   level:

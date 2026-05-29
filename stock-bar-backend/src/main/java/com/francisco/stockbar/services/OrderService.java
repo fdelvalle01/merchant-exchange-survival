@@ -9,6 +9,7 @@ import com.francisco.stockbar.model.MarketOrder;
 import com.francisco.stockbar.model.OrderSide;
 import com.francisco.stockbar.model.OrderStatus;
 import com.francisco.stockbar.model.PlayerCompany;
+import com.francisco.stockbar.model.PlayerCompanyStatus;
 import com.francisco.stockbar.model.Product;
 import com.francisco.stockbar.model.Sale;
 import com.francisco.stockbar.repository.HoldingRepository;
@@ -56,6 +57,10 @@ public class OrderService {
         }
 
         PlayerCompany company = playerCompanyService.getOrCreateCompanyForCurrentUser();
+        if (company.getStatus() != null && company.getStatus() != PlayerCompanyStatus.ACTIVE) {
+            throw new ApiException(HttpStatus.CONFLICT, "Trading disabled: company is " + company.getStatus() + ".");
+        }
+
         MarketOrder order = switch (request.getSide()) {
             case BUY -> fillBuyOrder(company, product, request.getQuantity(), executedPrice);
             case SELL -> fillSellOrder(company, product, request.getQuantity(), executedPrice);

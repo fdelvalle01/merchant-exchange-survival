@@ -1,5 +1,7 @@
 import { apiClient } from "./apiClient";
 
+export type PlayerCompanyStatus = "ACTIVE" | "BANKRUPT" | "VICTORIOUS";
+
 export type PlayerCompanyResponse = {
   id: number;
   username: string;
@@ -11,6 +13,15 @@ export type PlayerCompanyResponse = {
   portfolioValue?: number;
   reputation: number;
   riskLevel: string;
+  gameDay?: number;
+  status?: PlayerCompanyStatus | string;
+  dailyBurnRate?: number;
+  cashRunwayDays?: number;
+  criticalDays?: number;
+  victoryTarget?: number;
+  bankruptcyReason?: string | null;
+  victoryMessage?: string | null;
+  lastDayProcessedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };

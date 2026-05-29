@@ -83,6 +83,7 @@ export default function TradingDesktop() {
   } = useLocalOrders(canUseOrders);
   const {
     events: marketEvents,
+    refreshMarketEvents,
     addMarketEvent,
     clearMarketEvents
   } = useMarketEvents();
@@ -119,7 +120,14 @@ export default function TradingDesktop() {
   );
   const isLiveData = feedMode === "products-api";
   const refreshTradingState = async () => {
-    await Promise.all([refreshProducts(), refreshCompany(), refreshPortfolio(), refreshOrders(), refreshNews()]);
+    await Promise.all([
+      refreshProducts(),
+      refreshCompany(),
+      refreshPortfolio(),
+      refreshOrders(),
+      refreshNews(),
+      refreshMarketEvents()
+    ]);
   };
   const openAllowedWindow = (appId: DesktopAppId) => {
     if (!canOpenDesktopApp(appId, currentUser.roles)) return;
@@ -170,6 +178,7 @@ export default function TradingDesktop() {
           onPortfolioChanged={refreshPortfolio}
           onOrdersChanged={refreshOrders}
           onNewsChanged={refreshNews}
+          onMarketEventsChanged={refreshMarketEvents}
           localOrders={orders}
           addFilledOrder={addFilledOrder}
           addRejectedOrder={addRejectedOrder}

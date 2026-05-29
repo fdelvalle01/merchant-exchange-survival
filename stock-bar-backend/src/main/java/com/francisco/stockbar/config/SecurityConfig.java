@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/market-events", "/api/market-events/**").hasAnyRole("VIEWER", "TRADER", "ADMIN_BAR")
                         .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**").hasAnyRole("VIEWER", "TRADER", "ADMIN_BAR")
                         .requestMatchers(HttpMethod.GET, "/api/company/me", "/api/portfolio").hasAnyRole("VIEWER", "TRADER", "ADMIN_BAR")
+                        .requestMatchers(HttpMethod.GET, "/api/game/state").hasAnyRole("TRADER", "ADMIN_BAR")
+                        .requestMatchers(HttpMethod.POST, "/api/game/end-day").hasAnyRole("TRADER", "ADMIN_BAR")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasAnyRole("TRADER", "ADMIN_BAR")
                         .requestMatchers(HttpMethod.GET, "/api/orders", "/api/orders/**").hasAnyRole("TRADER", "ADMIN_BAR")
                         .requestMatchers(HttpMethod.POST, "/api/sales").hasAnyRole("TRADER", "ADMIN_BAR")

@@ -24,6 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,6 +85,20 @@ class MarketEngineServiceTest {
     }
 
     @Test
+    void buyPressureBelowThresholdDoesNotMovePrice() {
+        Product product = product("Ironhill Mines", "100.00", "100.00");
+        when(productRepository.findAll()).thenReturn(List.of(product));
+        stubPressure(product, 1L, 0L);
+
+        marketEngineService.runMarketTick();
+
+        assertThat(product.getCurrentPrice()).isEqualByComparingTo("100.00");
+        verify(productRepository, never()).save(any(Product.class));
+        verify(priceHistoryRepository, never()).save(any(PriceHistory.class));
+        verify(marketEventRepository, never()).save(any(MarketEvent.class));
+    }
+
+    @Test
     void reversionRaisesAssetBelowBasePrice() {
         Product product = product("Royal Grain Company", "100.00", "80.00");
         when(productRepository.findAll()).thenReturn(List.of(product));
@@ -124,6 +139,7 @@ class MarketEngineServiceTest {
 
     @Test
     void priceDoesNotExceedMaxMultiplier() {
+        configureExtremePressure();
         Product product = product("Northwind Logistics", "100.00", "490.00");
         when(productRepository.findAll()).thenReturn(List.of(product));
         stubPressure(product, 1000L, 0L);
@@ -136,6 +152,7 @@ class MarketEngineServiceTest {
 
     @Test
     void priceDoesNotFallBelowMinMultiplier() {
+        configureExtremePressure();
         Product product = product("Old Dragon Brewery", "100.00", "20.00");
         when(productRepository.findAll()).thenReturn(List.of(product));
         stubPressure(product, 0L, 1000L);
@@ -143,6 +160,14 @@ class MarketEngineServiceTest {
         marketEngineService.runMarketTick();
 
         assertThat(product.getCurrentPrice()).isEqualByComparingTo("20.00");
+    }
+
+    private void configureExtremePressure() {
+        properties.setDefaultLiquidityDepth(BigDecimal.ONE);
+        properties.setBuyImpactFactor(BigDecimal.ONE);
+        properties.setSellImpactFactor(BigDecimal.ONE);
+        properties.setMaxPressureImpactPct(BigDecimal.ONE);
+        properties.setReversionEnabled(false);
     }
 
     private void stubPressure(Product product, long buyQuantity, long sellQuantity) {

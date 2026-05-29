@@ -10,21 +10,18 @@ export function useMarketEvents() {
   const eventSequence = useRef(1);
   const [events, setEvents] = useState<MarketEvent[]>([]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    getMarketEvents()
-      .then((backendEvents) => {
-        if (isMounted) setEvents(backendEvents);
-      })
-      .catch((error) => {
-        console.error("Market events load failed", error);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+  const refreshMarketEvents = useCallback(async () => {
+    try {
+      const backendEvents = await getMarketEvents();
+      setEvents(backendEvents);
+    } catch (error) {
+      console.error("Market events load failed", error);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshMarketEvents();
+  }, [refreshMarketEvents]);
 
   const addMarketEvent = useCallback((eventData: MarketEventDraft) => {
     const nextEvent: MarketEvent = {
@@ -49,6 +46,7 @@ export function useMarketEvents() {
 
   return {
     events,
+    refreshMarketEvents,
     addMarketEvent,
     clearMarketEvents
   };

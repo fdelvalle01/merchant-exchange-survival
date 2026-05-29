@@ -29,6 +29,7 @@ type WorkspaceProps = {
   onPortfolioChanged: () => void | Promise<void>;
   onOrdersChanged: () => void | Promise<void>;
   onNewsChanged: () => void | Promise<void>;
+  onMarketEventsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
@@ -71,6 +72,7 @@ export default function Workspace({
   onPortfolioChanged,
   onOrdersChanged,
   onNewsChanged,
+  onMarketEventsChanged,
   localOrders,
   addFilledOrder,
   addRejectedOrder,
@@ -163,6 +165,7 @@ export default function Workspace({
               onPortfolioChanged={onPortfolioChanged}
               onOrdersChanged={onOrdersChanged}
               onNewsChanged={onNewsChanged}
+              onMarketEventsChanged={onMarketEventsChanged}
               localOrders={localOrders}
               addFilledOrder={addFilledOrder}
               addRejectedOrder={addRejectedOrder}

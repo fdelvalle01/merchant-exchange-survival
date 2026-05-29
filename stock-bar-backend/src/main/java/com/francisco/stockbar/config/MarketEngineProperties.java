@@ -16,10 +16,13 @@ public class MarketEngineProperties {
     private boolean enabled = true;
     private long updateRateMillis = 30000;
     private long pressureLookbackSeconds = 60;
-    private BigDecimal buyImpactFactor = BigDecimal.valueOf(0.002);
-    private BigDecimal sellImpactFactor = BigDecimal.valueOf(0.0025);
-    private BigDecimal maxPressureImpactPct = BigDecimal.valueOf(0.08);
-    private BigDecimal reversionRatePct = BigDecimal.valueOf(0.01);
+    private long minPressureThreshold = 5;
+    private BigDecimal defaultLiquidityDepth = BigDecimal.valueOf(100);
+    private BigDecimal buyImpactFactor = BigDecimal.valueOf(0.001);
+    private BigDecimal sellImpactFactor = BigDecimal.valueOf(0.0015);
+    private BigDecimal maxPressureImpactPct = BigDecimal.valueOf(0.04);
+    private BigDecimal reversionRatePct = BigDecimal.valueOf(0.005);
+    private boolean reversionEnabled = true;
     private BigDecimal minPriceMultiplier = BigDecimal.valueOf(0.20);
     private BigDecimal maxPriceMultiplier = BigDecimal.valueOf(5.00);
 }
