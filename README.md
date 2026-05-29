@@ -1,25 +1,34 @@
 # Merchant Exchange Survival
 
-**Merchant Exchange Survival** is a full-stack economic survival game built on top of a trading desktop architecture.
+**Merchant Exchange Survival** is a full-stack economic survival game built as a desktop-style trading platform.
 
-The player controls a merchant company in a medieval/fantasy market world. The goal is to survive, grow and become wealthy by buying and selling fictional assets, managing cash, building a portfolio, reacting to world news, and handling financial risk.
+The player controls a merchant company in a medieval/fantasy market. The goal is to survive market shocks, grow the company, manage risk, and profit from fictional assets through buying, selling, portfolio management, world news, and game master events.
+
+## Current Version
+
+The project now includes the complete playable foundation:
+
+- Phase 1: Merchant Exchange Survival branding and fictional fantasy assets.
+- Phase 2: Player company, cash, holdings, portfolio, and company dashboard.
+- Phase 3: Real BUY/SELL orders, MarketOrder history, realized P/L, and portfolio updates.
+- Phase 4: Guild Herald world news, price impact events, risk system, and notifications.
+- Phase 4.2: Better personal news semantics such as `BENEFITS YOU`, `HURTS YOU`, `BOUGHT THE DIP`, and `BOUGHT AFTER RALLY`.
+- UX polish: portfolio holdings can select the global asset for fast selling through Investment Ticket.
+- Auth polish: custom frontend login screen and custom Keycloak login theme using the project logo.
 
 ## Screenshots
 
 ### Login
 
 ![Login](docs/images/login.png)
-![Login](docs/images/login_data.png)
+![Login Data](docs/images/login_data.png)
+
 ### Trading News
 
-![Trading Desktop](docs/images/trading-news.png)
-![Trading Desktop](docs/images/news_critical.png)
+![Trading News](docs/images/trading-news.png)
+![Critical News](docs/images/news_critical.png)
 
-<!-- ### Trading Desktop -->
-
-<!-- ![Trading Desktop](docs/images/trading-desktop.png) -->
-
-<!-- ### Admin Market Controls -->
+### Admin Market Controls
 
 ![Admin Market Controls](docs/images/admin-market-controls.png)
 
@@ -29,173 +38,131 @@ The player controls a merchant company in a medieval/fantasy market world. The g
 - [REQ-001 Trading Desktop](docs/REQ-001-trading-desktop.md)
 - [REQ-007 Keycloak](docs/REQ-007-keycloak.md)
 - [REQ-008 Docker Compose](docs/REQ-008-docker-compose.md)
+- [Codex Project Memory](docs/CODEX_PROJECT_MEMORY.md)
 
-
-The project combines:
-
-* A desktop-style trading UI.
-* Movable internal game windows.
-* Fictional market assets.
-* Player company economy.
-* Buy/Sell orders.
-* Portfolio and holdings.
-* Realized and unrealized P/L.
-* World news events.
-* Risk system.
-* Admin/Game Master controls.
-* Keycloak authentication.
-* PostgreSQL persistence.
-* Docker Compose local demo stack.
-
-## Concept
+## Gameplay Concept
 
 Merchant Exchange Survival turns a trading terminal into a strategy/survival game.
 
-Instead of trading beers or real stocks, the player trades fictional medieval/fantasy assets such as mines, ports, banks, merchant guilds and research houses.
+Instead of trading real stocks, the player trades fictional medieval/fantasy assets:
 
-Example assets:
+- Ironhill Mines
+- Black Harbor Shipping
+- Silvercrown Bank
+- Northwind Logistics
+- Royal Grain Company
+- Arcane Research Guild
+- Old Dragon Brewery
 
-* Ironhill Mines
-* Black Harbor Shipping
-* Silvercrown Bank
-* Northwind Logistics
-* Royal Grain Company
-* Arcane Research Guild
-* Old Dragon Brewery
-
-The gameplay loop is:
+Core gameplay loop:
 
 ```txt
-Buy assets
-      ↓
-World news changes the market
-      ↓
-Prices move up or down
-      ↓
-Portfolio value changes
-      ↓
-Risk level changes
-      ↓
-Sell, hold, buy more or survive the crisis
-```
-
-## Current Status
-
-Implemented phases:
-
-* Phase 1: Merchant Exchange Survival rebranding.
-* Phase 2: Player company, cash and portfolio.
-* Phase 3: Buy/Sell orders and realized P/L.
-* Phase 4: World News + Risk System.
-
-The application already supports:
-
-* Login with Keycloak.
-* Role-based access.
-* Asset market board.
-* Player company dashboard.
-* Portfolio window.
-* Investment ticket with BUY and SELL.
-* Trade history.
-* Guild Herald news feed.
-* World events that affect prices.
-* Game Master controls for admin users.
-* Price history.
-* Company value, portfolio value, realized P/L and unrealized P/L.
-
-## Screenshots
-
-> Add updated screenshots here after capturing the new UI.
-
-```txt
-docs/images/login.png
-docs/images/merchant-command-desk.png
-docs/images/company-dashboard.png
-docs/images/guild-herald.png
-docs/images/game-master-controls.png
+Select an asset
+    -> Buy or sell through Investment Ticket
+    -> World news changes market conditions
+    -> Prices move and PriceHistory is saved
+    -> Portfolio value and P/L change
+    -> Company value and risk level update
+    -> Player reacts: sell, hold, buy more, or survive
 ```
 
 ## Main Features
 
-### Trading Desktop UI
+### Trading Desktop
 
-The frontend works like a small desktop operating system for market/game apps.
+The frontend behaves like a small game operating system. Apps open inside movable, focusable, minimizable desktop windows.
 
-Internal apps can be opened, moved, focused, minimized and closed.
+Current apps:
 
-Current desktop apps:
+| App | Description |
+| --- | --- |
+| Market Board | Shows fictional assets, prices, trends, and quick actions |
+| Asset Detail | Shows the selected asset and price history |
+| Investment Ticket | Sends real BUY and SELL orders |
+| Portfolio | Shows holdings, average price, market value, and unrealized P/L |
+| Company Dashboard | Shows cash, company value, portfolio value, P/L, risk, and portfolio snapshot |
+| Trade History | Shows executed BUY and SELL orders |
+| Guild Herald | Shows immersive world news that move the market |
+| Game Master Controls | Lets admin users trigger world events and market actions |
 
-| App                  | Description                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| Market Board         | Shows fictional assets, current prices, trends and signals                              |
-| Asset Detail         | Shows selected asset data and price history                                             |
-| Investment Ticket    | Allows BUY and SELL orders                                                              |
-| Portfolio            | Shows holdings, average price, market value and unrealized P/L                          |
-| Company Dashboard    | Shows cash, company value, portfolio value, realized P/L, unrealized P/L and risk level |
-| Trade History        | Shows executed BUY and SELL orders                                                      |
-| Guild Herald         | Shows world news that affect the market                                                 |
-| Game Master Controls | Allows admin users to trigger market actions and world events                           |
+The selected asset is global. Selecting an asset from Market Board, Portfolio, or Company Dashboard updates:
+
+- Investment Ticket
+- Asset Detail
+- Admin controls where relevant
+
+This makes portfolio-driven selling fast: click a holding, then use Investment Ticket.
 
 ### Player Company Economy
 
-Each authenticated user can have a player company.
+Each authenticated user has a player company.
 
-The company has:
+The company tracks:
 
-* Cash
-* Debt
-* Company value
-* Portfolio value
-* Realized P/L
-* Unrealized P/L
-* Reputation
-* Risk level
+- Cash
+- Debt
+- Company value
+- Portfolio value
+- Realized P/L
+- Unrealized P/L
+- Reputation
+- Risk level
 
-When a player buys an asset:
+BUY flow:
 
 ```txt
-Cash decreases
-Holding quantity increases
-Average price is recalculated
-Order is stored
-Portfolio is updated
+Validate asset and quantity
+Validate enough cash
+Decrease cash
+Create or update Holding
+Recalculate weighted average price
+Create MarketOrder
+Register MarketEvent ORDER_BUY_FILLED
+Refresh company value
 ```
 
-When a player sells an asset:
+SELL flow:
 
 ```txt
-Cash increases
-Holding quantity decreases
-Realized P/L is calculated
-Order is stored
-Portfolio is updated
+Validate asset and quantity
+Validate holding exists
+Validate enough quantity
+Increase cash
+Reduce or remove Holding
+Calculate realized P/L
+Accumulate PlayerCompany.realizedPnl
+Create MarketOrder
+Register MarketEvent ORDER_SELL_FILLED
+Refresh company value
 ```
 
 ### Portfolio System
 
-The portfolio tracks all player holdings.
+Portfolio holdings include:
 
-Each holding includes:
+- Asset id and name
+- Quantity
+- Average price
+- Current price
+- Market value
+- Unrealized P/L
+- Unrealized P/L %
+- Holding createdAt/updatedAt timestamps
 
-* Asset
-* Quantity
-* Average price
-* Current price
-* Market value
-* Unrealized P/L
-* Unrealized P/L %
+Positions with zero quantity are not shown.
 
-Positions with zero quantity are not displayed.
+Portfolio rows and Company Dashboard snapshot rows are clickable. They select the asset globally, so Investment Ticket and Asset Detail update automatically.
 
-### Buy/Sell Trading Flow
+### Orders And Trade History
 
-The main trading endpoint uses orders.
+Main trading endpoint:
 
 ```http
 POST /api/orders
+GET /api/orders
 ```
 
-Example BUY request:
+Order request:
 
 ```json
 {
@@ -205,17 +172,7 @@ Example BUY request:
 }
 ```
 
-Example SELL request:
-
-```json
-{
-  "assetId": 1,
-  "side": "SELL",
-  "quantity": 2
-}
-```
-
-Example response:
+Order response:
 
 ```json
 {
@@ -233,286 +190,27 @@ Example response:
 }
 ```
 
-Validation examples:
+Validation:
 
-* BUY is rejected if the company does not have enough cash.
-* SELL is rejected if the company does not own enough quantity.
-* Orders are executed at the current market price.
+- BUY rejects insufficient cash with conflict.
+- SELL rejects missing holdings.
+- SELL rejects selling more than owned.
+- Orders execute at current market price.
 
-### World News System
-
-The game includes a world news system through the **Guild Herald** app.
-
-World news events are not just technical logs. They are gameplay events that affect the market.
-
-Examples:
-
-| Event           | Possible Effect                           |
-| --------------- | ----------------------------------------- |
-| Royal Contract  | Positive impact on one asset              |
-| Mining Accident | Negative impact on mining assets          |
-| Port Blockade   | Negative impact on shipping assets        |
-| Banking Crisis  | Negative impact on finance/banking assets |
-| Harvest Boom    | Positive impact on grain/food assets      |
-| Plague Outbreak | Negative impact on several assets         |
-| War Rumors      | Mixed impact across sectors               |
-| Magic Discovery | Positive impact on arcane/research assets |
-
-Gameplay flow:
-
-```txt
-World event generated
-      ↓
-News appears in Guild Herald
-      ↓
-Affected asset prices change
-      ↓
-Price history is stored
-      ↓
-Portfolio P/L changes
-      ↓
-Company risk is recalculated
-```
-
-### Risk System
-
-The player company has a risk level that is recalculated from its financial situation.
-
-The system considers:
-
-* Cash
-* Debt
-* Portfolio value
-* Company value
-* Unrealized P/L
-* Portfolio exposure
-
-Risk levels:
-
-* LOW
-* MEDIUM
-* HIGH
-* CRITICAL
-
-### Game Master Controls
-
-Admin users can manually trigger gameplay events and market actions.
-
-Available admin actions include:
-
-* Generate random world event
-* Trigger Royal Contract
-* Trigger Mining Accident
-* Trigger Port Blockade
-* Trigger Banking Crisis
-* Trigger Harvest Boom
-* Trigger Plague Outbreak
-* Trigger War Rumors
-* Trigger Magic Discovery
-* Simulate market boom
-* Simulate market crash
-* Reset market
-
-## Tech Stack
-
-### Frontend
-
-* React
-* TypeScript
-* Vite
-* TailwindCSS
-* Axios
-* Keycloak JS
-* React RND
-* Recharts
-
-### Backend
-
-* Java
-* Spring Boot
-* Spring Security
-* OAuth2 Resource Server
-* Spring Data JPA
-* PostgreSQL
-* OpenAPI / Swagger
-
-### Infrastructure
-
-* Docker
-* Docker Compose
-* Keycloak
-* PostgreSQL
-
-## Architecture
-
-```txt
-React Trading Desktop
-        |
-        v
-Keycloak Login
-        |
-        v
-Axios with Bearer Token
-        |
-        v
-Spring Boot API
-        |
-        v
-PostgreSQL
-```
-
-Gameplay architecture:
-
-```txt
-Player
-  |
-  v
-Merchant Command Desk
-  |
-  +--> Market Board
-  +--> Investment Ticket
-  +--> Portfolio
-  +--> Company Dashboard
-  +--> Trade History
-  +--> Guild Herald
-  +--> Game Master Controls
-        |
-        v
-Spring Boot Game API
-  |
-  +--> PlayerCompanyService
-  +--> PortfolioService
-  +--> OrderService
-  +--> WorldEventService
-  +--> AdminMarketService
-  +--> PriceHistory
-  +--> WorldNews
-  |
-  v
-PostgreSQL
-```
-
-## Domain Model
-
-Main backend entities:
-
-| Entity          | Description                                  |
-| --------------- | -------------------------------------------- |
-| Product / Asset | Tradable fictional market asset              |
-| PlayerCompany   | Player-controlled merchant company           |
-| Holding         | Player position in an asset                  |
-| MarketOrder     | BUY or SELL order                            |
-| WorldNewsItem   | Gameplay news item generated by world events |
-| PriceHistory    | Historical asset price points                |
-| MarketEvent     | Technical/audit market event                 |
-| Sale            | Legacy-compatible buy wrapper                |
-
-## Main API Endpoints
-
-### Authentication / User
-
-```http
-GET /api/me
-```
-
-### Assets
-
-```http
-GET /api/products
-GET /api/products/detailed
-GET /api/products/board
-POST /api/products
-```
-
-### Player Company
-
-```http
-GET /api/company/me
-```
-
-Returns company economy data such as:
-
-* Cash
-* Debt
-* Company value
-* Portfolio value
-* Realized P/L
-* Unrealized P/L
-* Reputation
-* Risk level
-
-### Portfolio
-
-```http
-GET /api/portfolio
-```
-
-Returns current player holdings.
-
-Example response:
-
-```json
-[
-  {
-    "assetId": 1,
-    "assetName": "Ironhill Mines",
-    "quantity": 5,
-    "averagePrice": 5100,
-    "currentPrice": 5228,
-    "marketValue": 26140,
-    "unrealizedPnl": 640,
-    "unrealizedPnlPercent": 2.51
-  }
-]
-```
-
-### Orders
-
-```http
-POST /api/orders
-GET /api/orders
-```
-
-Supports:
-
-* BUY
-* SELL
-* Realized P/L on SELL
-* Cash updates
-* Holding updates
-
-### Legacy Sales Compatibility
+Legacy sales endpoints remain available for compatibility, but the main gameplay flow uses MarketOrder:
 
 ```http
 POST /api/sales
 GET /api/sales
 ```
 
-The sales endpoint remains available as a compatibility wrapper, but the main gameplay trading flow uses `/api/orders`.
+### Guild Herald And World News
 
-### News
+World events are exposed as immersive news, not technical logs.
 
-```http
-GET /api/news
-GET /api/news/latest
-```
+The visible player layer is **Guild Herald**.
 
-Used by the Guild Herald and notification system.
-
-### Admin / Game Master
-
-```http
-POST /api/admin/events/random
-POST /api/admin/events/{type}
-POST /api/admin/market/crash
-POST /api/admin/market/boom
-POST /api/admin/market/reset
-POST /api/admin/products/{id}/price/up
-POST /api/admin/products/{id}/price/down
-POST /api/admin/products/{id}/reset
-```
-
-Supported world event types:
+Supported event types:
 
 ```txt
 ROYAL_CONTRACT
@@ -525,39 +223,278 @@ WAR_RUMORS
 MAGIC_DISCOVERY
 ```
 
-### Price History
+News flow:
+
+```txt
+Admin or scheduler triggers world event
+    -> A WorldNewsItem is created
+    -> Affected asset or sector prices change
+    -> PriceHistory is saved
+    -> Market Board reflects new prices
+    -> Portfolio unrealized P/L changes
+    -> Company risk updates on company read
+    -> Toast notification appears
+```
+
+Guild Herald filters:
+
+- All
+- My Portfolio
+- Positive
+- Negative
+- Critical
+
+Personal news semantics:
+
+| Direction and timing | Badge | Hint |
+| --- | --- | --- |
+| Positive while holding | `BENEFITS YOU` | Your holdings may benefit from this event. |
+| Negative while holding | `HURTS YOU` | Your holdings may be hit by this event. |
+| Mixed while holding | `AFFECTS YOU` | Your holdings are exposed to market volatility. |
+| Neutral while holding | `WATCH` | This news is related to your holdings. |
+| Positive before entry | `BOUGHT AFTER RALLY` | You entered this position after the price move. |
+| Negative before entry | `BOUGHT THE DIP` | You entered this position after the initial drop. |
+| Mixed before entry | `POST-EVENT ENTRY` | You opened this position after this news was priced in. |
+| Neutral before entry | `RELATED POSITION` | This older news is related to your current holdings. |
+
+Mixed events are displayed as market volatility, not as a simple up/down move.
+
+### Risk System
+
+Company risk is recalculated from financial state.
+
+Inputs include:
+
+- Cash
+- Debt
+- Company value
+- Portfolio value
+- Cost basis
+- Unrealized P/L
+- Portfolio exposure
+
+Risk levels:
+
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
+
+Company Dashboard also shows visual risk alerts:
+
+- Low cash
+- High concentration
+- Negative unrealized P/L
+- Critical risk
+
+### Game Master Controls
+
+Admin users can trigger:
+
+- Random world event
+- Specific world events
+- Market boom
+- Market crash
+- Market reset
+- Product price up/down/reset
+
+After admin events, the frontend refreshes:
+
+- Assets
+- News
+- Company
+- Portfolio
+
+## Authentication
+
+Authentication uses Keycloak through the existing OIDC flow. The frontend does not manually call token endpoints for normal login.
+
+Visible auth experience:
+
+- Custom frontend pre-login screen with Merchant Exchange Survival branding.
+- Custom Keycloak login theme mounted from Docker.
+- Same standard Keycloak username/password form.
+- Same realm, clients, roles, and demo users.
+
+Keycloak theme location:
+
+```txt
+docker/keycloak/themes/merchant-exchange/login
+```
+
+The theme uses:
+
+```txt
+docker/keycloak/themes/merchant-exchange/login/resources/img/merchant-logo.png
+```
+
+Frontend login screen uses:
+
+```txt
+stock-bar-frontend/public/branding/merchant-logo.png
+```
+
+Roles:
+
+| Role | Description |
+| --- | --- |
+| `VIEWER` | Read-only market user |
+| `TRADER` | Can trade and view portfolio/orders |
+| `ADMIN_BAR` | Game Master / admin role |
+
+Role access:
+
+| Role | Market | Detail | Ticket | Portfolio | Company | Herald | Orders | Game Master |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `VIEWER` | Yes | Yes | No | No | No | Yes | No | No |
+| `TRADER` | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No |
+| `ADMIN_BAR` | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+
+Demo users:
+
+| User | Password | Role |
+| --- | --- | --- |
+| `viewer` | `viewer` | `VIEWER` |
+| `trader` | `trader` | `TRADER` |
+| `admin` | `admin` | `ADMIN_BAR` |
+
+## Tech Stack
+
+Frontend:
+
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+- Axios
+- Keycloak JS
+- React RND
+- Recharts
+- React Icons
+
+Backend:
+
+- Java
+- Spring Boot
+- Spring Security
+- OAuth2 Resource Server
+- Spring Data JPA
+- PostgreSQL
+- OpenAPI / Swagger
+
+Infrastructure:
+
+- Docker
+- Docker Compose
+- Keycloak
+- PostgreSQL
+
+## Architecture
+
+```txt
+Browser
+  |
+  v
+React Trading Desktop
+  |
+  +--> Keycloak OIDC login
+  |
+  +--> Axios with Bearer token
+        |
+        v
+Spring Boot API
+  |
+  +--> Product / Asset
+  +--> PlayerCompany
+  +--> Holding
+  +--> MarketOrder
+  +--> WorldNewsItem
+  +--> PriceHistory
+  +--> MarketEvent
+        |
+        v
+PostgreSQL
+```
+
+Main backend services:
+
+- `PlayerCompanyService`
+- `PortfolioService`
+- `OrderService`
+- `WorldEventService`
+- `AdminMarketService`
+
+## Main API Endpoints
+
+Authentication/user:
+
+```http
+GET /api/me
+```
+
+Assets:
+
+```http
+GET /api/products
+GET /api/products/detailed
+GET /api/products/board
+POST /api/products
+```
+
+Company:
+
+```http
+GET /api/company/me
+```
+
+Portfolio:
+
+```http
+GET /api/portfolio
+```
+
+Orders:
+
+```http
+POST /api/orders
+GET /api/orders
+```
+
+News:
+
+```http
+GET /api/news
+GET /api/news/latest
+```
+
+Admin / Game Master:
+
+```http
+POST /api/admin/events/random
+POST /api/admin/events/{type}
+POST /api/admin/market/crash
+POST /api/admin/market/boom
+POST /api/admin/market/reset
+POST /api/admin/products/{id}/price/up
+POST /api/admin/products/{id}/price/down
+POST /api/admin/products/{id}/reset
+```
+
+Price history:
 
 ```http
 GET /api/price-history?productId=1&limit=80
 ```
 
-### Technical Market Events
+Technical market events:
 
 ```http
 GET /api/market-events?limit=100
 ```
 
-## Authentication And Authorization
-
-The system uses Keycloak for authentication and role-based authorization.
-
-Available roles:
-
-* `VIEWER`
-* `TRADER`
-* `ADMIN_BAR`
-
-Role behavior:
-
-| Role        | Market | Asset Detail | Investment Ticket | Portfolio | Company Dashboard | Guild Herald | Trade History | Game Master |
-| ----------- | -----: | -----------: | ----------------: | --------: | ----------------: | -----------: | ------------: | ----------: |
-| `VIEWER`    |    Yes |          Yes |                No |        No |                No |          Yes |            No |          No |
-| `TRADER`    |    Yes |          Yes |               Yes |       Yes |               Yes |          Yes |           Yes |          No |
-| `ADMIN_BAR` |    Yes |          Yes |               Yes |       Yes |               Yes |          Yes |           Yes |         Yes |
-
 ## Docker Compose
 
-Run the full local demo stack:
+Run the complete local stack:
 
 ```bash
 docker compose up -d --build
@@ -575,43 +512,37 @@ Stop and remove volumes:
 docker compose down -v
 ```
 
-Use a clean start when changing the Keycloak realm or seed data:
+Use a clean start when changing seeded data or doing a fresh Keycloak realm import:
 
 ```bash
 docker compose down -v
 docker compose up -d --build
 ```
 
+Note: Keycloak skips realm import if the realm already exists in the volume. The Compose stack includes a small `keycloak-config` service that applies the custom login theme idempotently to existing realms.
+
 ## Local URLs
 
-| Service                | URL                                           |
-| ---------------------- | --------------------------------------------- |
-| Frontend               | `http://localhost:5173`                       |
-| Backend API            | `http://localhost:8080`                       |
-| Swagger / OpenAPI      | `http://localhost:8080/swagger-ui/index.html` |
-| OpenAPI JSON           | `http://localhost:8080/v3/api-docs`           |
-| Keycloak               | `http://localhost:8081`                       |
-| Keycloak Admin Console | `http://localhost:8081/admin`                 |
-| PostgreSQL             | `localhost:5432`                              |
-
-## Test Users
-
-| User     | Password | Role        |
-| -------- | -------- | ----------- |
-| `viewer` | `viewer` | `VIEWER`    |
-| `trader` | `trader` | `TRADER`    |
-| `admin`  | `admin`  | `ADMIN_BAR` |
+| Service | URL |
+| --- | --- |
+| Frontend | `http://localhost:5173` |
+| Backend API | `http://localhost:8080` |
+| Swagger / OpenAPI | `http://localhost:8080/swagger-ui/index.html` |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+| Keycloak | `http://localhost:8081` |
+| Keycloak Admin Console | `http://localhost:8081/admin` |
+| PostgreSQL | `localhost:5432` |
 
 ## Local Development
 
-### Backend
+Backend:
 
 ```bash
 cd stock-bar-backend
 mvn spring-boot:run
 ```
 
-### Frontend
+Frontend:
 
 ```bash
 cd stock-bar-frontend
@@ -619,11 +550,7 @@ npm install
 npm run dev
 ```
 
-### Keycloak Configuration
-
-The Docker Compose demo uses Keycloak on port `8081`.
-
-Frontend variables:
+Keycloak variables:
 
 ```env
 VITE_KEYCLOAK_URL=http://localhost:8081
@@ -631,15 +558,14 @@ VITE_KEYCLOAK_REALM=stockbar
 VITE_KEYCLOAK_CLIENT_ID=stockbar-frontend
 ```
 
-> Note: The internal Keycloak realm/client names may still use `stockbar` for compatibility, while the visible product branding is Merchant Exchange Survival.
+The internal Keycloak realm/client names still use `stockbar` for compatibility. Visible branding is Merchant Exchange Survival.
 
-## Validation
+## Validation Commands
 
 Frontend:
 
 ```bash
 cd stock-bar-frontend
-npm install
 npm run build
 ```
 
@@ -648,113 +574,65 @@ Backend:
 ```bash
 cd stock-bar-backend
 mvn test
-mvn clean package
+mvn clean test
 ```
 
 Docker:
 
 ```bash
-docker compose config
+docker compose config --quiet
 docker compose up -d --build
 docker compose ps
 ```
 
 ## Suggested Demo Flow
 
-### Trader Flow
+Trader flow:
 
 1. Open `http://localhost:5173`.
-2. Login as `trader / trader`.
-3. Open Company Dashboard.
-4. Review initial cash, company value and risk level.
-5. Open Market Board.
-6. Select an asset, for example Ironhill Mines.
-7. Open Investment Ticket.
-8. Send a BUY order.
-9. Validate cash decreases.
-10. Open Portfolio.
-11. Validate the new holding appears.
-12. Trigger or wait for a world news event.
-13. Check Guild Herald.
-14. Validate the asset price changed.
-15. Check unrealized P/L and company risk.
-16. Send a SELL order.
-17. Validate cash increases and realized P/L is updated.
+2. Click `Enter Market`.
+3. Login as `trader / trader`.
+4. Open Company Dashboard.
+5. Review cash, company value, portfolio value, and risk alerts.
+6. Open Market Board and select an asset.
+7. Open Investment Ticket and send a BUY order.
+8. Confirm cash decreases and the holding appears in Portfolio.
+9. Click the holding in Portfolio and confirm Investment Ticket updates.
+10. Trigger or wait for Guild Herald news.
+11. Check Market Board, Portfolio P/L, and Company Dashboard risk.
+12. Send a SELL order.
+13. Confirm cash increases and realized P/L updates.
 
-### Admin / Game Master Flow
+Admin flow:
 
 1. Login as `admin / admin`.
 2. Open Game Master Controls.
 3. Generate a random world event.
 4. Trigger a specific event such as Magic Discovery or Port Blockade.
-5. Validate Guild Herald shows the news.
-6. Validate Market Board prices changed.
-7. Validate Price History was updated.
-8. Validate the player portfolio reacts to market movements.
+5. Confirm Guild Herald shows the news.
+6. Confirm Market Board prices changed.
+7. Confirm PriceHistory and portfolio P/L update.
 
 ## Roadmap
 
-Planned next steps:
+Good next candidates:
 
-* Guild Herald filters:
-
-  * All
-  * My Portfolio
-  * Positive
-  * Negative
-  * Critical
-* Better notifications:
-
-  * “Affects you” badge when news impacts owned assets
-  * Portfolio impact summary in toast notifications
-* Risk alerts:
-
-  * Low cash
-  * High concentration
-  * Negative unrealized P/L
-  * Critical risk
-* Order Book visual app:
-
-  * Buy orders
-  * Sell orders
-  * Trades
-* Debt / borrow system
-* Interest and survival pressure
-* Auctions
-* AI competitors / rival guilds
-* WebSocket or SSE market feed
-* Matching engine with real order book
-* Flyway or Liquibase migrations
-* CI/CD pipeline
-* Observability with Prometheus and Grafana
-* Cloud deployment
-
-## Purpose
-
-This project was built as a portfolio project to demonstrate:
-
-* Full-stack architecture
-* Trading-style frontend design
-* Desktop-like web application structure
-* Game economy design
-* Market simulation logic
-* Player portfolio management
-* Buy/Sell trading flows
-* Realized and unrealized P/L calculation
-* World event systems
-* Risk calculation
-* Secure backend APIs
-* Keycloak authentication
-* Role-based access control
-* PostgreSQL persistence
-* Dockerized local environment
-* Clean frontend modularization
-* Spring Boot backend design
+- Order Book visual app.
+- Debt and borrowing system.
+- Interest and survival pressure.
+- Auctions.
+- AI competitors / rival guilds.
+- WebSocket or SSE market feed.
+- Real matching engine with buy/sell order book.
+- Flyway or Liquibase migrations.
+- CI/CD pipeline.
+- Observability with Prometheus and Grafana.
+- Cloud deployment.
 
 ## Project Pitch
 
-**Merchant Exchange Survival** is a full-stack economic survival game where players control a merchant company inside a fictional medieval/fantasy market.
+**Merchant Exchange Survival** is a full-stack economic survival game where players control a merchant company in a medieval/fantasy market.
 
-Players buy and sell assets, manage cash, build a portfolio, react to world news, monitor risk, and try to survive market shocks.
+Players buy and sell fictional assets, manage cash, build a portfolio, react to world news, monitor risk, and try to survive market shocks.
 
-Built with React, TypeScript, Spring Boot, PostgreSQL, Keycloak and Docker Compose.
+Built with React, TypeScript, Spring Boot, PostgreSQL, Keycloak, and Docker Compose.
