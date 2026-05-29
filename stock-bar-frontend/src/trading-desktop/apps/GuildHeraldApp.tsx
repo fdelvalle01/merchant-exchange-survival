@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { FaBolt, FaExclamationTriangle, FaScroll, FaSyncAlt } from "react-icons/fa";
 import { valueClass } from "../marketUtils";
 import {
+  type HoldingImpactMeta,
   holdingImpactCardClass,
   holdingImpactClass,
-  holdingImpactMeta,
-  newsAffectsHolding,
+  holdingImpactMetaForNews,
   newsImpactLabel
 } from "../newsUtils";
 import type { DesktopAppRenderProps, NewsSeverity, WorldNewsItem } from "../types";
@@ -59,8 +59,14 @@ function NewsIcon({ severity }: { severity: NewsSeverity }) {
   return <FaScroll aria-hidden="true" />;
 }
 
-function NewsCard({ news, affectsYou }: { news: WorldNewsItem; affectsYou: boolean }) {
-  const impactMeta = holdingImpactMeta(news.direction);
+function NewsCard({
+  news,
+  impactMeta
+}: {
+  news: WorldNewsItem;
+  impactMeta: HoldingImpactMeta | null;
+}) {
+  const affectsYou = impactMeta !== null;
 
   return (
     <article
@@ -96,6 +102,11 @@ function NewsCard({ news, affectsYou }: { news: WorldNewsItem; affectsYou: boole
           </div>
 
           <p className="mt-1 text-sm text-stone-300">{news.summary}</p>
+          {impactMeta && (
+            <div className={`mt-2 rounded border px-2 py-1 text-[11px] font-semibold ${holdingImpactClass(impactMeta.tone)}`}>
+              {impactMeta.hint}
+            </div>
+          )}
           <p className="mt-2 text-xs leading-5 text-stone-500">{news.description}</p>
 
           <div className="mt-3 flex flex-wrap gap-2 font-mono text-[11px]">
@@ -128,15 +139,15 @@ export default function GuildHeraldApp({
     () =>
       worldNews.map((news) => ({
         news,
-        affectsYou: newsAffectsHolding(news, portfolio, products)
+        impactMeta: holdingImpactMetaForNews(news, portfolio, products)
       })),
     [portfolio, products, worldNews]
   );
   const filteredNews = useMemo(
     () =>
-      newsWithImpact.filter(({ news, affectsYou }) => {
+      newsWithImpact.filter(({ news, impactMeta }) => {
         if (activeFilter === "ALL") return true;
-        if (activeFilter === "MY_PORTFOLIO") return affectsYou;
+        if (activeFilter === "MY_PORTFOLIO") return impactMeta !== null;
         if (activeFilter === "POSITIVE") return news.direction === "POSITIVE";
         if (activeFilter === "NEGATIVE") return news.direction === "NEGATIVE";
         return news.severity === "CRITICAL";
@@ -209,8 +220,8 @@ export default function GuildHeraldApp({
             No news matches this filter.
           </div>
         )}
-        {filteredNews.map(({ news, affectsYou }) => (
-          <NewsCard key={news.id} news={news} affectsYou={affectsYou} />
+        {filteredNews.map(({ news, impactMeta }) => (
+          <NewsCard key={news.id} news={news} impactMeta={impactMeta} />
         ))}
       </div>
     </section>

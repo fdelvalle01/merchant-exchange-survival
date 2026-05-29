@@ -9,6 +9,8 @@ export type PortfolioHoldingResponse = {
   marketValue: number;
   unrealizedPnl: number;
   unrealizedPnlPercent: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export async function getPortfolio(): Promise<PortfolioHoldingResponse[]> {

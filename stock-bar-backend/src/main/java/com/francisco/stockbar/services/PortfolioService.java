@@ -59,6 +59,8 @@ public class PortfolioService {
                 .marketValue(marketValue)
                 .unrealizedPnl(unrealizedPnl)
                 .unrealizedPnlPercent(unrealizedPnlPercent)
+                .createdAt(holding.getCreatedAt())
+                .updatedAt(holding.getUpdatedAt())
                 .build();
     }
 
