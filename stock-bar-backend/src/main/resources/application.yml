@@ -32,6 +32,16 @@ game:
   events:
     enabled: ${GAME_EVENTS_ENABLED:false}
     fixed-rate-millis: ${GAME_EVENTS_FIXED_RATE_MILLIS:60000}
+  market-engine:
+    enabled: ${GAME_MARKET_ENGINE_ENABLED:true}
+    update-rate-millis: ${GAME_MARKET_ENGINE_UPDATE_RATE_MILLIS:30000}
+    pressure-lookback-seconds: ${GAME_MARKET_ENGINE_PRESSURE_LOOKBACK_SECONDS:60}
+    buy-impact-factor: ${GAME_MARKET_ENGINE_BUY_IMPACT_FACTOR:0.002}
+    sell-impact-factor: ${GAME_MARKET_ENGINE_SELL_IMPACT_FACTOR:0.0025}
+    max-pressure-impact-pct: ${GAME_MARKET_ENGINE_MAX_PRESSURE_IMPACT_PCT:0.08}
+    reversion-rate-pct: ${GAME_MARKET_ENGINE_REVERSION_RATE_PCT:0.01}
+    min-price-multiplier: ${GAME_MARKET_ENGINE_MIN_PRICE_MULTIPLIER:0.20}
+    max-price-multiplier: ${GAME_MARKET_ENGINE_MAX_PRICE_MULTIPLIER:5.00}
 
 logging:
   level:
@@ -42,8 +52,10 @@ logging:
     com.zaxxer.hikari: WARN
     org.hibernate.orm.jdbc.bind: WARN
 
-# Ajustes del motor de precios
+# Legacy Stock Bar price engine. Disabled by default because Merchant Exchange
+# Survival uses game.market-engine instead.
 price:
+  legacy-enabled: false
   # Subida gradual por unidad vendida
   impact-factor:       0.005     # 0.5 % por unidad
 

@@ -9,6 +9,7 @@ import com.francisco.stockbar.repository.PriceHistoryRepository;
 import com.francisco.stockbar.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(prefix = "price", name = "legacy-enabled", havingValue = "true")
 public class PriceDegraderService {
 
     private final ProductRepository productRepository;
