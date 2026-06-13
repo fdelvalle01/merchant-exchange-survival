@@ -11,13 +11,21 @@
 <body>
   <main class="merchant-login-shell">
     <section class="merchant-login-panel">
+      <span class="merchant-corner merchant-corner-tl" aria-hidden="true"></span>
+      <span class="merchant-corner merchant-corner-tr" aria-hidden="true"></span>
+      <span class="merchant-corner merchant-corner-bl" aria-hidden="true"></span>
+      <span class="merchant-corner merchant-corner-br" aria-hidden="true"></span>
+
       <div class="merchant-brand">
         <div class="merchant-logo-frame">
           <img src="${url.resourcesPath}/img/merchant-logo.png" alt="Merchant Exchange Survival emblem">
         </div>
-        <div class="merchant-kicker">Guild Gatekeeper</div>
+        <div class="merchant-kicker">
+          <span class="merchant-shield" aria-hidden="true"></span>
+          Guild Gatekeeper
+        </div>
         <h1>Merchant Exchange Survival</h1>
-        <p>Authenticate with Keycloak to enter the kingdom market desk.</p>
+        <p>Present your guild credentials to enter the royal trading desk.</p>
       </div>
 
       <#if message?has_content>
@@ -82,7 +90,10 @@
           <input type="hidden" name="credentialId" value="${auth.selectedCredential}">
         </#if>
 
-        <button id="kc-login" name="login" type="submit">Enter Market</button>
+        <button id="kc-login" name="login" type="submit">
+          <span aria-hidden="true">&#9873;</span>
+          Enter Royal Trading Desk
+        </button>
       </form>
 
       <div class="merchant-demo">

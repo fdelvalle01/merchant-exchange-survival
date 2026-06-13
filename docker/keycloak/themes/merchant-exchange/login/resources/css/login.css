@@ -1,15 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+
 :root {
   color-scheme: dark;
-  --merchant-bg: #060403;
-  --merchant-panel: rgba(16, 11, 8, 0.96);
-  --merchant-border: #4a3324;
-  --merchant-border-soft: #3b2a1f;
-  --merchant-amber: #f6c267;
-  --merchant-amber-strong: #d99a2b;
-  --merchant-text: #f5f0e8;
-  --merchant-muted: #a79c8d;
-  --merchant-dim: #756a5e;
-  --merchant-red: #fca5a5;
+  --merchant-bg: #0b0805;
+  --merchant-panel: #100b06;
+  --merchant-panel-raised: #1a130a;
+  --merchant-border: #5d4520;
+  --merchant-border-soft: #3a2c14;
+  --merchant-amber: #e3b96b;
+  --merchant-amber-strong: #c9974a;
+  --merchant-text: #e9dcc0;
+  --merchant-muted: #9b8a6c;
+  --merchant-dim: #665a46;
+  --merchant-red: #d65a4a;
+  --merchant-display: "Cinzel", Georgia, serif;
+  --merchant-data: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
 }
 
 * {
@@ -24,11 +29,14 @@ body {
 
 body {
   background:
-    linear-gradient(135deg, rgba(116, 72, 33, 0.2), transparent 34%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 20px),
-    linear-gradient(180deg, #080604 0%, var(--merchant-bg) 100%);
+    radial-gradient(ellipse 70% 48% at 50% -12%, rgba(201, 151, 74, 0.075), transparent 62%),
+    radial-gradient(ellipse 48% 58% at 100% 110%, rgba(122, 32, 24, 0.09), transparent 64%),
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.009) 1px, transparent 1px),
+    var(--merchant-bg);
+  background-size: auto, auto, 26px 26px, 26px 26px, auto;
   color: var(--merchant-text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--merchant-data);
 }
 
 a {
@@ -44,18 +52,109 @@ a:hover {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 32px 18px;
+  padding: 24px 18px;
 }
 
 .merchant-login-panel {
-  width: min(100%, 430px);
+  position: relative;
+  width: calc(100vw - 36px);
+  max-width: 500px;
+  min-width: 0;
   border: 1px solid var(--merchant-border);
-  border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(116, 72, 33, 0.12), transparent 40%),
+    linear-gradient(135deg, rgba(201, 151, 74, 0.055), transparent 42%),
     var(--merchant-panel);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.62);
-  padding: 28px;
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.72),
+    inset 0 0 0 4px #0a0704,
+    inset 0 0 0 5px rgba(227, 185, 107, 0.12);
+  padding: 26px 32px 24px;
+}
+
+.merchant-login-panel::before,
+.merchant-login-panel::after {
+  position: absolute;
+  top: -5px;
+  width: 18px;
+  height: 1px;
+  background: var(--merchant-amber);
+  content: "";
+}
+
+.merchant-login-panel::before {
+  left: -1px;
+}
+
+.merchant-login-panel::after {
+  right: -1px;
+}
+
+.merchant-corner {
+  position: absolute;
+  z-index: 2;
+  width: 13px;
+  height: 13px;
+  border-color: var(--merchant-amber);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.merchant-corner::after {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--merchant-amber);
+  box-shadow: 0 0 6px rgba(227, 185, 107, 0.65);
+  content: "";
+}
+
+.merchant-corner-tl {
+  top: 4px;
+  left: 4px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.merchant-corner-tr {
+  top: 4px;
+  right: 4px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+.merchant-corner-bl {
+  bottom: 4px;
+  left: 4px;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+}
+
+.merchant-corner-br {
+  right: 4px;
+  bottom: 4px;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.merchant-corner-tl::after {
+  top: 2px;
+  left: 2px;
+}
+
+.merchant-corner-tr::after {
+  top: 2px;
+  right: 2px;
+}
+
+.merchant-corner-bl::after {
+  bottom: 2px;
+  left: 2px;
+}
+
+.merchant-corner-br::after {
+  right: 2px;
+  bottom: 2px;
 }
 
 .merchant-brand {
@@ -70,11 +169,11 @@ a:hover {
   height: 112px;
   place-items: center;
   margin-bottom: 16px;
-  padding: 10px;
-  border: 1px solid rgba(217, 154, 43, 0.65);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.36);
-  box-shadow: inset 0 0 0 1px rgba(246, 194, 103, 0.1);
+  border: 1px solid var(--merchant-border);
+  background: #090704;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 3px #0e0a06;
 }
 
 .merchant-logo-frame img {
@@ -88,39 +187,53 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
-  border: 1px solid rgba(217, 154, 43, 0.45);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.26);
-  padding: 5px 9px;
+  gap: 7px;
+  margin-bottom: 11px;
+  border: 1px solid var(--merchant-border-soft);
+  background: #090704;
+  padding: 6px 10px;
   color: var(--merchant-amber);
-  font-size: 10px;
+  font-family: var(--merchant-display);
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
+.merchant-shield {
+  width: 10px;
+  height: 12px;
+  border: 1px solid var(--merchant-amber);
+  border-radius: 5px 5px 7px 7px;
+  clip-path: polygon(0 0, 100% 0, 88% 72%, 50% 100%, 12% 72%);
+  background: rgba(227, 185, 107, 0.12);
+}
+
 .merchant-brand h1 {
   margin: 0;
-  color: #fffaf2;
-  font-size: 28px;
-  line-height: 1.1;
+  color: var(--merchant-amber);
+  font-family: var(--merchant-display);
+  font-size: clamp(25px, 4vw, 32px);
+  line-height: 1.18;
   font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 16px rgba(201, 151, 74, 0.16);
 }
 
 .merchant-brand p {
-  margin: 12px 0 0;
+  max-width: 390px;
+  margin: 10px 0 0;
   color: var(--merchant-muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
 .merchant-message,
 .merchant-field-error {
   margin-top: 18px;
-  border: 1px solid rgba(252, 165, 165, 0.55);
-  border-radius: 6px;
-  background: rgba(127, 29, 29, 0.2);
+  border: 1px solid rgba(214, 90, 74, 0.6);
+  background: rgba(122, 32, 24, 0.24);
   padding: 10px 12px;
   color: var(--merchant-red);
   font-size: 13px;
@@ -141,12 +254,13 @@ a:hover {
 
 .merchant-form {
   display: grid;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 9px;
+  margin-top: 20px;
 }
 
 .merchant-form label {
-  color: var(--merchant-muted);
+  color: var(--merchant-amber);
+  font-family: var(--merchant-display);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -156,22 +270,26 @@ a:hover {
 .merchant-form input[type="text"],
 .merchant-form input[type="password"] {
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
   border: 1px solid var(--merchant-border-soft);
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.28);
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent),
+    #090704;
   color: var(--merchant-text);
-  font: inherit;
+  font: 500 14px/1 var(--merchant-data);
   outline: none;
-  padding: 10px 12px;
+  padding: 9px 12px;
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
 .merchant-form input[type="text"]:focus,
 .merchant-form input[type="password"]:focus {
   border-color: rgba(246, 194, 103, 0.75);
-  background: rgba(0, 0, 0, 0.38);
-  box-shadow: 0 0 0 3px rgba(217, 154, 43, 0.18);
+  background: #0d0905;
+  box-shadow:
+    0 0 0 2px rgba(201, 151, 74, 0.12),
+    inset 0 0 14px rgba(201, 151, 74, 0.04);
 }
 
 .merchant-form-row {
@@ -197,24 +315,31 @@ a:hover {
 }
 
 .merchant-form button {
-  min-height: 46px;
-  margin-top: 8px;
-  border: 1px solid rgba(217, 154, 43, 0.75);
-  border-radius: 6px;
-  background: rgba(245, 158, 11, 0.16);
-  color: #fff3d6;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 7px;
+  border: 1px solid #e9c77d;
+  border-radius: 0;
+  background: linear-gradient(180deg, #e8c678 0%, #c8943c 53%, #a86f20 100%);
+  box-shadow:
+    inset 0 1px rgba(255, 245, 202, 0.58),
+    0 7px 18px rgba(0, 0, 0, 0.28);
+  color: #160f06;
   cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 800;
+  font-family: var(--merchant-display);
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.14em;
+  text-shadow: 0 1px rgba(255, 240, 190, 0.38);
   text-transform: uppercase;
-  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: filter 150ms ease, transform 150ms ease;
 }
 
 .merchant-form button:hover {
-  border-color: rgba(246, 194, 103, 0.95);
-  background: rgba(245, 158, 11, 0.26);
+  filter: brightness(1.1);
 }
 
 .merchant-form button:active {
@@ -223,21 +348,21 @@ a:hover {
 
 .merchant-demo {
   display: flex;
+  min-width: 0;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
   justify-content: center;
-  margin-top: 18px;
+  margin-top: 14px;
   color: var(--merchant-dim);
   font-size: 11px;
 }
 
 .merchant-demo code {
   border: 1px solid var(--merchant-border-soft);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.28);
+  background: #090704;
   padding: 3px 6px;
-  color: #d8c7ad;
+  color: var(--merchant-text);
   font-size: 11px;
 }
 
@@ -254,10 +379,30 @@ a:hover {
   }
 
   .merchant-login-panel {
-    padding: 22px;
+    width: calc(100vw - 24px);
+    padding: 24px 20px 21px;
   }
 
   .merchant-brand h1 {
-    font-size: 24px;
+    font-size: 23px;
+  }
+
+  .merchant-logo-frame {
+    width: 96px;
+    height: 96px;
+  }
+
+  .merchant-form-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
   }
 }
