@@ -2,6 +2,19 @@
 
 This document is a working memory for future development sessions. It captures product direction, implementation rules, style decisions, and gameplay logic that should stay consistent.
 
+## Documentation Map
+
+- `README.md`: product pitch, current status, quick start, and documentation index.
+- `docs/GAMEPLAY.md`: player-facing rules and gameplay loop.
+- `docs/ARQUITECTURA-MERCHANT-EXCHANGE-SURVIVAL.md`: canonical AS-IS technical analysis.
+- `docs/REQ-001-trading-desktop.md`: current desktop behavior.
+- `docs/REQ-007-keycloak.md`: current security and role matrix.
+- `docs/REQ-008-docker-compose.md`: local stack and persistence caveats.
+- `docs/RESUMEN-TECNICO-TRADING-BAR-EXCHANGE.md`: historical note only.
+
+When old project notes conflict with current code or the canonical architecture
+document, trust the current code first.
+
 ## Product Identity
 
 - Product name: **Merchant Exchange Survival**.
@@ -14,7 +27,7 @@ This document is a working memory for future development sessions. It captures p
 
 ```txt
 Asset selection
-  -> BUY/SELL through Investment Ticket
+  -> BUY/SELL through Royal Ticket
   -> Holdings and cash update
   -> World news changes prices
   -> Portfolio P/L changes
@@ -71,7 +84,7 @@ Demo users:
 
 Role behavior:
 
-- `VIEWER`: market/read-only/news.
+- `VIEWER`: read-only market/news plus own company and portfolio.
 - `TRADER`: can use ticket, portfolio, company dashboard, orders.
 - `ADMIN_BAR`: trader permissions plus Game Master Controls.
 
@@ -108,7 +121,7 @@ Global selected asset:
 - Source of truth: `selectedInstrumentId` in `TradingDesktop.tsx`.
 - Callback: `onSelectProduct(product)`.
 - Market Board, Portfolio, and Company Dashboard should use this same callback.
-- Investment Ticket and Asset Detail update automatically when `selectedProduct` changes.
+- Royal Ticket and Asset Detail update automatically when `selectedProduct` changes.
 
 Do not create parallel selected-asset state inside apps unless there is a specific local UI reason.
 
@@ -500,6 +513,16 @@ Keycloak import behavior:
 - If the realm already exists in the persistent volume, Keycloak skips realm import.
 - `keycloak-config` service applies `loginTheme=merchant-exchange` idempotently.
 - Use `docker compose down -v` only when a clean volume reset is intended.
+
+Database bootstrap behavior:
+
+- Docker sets `SPRING_SQL_INIT_MODE=always`.
+- The current `data.sql` upsert overwrites live product fields including
+  `current_price` and `max_price`.
+- Restarting the backend can therefore restore demo prices while companies,
+  holdings, orders, news, and events remain persisted.
+- Treat this as a local-demo limitation. A production evolution should use
+  versioned migrations and seed only missing products.
 
 Useful validation:
 

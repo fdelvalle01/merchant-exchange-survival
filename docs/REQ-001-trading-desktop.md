@@ -1,238 +1,27 @@
-# REQ-001 - Stock Bar Exchange Trading Desktop
+# REQ-001 - Merchant Exchange Survival Trading Desktop
 
 ## Estado
 
-Implementado como primera version funcional del nuevo frontend principal de Stock Bar Exchange.
+Implementado y evolucionado mas alla de la primera version heredada de Stock Bar
+Exchange.
 
-La pantalla principal del frontend ahora abre un desktop de trading en `/`, con estetica oscura medieval/nordica sobria y conexion real al backend para productos y compras.
+La ruta `/` contiene el frontend principal del juego: un escritorio oscuro de
+trading medieval con aplicaciones internas, ventanas movibles y estado
+compartido de instrumento.
 
-## Objetivo Original
+## Objetivo Actual
 
-Crear un layout principal oscuro llamado **Stock Bar Trading Desktop**, con estructura de plataforma bursatil:
+Ofrecer una terminal desde la cual el jugador pueda:
 
-- TopBar superior con logo/nombre.
-- Ticker horizontal de precios en vivo.
-- Sidebar izquierdo con menu de aplicaciones.
-- Workspace central.
-- StatusBar inferior.
-- Componentes separados para cada zona del layout.
-- Mantener las vistas existentes sin eliminarlas.
-- Usar React + TypeScript para la nueva estructura.
+- Comprender el estado de su compania.
+- Observar el mercado.
+- Comprar y vender.
+- Gestionar el portfolio.
+- Leer noticias.
+- Avanzar la simulacion.
+- Usar controles administrativos cuando corresponda.
 
-## Alcance Final Implementado
-
-Durante la implementacion el requerimiento evoluciono hacia una version mas enfocada:
-
-- Nombre visual: **Stock Bar Exchange**.
-- Estetica: trading desktop moderno con inspiracion medieval/nordica/fantasy market.
-- Modulos visibles iniciales: solo **MarketBoard** y **OrderTicket**.
-- Backend conectado con productos reales.
-- Compra real conectada al endpoint existente.
-- Ticker animado conectado a productos reales.
-- Fallback mock removido del desktop principal para evitar confusiones.
-
-## Componentes Creados
-
-Los componentes nuevos viven en:
-
-`stock-bar-frontend/src/trading-desktop/`
-
-Componentes principales:
-
-- `TradingDesktop.tsx`
-- `TopBar.tsx`
-- `TickerTape.tsx`
-- `Sidebar.tsx`
-- `Workspace.tsx`
-- `MarketBoardPanel.tsx`
-- `OrderTicketPanel.tsx`
-- `StatusBar.tsx`
-
-Soporte:
-
-- `types.ts`
-- `marketUtils.ts`
-- `mockData.ts` queda disponible como referencia, pero ya no es usado por el desktop principal.
-
-## Rutas
-
-La ruta principal fue reorganizada asi:
-
-- `/` abre el nuevo Trading Desktop.
-- `/products` mantiene la vista anterior de productos/compra.
-- `/board` mantiene el market board clasico.
-
-Esto cumple la condicion de no eliminar las vistas actuales.
-
-## Integracion Backend
-
-Se conecto el desktop contra los endpoints reales documentados en `api-docs.json`.
-
-### Productos
-
-Endpoint usado:
-
-```http
-GET /api/products
-```
-
-Uso actual:
-
-- Alimenta el `MarketBoardPanel`.
-- Alimenta el selector de producto del `OrderTicketPanel`.
-- Alimenta el `TickerTape`.
-- Refresca cada 5 segundos desde `TradingDesktop`.
-
-Campos usados:
-
-- `id`
-- `name`
-- `basePrice`
-- `currentPrice`
-- `imageUrl`
-- `enabled`
-- `createdAt`
-- `lastPurchasedAt`
-- `maxPrice`
-
-### Compras
-
-Endpoint usado:
-
-```http
-POST /api/sales
-```
-
-Payload enviado:
-
-```json
-{
-  "productId": 12,
-  "quantity": 1
-}
-```
-
-Decision importante:
-
-El frontend no envia precio. El precio se muestra solo como informacion, porque el backend define `currentPrice` y el motor de precios lo sube o baja.
-
-## Proxy de Desarrollo
-
-Se agrego proxy de Vite:
-
-```js
-server: {
-  port: 5173,
-  proxy: {
-    "/api": {
-      target: "http://localhost:8080",
-      changeOrigin: true
-    }
-  }
-}
-```
-
-Motivo:
-
-Evitar problemas de CORS y origen entre `localhost` y `127.0.0.1`.
-
-El frontend usa rutas relativas:
-
-- `/api/products`
-- `/api/sales`
-- `/api/products/detailed`
-- `/api/products/board`
-
-## Comportamiento Implementado
-
-### MarketBoard
-
-Muestra productos reales del backend:
-
-- Instrument / Product Name.
-- Last Price.
-- Change.
-- Change %.
-- Peak.
-- Signal.
-
-Permite seleccionar un producto haciendo click en una fila.
-
-### OrderTicket
-
-Muestra:
-
-- Producto seleccionado.
-- Accion BUY activa.
-- SELL visible pero deshabilitado conceptualmente, porque el backend actual solo permite comprar.
-- Quantity.
-- Precio actual del backend como solo lectura.
-- Base price.
-- Imagen del producto si existe.
-- Boton `Comprar`.
-
-Al comprar:
-
-- Ejecuta `POST /api/sales`.
-- Envia solo `productId` y `quantity`.
-- Refresca productos luego de una compra.
-
-### TickerTape
-
-Se dejo como barra animada tipo bolsa:
-
-- Muestra todos los productos reales.
-- Muestra imagen, nombre, precio y variacion porcentual.
-- Se mueve horizontalmente.
-- Repite los productos para mantener loop continuo.
-- Se pausa al pasar el mouse.
-
-## Cambios Extra Sobre REQ-001 Original
-
-Ademas del layout base pedido, se agrego:
-
-- Estetica medieval/nordica/fantasy market sobria.
-- Conexion real con `/api/products`.
-- Conexion real de compra con `/api/sales`.
-- Proxy Vite para backend.
-- TypeScript incremental para nuevos componentes.
-- Seleccion compartida entre MarketBoard y OrderTicket.
-- Remocion del fallback mock en el desktop principal.
-- Ticker animado con productos reales.
-- Rutas legacy preservadas.
-
-## Decisiones de Diseno
-
-- Se priorizo una interfaz usable antes que una UI fantasy recargada.
-- Se dejaron solo dos apps visibles: MarketBoard y OrderTicket.
-- No se agregaron Portfolio, Product Detail, Admin Panel ni charts complejos todavia.
-- Se mantuvo Tailwind como sistema de estilos.
-- Se uso TypeScript solo en la nueva arquitectura para migracion gradual.
-
-## Validaciones Realizadas
-
-Comandos ejecutados:
-
-```bash
-npx tsc --noEmit
-npm run build
-```
-
-Resultado:
-
-- TypeScript OK.
-- Build Vite OK.
-- `/api/products` responde con productos reales.
-
-Warnings existentes no abordados en este REQ:
-
-- Browserslist desactualizado.
-- Bundle grande.
-- Vulnerabilidades reportadas por `npm audit`.
-
-## Estado Actual de Arquitectura Frontend
-
-El nuevo desktop ya tiene una base clara:
+## Estructura
 
 ```text
 TradingDesktop
@@ -240,41 +29,159 @@ TradingDesktop
   TickerTape
   Sidebar
   Workspace
-    MarketBoardPanel
-    OrderTicketPanel
+    DesktopWindow[]
+      CompanyKeepApp
+      MarketBoardApp
+      OrderTicketApp
+      PortfolioApp
+      MyOrdersApp
+      NewsFeedApp
+      ProductDetailApp
+      AdminMarketControlsApp
   StatusBar
 ```
 
-La seleccion de producto vive en `TradingDesktop` y se pasa hacia `Workspace`, `MarketBoardPanel` y `OrderTicketPanel`.
+Codigo principal:
 
-## Puente a REQ-002
+```text
+stock-bar-frontend/src/trading-desktop/
+```
 
-REQ-002 busca convertir vistas actuales en aplicaciones internas del desktop.
+## Aplicaciones Registradas
 
-La base actual permite hacerlo, pero hoy el sidebar solo expone:
+| ID | Nombre visual | Roles |
+|---|---|---|
+| `company` | Company Keep | VIEWER, TRADER, ADMIN_BAR |
+| `market` | Market Board | VIEWER, TRADER, ADMIN_BAR |
+| `ticket` | Royal Ticket | TRADER, ADMIN_BAR |
+| `portfolio` | Vault | VIEWER, TRADER, ADMIN_BAR |
+| `orders` | Trade Ledger | TRADER, ADMIN_BAR |
+| `herald` | Guild Herald | VIEWER, TRADER, ADMIN_BAR |
+| `detail` | Asset Chronicle | VIEWER, TRADER, ADMIN_BAR |
+| `admin` | Game Master | ADMIN_BAR |
 
-- Market
-- Ticket
+## Comportamiento De Ventanas
 
-Para REQ-002 se recomienda:
+El desktop permite:
 
-1. Crear una carpeta `src/trading-desktop/apps/`.
-2. Mover o adaptar cada modulo a un componente app:
-   - `MarketBoardApp`
-   - `ProductCatalogApp`
-   - `ProductDetailApp`
-   - `OrderTicketApp`
-   - `PortfolioApp`
-   - `AdminMarketControlsApp`
-3. Cambiar `DesktopAppId` para soportar esas apps.
-4. Hacer que `Sidebar` renderice el menu completo.
-5. Hacer que `Workspace` muestre una app activa a la vez.
-6. Reutilizar los componentes ya creados como base para `MarketBoardApp` y `OrderTicketApp`.
+- Abrir aplicaciones desde Sidebar.
+- Traer una ventana al frente.
+- Arrastrar.
+- Redimensionar.
+- Minimizar y restaurar.
+- Cerrar.
+- Mantener ventanas dentro del viewport.
 
-## Pendientes Tecnicos
+El estado se administra con `useDesktopWindows`.
 
-- Definir si `ProductCatalogApp` reutilizara la vista antigua `App.jsx` o se reescribira dentro del estilo desktop.
-- Definir backend para acciones SELL, Portfolio y Admin Controls.
-- Crear un servicio frontend centralizado para API (`productsApi`, `salesApi`) en vez de usar `axios` directo en componentes.
-- Agregar estados de loading/error mas finos.
-- Decidir si `mockData.ts` se elimina o queda para desarrollo offline.
+## Estado Compartido
+
+El producto seleccionado vive en el nivel del desktop. Puede cambiar desde:
+
+- Market Board.
+- Vault.
+- Company Keep.
+
+El cambio se refleja en:
+
+- Royal Ticket.
+- Asset Chronicle.
+
+## Integracion Backend
+
+| Recurso | Uso |
+|---|---|
+| `/api/products` | Market, ticker, ticket y detalle |
+| `/api/company/me` | Company Keep |
+| `/api/portfolio` | Company Keep y Vault |
+| `/api/orders` | Royal Ticket y Trade Ledger |
+| `/api/news` | Guild Herald y notificaciones |
+| `/api/game/state` | Estado de jornada |
+| `/api/game/end-day` | Avance del juego |
+| `/api/price-history` | Asset Chronicle |
+| `/api/market-events` | Game Master |
+| `/api/admin/**` | Acciones administrativas |
+
+Productos se refrescan cada 5 segundos y noticias cada 10 segundos.
+
+## Ordenes
+
+Contrato actual:
+
+```http
+POST /api/orders
+
+{
+  "assetId": 11,
+  "side": "BUY",
+  "quantity": 10
+}
+```
+
+BUY y SELL estan implementados. El frontend estima el total, pero el backend
+decide el precio de ejecucion.
+
+`/api/sales` queda reservado para vistas heredadas y compatibilidad.
+
+## Rutas
+
+| Ruta | Funcion |
+|---|---|
+| `/` | Desktop canonico |
+| `/products` | Vista heredada |
+| `/board` | Vista heredada |
+
+Las rutas heredadas no deben recibir nuevas funcionalidades survival. La
+direccion recomendada es migrarlas o retirarlas.
+
+## Identidad Visual
+
+Lineamientos actuales:
+
+- Paleta negra, marron, oro y bronce.
+- Iconos diferenciados por aplicacion y activo.
+- Marcos de ventana inspirados en una terminal real/fantasy.
+- Tipografia y etiquetas coherentes con el reino mercante.
+- Estados positivos, negativos, advertencia y criticos con color semantico.
+
+`visualCatalog.tsx` es la fuente central de iconos visuales.
+
+## Senales Del Market Board
+
+BUY, WATCH y HOLD son calculadas en frontend como ayuda visual. No son:
+
+- Una orden automatica.
+- Una prediccion del backend.
+- Una garantia de rendimiento.
+- Una recomendacion financiera.
+
+## Manejo De Errores
+
+El Royal Ticket muestra errores de API, por ejemplo:
+
+- Fondos insuficientes.
+- Cantidad invalida.
+- Activo deshabilitado.
+- Holding insuficiente para vender.
+- Compania no activa.
+
+Los intentos rechazados pueden aparecer temporalmente en el ledger, pero no son
+persistidos por el backend actual.
+
+## Deuda Tecnica
+
+- Retirar enlaces a vistas legacy.
+- Agregar suite de tests frontend.
+- Corregir cualquier texto heredado o mojibake restante.
+- Evaluar SSE para reducir polling.
+- Persistir preferencias/layout de ventanas si se desea continuidad.
+- Definir experiencia de reinicio despues de BANKRUPT o VICTORIOUS.
+
+## Criterio De Fuente De Verdad
+
+Ante diferencias con versiones antiguas de este REQ, prevalecen:
+
+1. `desktopApps.ts`.
+2. `TradingDesktop.tsx`.
+3. Los servicios API.
+4. La matriz de seguridad backend.
