@@ -12,14 +12,14 @@ function MarketStateRow({
 }) {
   return (
     <tr>
-      <td colSpan={6} className="py-8 text-center text-sm text-stone-500">
+      <td colSpan={7}>
         <div className="flex flex-col items-center gap-3">
           <span>{message}</span>
           {actionLabel && onAction && (
             <button
               type="button"
               onClick={onAction}
-              className="rounded-md border border-amber-700/50 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+              className="mes-button mes-button--compact"
             >
               {actionLabel}
             </button>
@@ -45,39 +45,36 @@ export default function MarketBoardApp({
   const canOpenTicket = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
 
   return (
-    <section
-      className={`min-h-[420px] overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.10), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
+          <h2 className="mes-app__title">
             Market Board
           </h2>
-          <p className="text-[11px] text-stone-500">
-            {productsError && hasProducts ? "Feed con ultimo dato disponible" : "Guild assets, live kingdom exchange"}
+          <p className="mes-app__subtitle">
+            {productsError && hasProducts ? "Showing the last available exchange reading" : "Real assets from the kingdom exchange"}
           </p>
         </div>
-        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
+        <div className="mes-code-badge">
           MB-01
         </div>
       </div>
 
-      <div className="overflow-x-auto p-2.5">
-        <table className="w-full min-w-[580px] table-fixed border-collapse font-mono text-xs">
+      <div className="mes-app__body">
+        {productsError && hasProducts && (
+          <div className="mes-banner mes-banner--warning">{productsError}</div>
+        )}
+        <div className="mes-app-table-wrap">
+        <table className="mes-table min-w-[680px] table-fixed">
           <thead>
-            <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-              <th className="w-[32%] py-2 pr-2 font-medium">Asset</th>
-              <th className="w-[16%] px-2 py-2 text-right font-medium">Last</th>
-              <th className="w-[14%] px-2 py-2 text-right font-medium">Change %</th>
-              <th className="w-[16%] px-2 py-2 text-right font-medium">Peak</th>
-              <th className="w-[11%] px-2 py-2 text-right font-medium">Signal</th>
-              <th className="w-[11%] pl-2 py-2 text-right font-medium">Detail</th>
+            <tr>
+              <th className="w-[29%] text-left">Asset</th>
+              <th className="w-[14%] text-right">Last</th>
+              <th className="w-[12%] text-right">Change</th>
+              <th className="w-[13%] text-right">Base</th>
+              <th className="w-[13%] text-right">Peak</th>
+              <th className="w-[10%] text-right">Signal</th>
+              <th className="w-[9%] text-right">Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -101,35 +98,36 @@ export default function MarketBoardApp({
                 <tr
                   key={product.id}
                   onClick={() => onSelectProduct(product)}
-                  className={`cursor-pointer border-b border-[#241811] transition ${
-                    isSelected
-                      ? "bg-amber-500/10 outline outline-1 outline-amber-700/40"
-                      : "hover:bg-[#20160f]"
-                  }`}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    onSelectProduct(product);
+                  }}
+                  tabIndex={0}
+                  className={`cursor-pointer ${isSelected ? "is-selected" : ""}`}
                 >
-                  <td className="py-2.5 pr-2">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          isSelected ? "bg-amber-300" : "bg-stone-600"
-                        }`}
-                      />
-                      <span className="truncate font-sans text-sm font-medium text-stone-100">
+                  <td>
+                    <div className="mes-table__asset">
+                      <span className="mes-table__marker" />
+                      <span className="mes-table__asset-name">
                         {product.name}
                       </span>
                     </div>
                   </td>
-                  <td className="px-2 py-2.5 text-right text-stone-100">
+                  <td className="text-right mes-warning">
                     {money.format(product.currentPrice)}
                   </td>
-                  <td className={`px-2 py-2.5 text-right ${valueClass(percent)}`}>
+                  <td className={`text-right ${valueClass(percent)}`}>
                     {percent > 0 ? "+" : ""}
                     {percent.toFixed(2)}%
                   </td>
-                  <td className="px-2 py-2.5 text-right text-stone-400">
+                  <td className="text-right mes-neutral">
+                    {money.format(product.basePrice)}
+                  </td>
+                  <td className="text-right mes-neutral">
                     {money.format(product.maxPrice ?? product.currentPrice)}
                   </td>
-                  <td className="px-2 py-2.5 text-right">
+                  <td className="text-right">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -139,13 +137,13 @@ export default function MarketBoardApp({
                           onOpenApp("ticket");
                         }
                       }}
-                      className={`rounded border border-transparent px-2 py-1 text-[11px] transition hover:border-amber-700/50 hover:bg-amber-500/10 ${valueClass(percent)}`}
-                      title={canOpenTicket ? "Abrir Investment Ticket" : "Ticket restringido por rol"}
+                      className={`mes-signal ${valueClass(percent)}`}
+                      title={canOpenTicket ? "Open Royal Ticket" : "Ticket restricted by role"}
                     >
                       {signalFor(product)}
                     </button>
                   </td>
-                  <td className="pl-2 py-2.5 text-right">
+                  <td className="text-right">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -153,8 +151,8 @@ export default function MarketBoardApp({
                         onSelectProduct(product);
                         onOpenApp("detail");
                       }}
-                      className="rounded border border-transparent px-1.5 py-1 text-[11px] text-amber-200 transition hover:border-amber-700/50 hover:bg-amber-500/10"
-                      title="Abrir Asset Detail"
+                      className="mes-button mes-button--compact"
+                      title="Open Asset Chronicle"
                     >
                       INFO
                     </button>
@@ -164,6 +162,7 @@ export default function MarketBoardApp({
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </section>
   );

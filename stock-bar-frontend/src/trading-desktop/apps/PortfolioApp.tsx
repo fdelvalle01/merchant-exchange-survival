@@ -19,64 +19,58 @@ export default function PortfolioApp({
     products.find((product) => String(product.id) === String(assetId));
 
   return (
-    <section
-      className={`min-h-full overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.10), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Portfolio
+          <h2 className="mes-app__title">
+            Vault Portfolio
           </h2>
-          <p className="text-[11px] text-stone-500">
+          <p className="mes-app__subtitle">
             Value {money.format(marketValue)} | P/L {money.format(totalPnl)}
           </p>
         </div>
         <button
           type="button"
           onClick={onPortfolioChanged}
-          className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
+          className="mes-icon-button"
           title="Refresh portfolio"
+          aria-label="Refresh portfolio"
         >
           <FaSyncAlt aria-hidden="true" />
         </button>
       </div>
 
-      <div className="grid gap-3 p-3">
+      <div className="mes-app__body">
         {isLoadingPortfolio && (
-          <div className="rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
+          <div className="mes-banner">
             Loading portfolio...
           </div>
         )}
         {portfolioError && (
-          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div className="mes-banner mes-banner--danger">
             {portfolioError}
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] table-fixed border-collapse font-mono text-xs">
+        <div className="mes-app-table-wrap">
+          <table className="mes-table min-w-[780px] table-fixed">
             <thead>
-              <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-                <th className="w-[25%] py-2 pr-2 font-medium">Asset</th>
-                <th className="w-[10%] px-2 py-2 text-right font-medium">Qty</th>
-                <th className="w-[15%] px-2 py-2 text-right font-medium">Avg</th>
-                <th className="w-[15%] px-2 py-2 text-right font-medium">Last</th>
-                <th className="w-[15%] px-2 py-2 text-right font-medium">Value</th>
-                <th className="w-[11%] px-2 py-2 text-right font-medium">P/L</th>
-                <th className="w-[9%] pl-2 py-2 text-right font-medium">P/L %</th>
+              <tr>
+                <th className="w-[23%] text-left">Asset</th>
+                <th className="w-[9%] text-right">Qty</th>
+                <th className="w-[14%] text-right">Average</th>
+                <th className="w-[14%] text-right">Market</th>
+                <th className="w-[15%] text-right">Value</th>
+                <th className="w-[12%] text-right">Unrealized</th>
+                <th className="w-[8%] text-right">P/L %</th>
+                <th className="w-[5%] text-right">Alloc.</th>
               </tr>
             </thead>
             <tbody>
               {!isLoadingPortfolio && visiblePortfolio.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-sm text-stone-500">
-                    No holdings yet.
+                  <td colSpan={8} className="text-center mes-neutral">
+                    The vault contains no holdings.
                   </td>
                 </tr>
               )}
@@ -98,42 +92,37 @@ export default function PortfolioApp({
                     }}
                     tabIndex={product ? 0 : undefined}
                     title={product ? "Click to select asset" : "Asset not available in market feed"}
-                    className={`border-b border-[#241811] transition ${
-                      isSelected
-                        ? "bg-amber-500/10 outline outline-1 outline-amber-700/40"
-                        : product
-                        ? "cursor-pointer hover:bg-[#20160f]"
-                        : "opacity-70"
+                    className={`${isSelected ? "is-selected" : ""} ${
+                      product ? "cursor-pointer" : "opacity-60"
                     }`}
                   >
-                    <td className="py-2.5 pr-2">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`h-2 w-2 rounded-full ${
-                            isSelected ? "bg-amber-300" : "bg-stone-600"
-                          }`}
-                        />
-                        <span className="truncate font-sans text-sm text-stone-100">
+                    <td>
+                      <div className="mes-table__asset">
+                        <span className="mes-table__marker" />
+                        <span className="mes-table__asset-name">
                           {holding.assetName}
                         </span>
                       </div>
                     </td>
-                    <td className="px-2 py-2.5 text-right text-stone-300">{holding.quantity}</td>
-                    <td className="px-2 py-2.5 text-right text-stone-300">
+                    <td className="text-right">{holding.quantity}</td>
+                    <td className="text-right mes-neutral">
                       {money.format(holding.averagePrice)}
                     </td>
-                    <td className="px-2 py-2.5 text-right text-stone-300">
+                    <td className="text-right">
                       {money.format(holding.currentPrice)}
                     </td>
-                    <td className="px-2 py-2.5 text-right text-stone-100">
+                    <td className="text-right">
                       {money.format(holding.marketValue)}
                     </td>
-                    <td className={`px-2 py-2.5 text-right ${valueClass(holding.unrealizedPnl)}`}>
+                    <td className={`text-right ${valueClass(holding.unrealizedPnl)}`}>
                       {money.format(holding.unrealizedPnl)}
                     </td>
-                    <td className={`pl-2 py-2.5 text-right ${valueClass(holding.unrealizedPnlPercent)}`}>
+                    <td className={`text-right ${valueClass(holding.unrealizedPnlPercent)}`}>
                       {holding.unrealizedPnlPercent > 0 ? "+" : ""}
                       {holding.unrealizedPnlPercent.toFixed(2)}%
+                    </td>
+                    <td className="text-right mes-warning">
+                      {marketValue > 0 ? `${((holding.marketValue / marketValue) * 100).toFixed(0)}%` : "0%"}
                     </td>
                   </tr>
                 );

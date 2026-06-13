@@ -65,9 +65,9 @@ export function trendFor(instrument: TradingInstrument): Trend {
 }
 
 export function valueClass(value: number) {
-  if (value > 0) return "text-emerald-300";
-  if (value < 0) return "text-red-300";
-  return "text-stone-400";
+  if (value > 0) return "mes-positive";
+  if (value < 0) return "mes-negative";
+  return "mes-neutral";
 }
 
 export function signalFor(instrument: TradingInstrument) {

@@ -49,15 +49,15 @@ function formatTime(timestamp: string) {
 }
 
 function statusClass(type: ControlStatus["type"]) {
-  if (type === "success") return "text-emerald-300";
-  if (type === "error") return "text-red-300";
-  return "text-stone-400";
+  if (type === "success") return "mes-positive";
+  if (type === "error") return "mes-negative";
+  return "mes-neutral";
 }
 
 function eventStatusClass(status: MarketEventStatus) {
-  if (status === "SUCCESS") return "text-emerald-300";
-  if (status === "FAILED") return "text-red-300";
-  return "text-amber-300";
+  if (status === "SUCCESS") return "mes-positive";
+  if (status === "FAILED") return "mes-negative";
+  return "mes-warning";
 }
 
 function eventTypeClass(type: MarketEventType) {
@@ -67,14 +67,14 @@ function eventTypeClass(type: MarketEventType) {
     type === "BANKING_CRISIS" ||
     type === "PLAGUE_OUTBREAK"
   ) {
-    return "text-red-300";
+    return "mes-negative";
   }
   if (type === "ROYAL_CONTRACT" || type === "HARVEST_BOOM" || type === "MAGIC_DISCOVERY") {
-    return "text-emerald-300";
+    return "mes-positive";
   }
-  if (type === "WAR_RUMORS") return "text-amber-300";
+  if (type === "WAR_RUMORS") return "mes-warning";
   if (type === "MARKET_CRASH" || type === "PRODUCT_PRICE_DOWN" || type === "ORDER_SELL_FILLED") {
-    return "text-red-300";
+    return "mes-negative";
   }
   if (
     type === "MARKET_BOOM" ||
@@ -82,9 +82,9 @@ function eventTypeClass(type: MarketEventType) {
     type === "SALE_REGISTERED" ||
     type === "ORDER_BUY_FILLED"
   ) {
-    return "text-emerald-300";
+    return "mes-positive";
   }
-  return "text-amber-300";
+  return "mes-warning";
 }
 
 function toProductId(product?: TradingInstrument) {
@@ -95,21 +95,21 @@ function toProductId(product?: TradingInstrument) {
 
 function EventRow({ event }: { event: MarketEvent }) {
   return (
-    <tr className="border-b border-[#241811] hover:bg-[#20160f]">
-      <td className="py-2 pr-2 text-stone-500">{formatTime(event.timestamp)}</td>
-      <td className={`px-2 py-2 font-semibold ${eventTypeClass(event.type)}`}>{event.type}</td>
-      <td className="px-2 py-2">
-        <div className="truncate text-stone-200" title={event.description}>
+    <tr>
+      <td className="mes-neutral">{formatTime(event.timestamp)}</td>
+      <td className={`font-semibold ${eventTypeClass(event.type)}`}>{event.type}</td>
+      <td>
+        <div className="truncate" title={event.description}>
           {event.description}
         </div>
         {event.details && (
-          <div className="truncate text-[10px] text-amber-300/80" title={event.details}>
+          <div className="truncate text-[9px] mes-warning" title={event.details}>
             {event.details}
           </div>
         )}
       </td>
-      <td className="px-2 py-2 text-stone-500">{event.user}</td>
-      <td className={`pl-2 py-2 text-right ${eventStatusClass(event.status)}`}>
+      <td className="mes-neutral">{event.user}</td>
+      <td className={`text-right ${eventStatusClass(event.status)}`}>
         {event.status}
       </td>
     </tr>
@@ -302,57 +302,51 @@ export default function AdminMarketControlsApp({
 
   if (!currentUser.roles.includes("ADMIN_BAR")) {
     return (
-      <section className="grid min-h-full place-items-center rounded-md border border-[#3b2a1f] bg-[#120d09]/95 p-5 text-center shadow-2xl">
+      <section className="mes-app">
+        <div className="mes-state min-h-[280px]">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
+          <h2 className="mes-state__title">
             Game Master Controls
           </h2>
-          <p className="mt-3 max-w-sm text-sm text-red-300">
-            Acceso restringido. Esta ventana solo esta disponible para rol ADMIN_BAR.
+          <p className="mes-state__copy mes-negative">
+            Unauthorized. This application requires the ADMIN_BAR role.
           </p>
+        </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section
-      className={`min-h-full overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.12), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
+          <h2 className="mes-app__title">
             Game Master Controls
           </h2>
-          <p className="text-[11px] text-stone-500">Panel de control del mercado del reino</p>
+          <p className="mes-app__subtitle">Operational control of the kingdom market</p>
         </div>
-        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
+        <div className="mes-code-badge">
           ADMIN_BAR
         </div>
       </div>
 
-      <div className="grid gap-3 p-3">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)]">
-          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mes-app__body">
+        <div className="mes-admin-grid">
+          <div className="mes-panel">
+            <div className="mes-panel__header">
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
+                <h3 className="mes-panel__title">
                   Global Market Actions
                 </h3>
-                <p className="text-[11px] text-stone-500">Crash, boom y reset de precios</p>
+                <p className="mes-app__subtitle">Crash, boom and reset the real market</p>
               </div>
-              <span className="rounded border border-[#3b2a1f] bg-black/25 px-2 py-1 font-mono text-[10px] text-stone-500">
+              <span className="mes-tag">
                 {currentUser.role}
               </span>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="mes-action-grid">
               <button
                 type="button"
                 disabled={isSubmitting}
@@ -363,7 +357,7 @@ export default function AdminMarketControlsApp({
                     action: simulateMarketCrash
                   })
                 }
-                className="rounded-md border border-red-700/60 bg-red-500/10 px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mes-button mes-button--danger"
               >
                 Simular Crash
               </button>
@@ -377,7 +371,7 @@ export default function AdminMarketControlsApp({
                     action: simulateMarketBoom
                   })
                 }
-                className="rounded-md border border-emerald-700/60 bg-emerald-500/10 px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mes-button mes-button--positive"
               >
                 Simular Boom
               </button>
@@ -391,13 +385,13 @@ export default function AdminMarketControlsApp({
                     action: resetMarket
                   })
                 }
-                className="rounded-md border border-amber-700/60 bg-amber-500/10 px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mes-button"
               >
                 Reset Market
               </button>
             </div>
 
-            <div className={`mt-3 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] ${statusClass(status.type)}`}>
+            <div className={`mes-statusline mt-3 ${statusClass(status.type)}`} aria-live="polite">
               <div>{status.message}</div>
               {status.details && (
                 <div className="mt-1 truncate text-[10px] text-amber-200/80" title={status.details}>
@@ -407,12 +401,12 @@ export default function AdminMarketControlsApp({
             </div>
           </div>
 
-          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
-              Movimiento por activo
+          <div className="mes-panel">
+            <h3 className="mes-panel__title">
+              Asset Controls
             </h3>
-            <p className="mt-1 text-[11px] text-stone-500">
-              Control real de precio por backend; volumen queda como evento local
+            <p className="mes-app__subtitle">
+              Price controls are real; volume remains an explicit local event
             </p>
 
             <div className="mt-3 grid gap-3">
@@ -423,7 +417,7 @@ export default function AdminMarketControlsApp({
                   const next = products.find((product) => String(product.id) === event.target.value);
                   if (next) onSelectProduct(next);
                 }}
-                className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-sm text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mes-select"
               >
                 {products.length === 0 && <option value="">No assets</option>}
                 {products.map((product) => (
@@ -434,35 +428,39 @@ export default function AdminMarketControlsApp({
               </select>
 
               {activeProduct && (
-                <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-3 font-mono text-xs">
+                <div className="mes-ticket-price">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="truncate text-stone-300">{activeProduct.name}</span>
-                    <span className="text-stone-100">{money.format(activeProduct.currentPrice)}</span>
+                    <span className="truncate">{activeProduct.name}</span>
+                    <span className="mes-warning">{money.format(activeProduct.currentPrice)}</span>
                   </div>
-                  <div className="mt-1 text-stone-500">Base {money.format(activeProduct.basePrice)}</div>
+                  <div className="mes-ticket-price__base">Base {money.format(activeProduct.basePrice)}</div>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                <label className="grid gap-1 text-[11px] uppercase tracking-[0.14em] text-stone-500">
+                <label className="mes-field">
+                  <span className="mes-field__label">
                   Precio %
+                  </span>
                   <input
                     type="number"
                     min="1"
                     max="100"
                     value={percent}
                     onChange={(event) => setPercent(Math.max(1, Number(event.target.value) || 1))}
-                    className="rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-sm text-stone-100 outline-none focus:border-amber-600"
+                    className="mes-input"
                   />
                 </label>
-                <label className="grid gap-1 text-[11px] uppercase tracking-[0.14em] text-stone-500">
+                <label className="mes-field">
+                  <span className="mes-field__label">
                   Volumen
+                  </span>
                   <input
                     type="number"
                     min="0"
                     value={volume}
                     onChange={(event) => setVolume(Math.max(0, Number(event.target.value) || 0))}
-                    className="rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-sm text-stone-100 outline-none focus:border-amber-600"
+                    className="mes-input"
                   />
                 </label>
               </div>
@@ -480,7 +478,7 @@ export default function AdminMarketControlsApp({
                       action: () => increaseProductPrice(productId, percent)
                     });
                   }}
-                  className="rounded-md border border-emerald-700/50 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mes-button mes-button--positive"
                 >
                   Subir precio %
                 </button>
@@ -496,7 +494,7 @@ export default function AdminMarketControlsApp({
                       action: () => decreaseProductPrice(productId, percent)
                     });
                   }}
-                  className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mes-button mes-button--danger"
                 >
                   Bajar precio %
                 </button>
@@ -511,7 +509,7 @@ export default function AdminMarketControlsApp({
                       "Evento local. El backend aun no expone volumen por activo."
                     );
                   }}
-                  className="rounded-md border border-amber-700/50 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mes-button"
                 >
                   Cambiar volumen
                 </button>
@@ -527,7 +525,7 @@ export default function AdminMarketControlsApp({
                       action: () => resetProductPrice(productId)
                     });
                   }}
-                  className="rounded-md border border-[#4a3323] bg-black/20 px-3 py-2 text-xs font-semibold text-stone-300 hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mes-button"
                 >
                   Resetear precio
                 </button>
@@ -536,27 +534,27 @@ export default function AdminMarketControlsApp({
           </div>
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="mes-panel">
+          <div className="mes-panel__header">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
+              <h3 className="mes-panel__title">
                 World News Engine
               </h3>
-              <p className="text-[11px] text-stone-500">
-                Publica noticias de reino que mueven precios y aparecen en Guild Herald
+              <p className="mes-app__subtitle">
+                Publish real kingdom events that move prices and reach Guild Herald
               </p>
             </div>
             <button
               type="button"
               disabled={isSubmitting}
               onClick={runRandomWorldNewsAction}
-              className="rounded-md border border-amber-700/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mes-button"
             >
               Generate Random News Event
             </button>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mes-action-grid">
             {worldEventButtons.map((event) => (
               <button
                 key={event.type}
@@ -569,7 +567,7 @@ export default function AdminMarketControlsApp({
                     action: () => triggerNewsEvent(event.type)
                   })
                 }
-                className="rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-xs font-semibold text-stone-200 transition hover:border-amber-700/60 hover:bg-amber-500/10 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mes-button"
               >
                 {event.label}
               </button>
@@ -577,40 +575,40 @@ export default function AdminMarketControlsApp({
           </div>
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="mes-panel">
+          <div className="mes-panel__header">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">
+              <h3 className="mes-panel__title">
                 Market Events
               </h3>
-              <p className="text-[11px] text-stone-500">Bitacora local de acciones del Game Master</p>
+              <p className="mes-app__subtitle">Technical ledger for Game Master actions</p>
             </div>
             <button
               type="button"
               onClick={clearMarketEvents}
               disabled={marketEvents.length === 0}
-              className="rounded border border-[#3b2a1f] bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-stone-500 transition hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+              className="mes-button mes-button--compact"
             >
               Clear
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] table-fixed border-collapse font-mono text-xs">
+          <div className="mes-app-table-wrap">
+            <table className="mes-table min-w-[720px] table-fixed">
               <thead>
-                <tr className="border-b border-[#3b2a1f] text-left text-stone-500">
-                  <th className="w-[13%] py-2 pr-2 font-medium">Time</th>
-                  <th className="w-[15%] px-2 py-2 font-medium">Type</th>
-                  <th className="w-[42%] px-2 py-2 font-medium">Description</th>
-                  <th className="w-[17%] px-2 py-2 font-medium">User</th>
-                  <th className="w-[13%] pl-2 py-2 text-right font-medium">Status</th>
+                <tr>
+                  <th className="w-[13%] text-left">Time</th>
+                  <th className="w-[15%] text-left">Type</th>
+                  <th className="w-[42%] text-left">Description</th>
+                  <th className="w-[17%] text-left">User</th>
+                  <th className="w-[13%] text-right">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {marketEvents.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-sm text-stone-500">
-                      Aun no hay eventos de mercado en esta sesion.
+                    <td colSpan={5} className="text-center mes-neutral">
+                      No market events have been recorded in this session.
                     </td>
                   </tr>
                 )}

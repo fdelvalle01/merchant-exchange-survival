@@ -1,0 +1,761 @@
+.mes-topbar {
+  position: relative;
+  z-index: 700;
+  display: flex;
+  min-height: 62px;
+  flex: 0 0 62px;
+  align-items: center;
+  gap: 18px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--mes-line);
+  background:
+    linear-gradient(90deg, rgba(201, 151, 74, 0.06), transparent 34%),
+    linear-gradient(180deg, #1d1509, #120c05);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
+}
+
+.mes-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.mes-brand__emblem {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--mes-gold-muted);
+  background: #090604;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 18px rgba(201, 151, 74, 0.17);
+  transform: rotate(45deg) scale(0.78);
+}
+
+.mes-brand__emblem img {
+  width: 62px;
+  max-width: none;
+  height: 62px;
+  object-fit: cover;
+  transform: rotate(-45deg) scale(1.28);
+}
+
+.mes-brand__title {
+  overflow: hidden;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-brand);
+  font-size: clamp(0.82rem, 1.15vw, 1rem);
+  letter-spacing: 0.105em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 18px rgba(227, 185, 107, 0.28), 0 1px 0 #000;
+  white-space: nowrap;
+}
+
+.mes-brand__subtitle {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--mes-ash);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mes-topbar__spacer {
+  flex: 1;
+}
+
+.mes-topbar__legacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mes-topbar__link,
+.mes-topbar__plate,
+.mes-topbar__logout {
+  border: 1px solid var(--mes-line);
+  color: var(--mes-ash);
+  background: rgba(5, 3, 2, 0.44);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.mes-topbar__link {
+  padding: 6px 9px;
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.mes-topbar__link:hover {
+  border-color: var(--mes-gold-muted);
+  color: var(--mes-gold);
+  background: rgba(201, 151, 74, 0.08);
+}
+
+.mes-topbar__account {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+}
+
+.mes-topbar__account svg {
+  flex: 0 0 auto;
+  color: var(--mes-ember);
+}
+
+.mes-topbar__username {
+  max-width: 130px;
+  overflow: hidden;
+  color: var(--mes-parchment);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mes-topbar__role {
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.mes-topbar__day,
+.mes-topbar__clock {
+  padding: 6px 9px;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.mes-topbar__logout {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.mes-topbar__logout:hover {
+  border-color: var(--mes-danger-deep);
+  color: var(--mes-danger);
+}
+
+.mes-ticker {
+  position: relative;
+  z-index: 650;
+  height: 36px;
+  flex: 0 0 36px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--mes-line);
+  background: linear-gradient(180deg, #150f06, #0d0905);
+  box-shadow: inset 0 -1px rgba(0, 0, 0, 0.8);
+}
+
+.mes-ticker::before,
+.mes-ticker::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  content: "";
+  pointer-events: none;
+}
+
+.mes-ticker::before {
+  left: 0;
+  background: linear-gradient(90deg, #0d0905, transparent);
+}
+
+.mes-ticker::after {
+  right: 0;
+  background: linear-gradient(-90deg, #0d0905, transparent);
+}
+
+.mes-ticker__track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  align-items: center;
+  animation: mes-ticker-scroll 42s linear infinite;
+  will-change: transform;
+}
+
+.mes-ticker:hover .mes-ticker__track,
+.mes-ticker:focus-within .mes-ticker__track {
+  animation-play-state: paused;
+}
+
+.mes-ticker__group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.mes-ticker__item {
+  display: flex;
+  height: 100%;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px;
+  white-space: nowrap;
+}
+
+.mes-ticker__item::before {
+  width: 1px;
+  height: 15px;
+  background: var(--mes-gold-muted);
+  content: "";
+  opacity: 0.65;
+}
+
+.mes-ticker__image {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--mes-line);
+  object-fit: cover;
+}
+
+.mes-ticker__name {
+  color: var(--mes-parchment);
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.075em;
+}
+
+.mes-ticker__price {
+  color: var(--mes-gold);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mes-ticker__change {
+  font-size: 10px;
+}
+
+.mes-ticker__empty {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding: 0 18px;
+  color: var(--mes-ash);
+  font-size: 11px;
+}
+
+@keyframes mes-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.mes-desktop-shell {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 68px minmax(0, 1fr);
+}
+
+.mes-dock {
+  position: relative;
+  z-index: 620;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid var(--mes-line);
+  background: linear-gradient(180deg, #150f06, #0d0905);
+  scrollbar-width: thin;
+  scrollbar-color: var(--mes-line-strong) #0d0905;
+}
+
+.mes-dock__apps {
+  display: grid;
+  gap: 3px;
+  padding: 8px 5px;
+}
+
+.mes-dock__button {
+  position: relative;
+  display: flex;
+  min-height: 57px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  color: var(--mes-ash);
+  background: transparent;
+  font-family: var(--mes-font-display);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.mes-dock__button:hover {
+  border-color: var(--mes-line);
+  color: var(--mes-gold);
+  background: rgba(201, 151, 74, 0.055);
+}
+
+.mes-dock__button.is-open {
+  border-color: rgba(138, 109, 59, 0.58);
+  color: var(--mes-parchment);
+  background: rgba(201, 151, 74, 0.055);
+}
+
+.mes-dock__button.is-focused {
+  border-color: var(--mes-gold-muted);
+  color: var(--mes-gold);
+  background:
+    linear-gradient(180deg, rgba(201, 151, 74, 0.13), transparent),
+    #171006;
+  box-shadow: inset 3px 0 var(--mes-gold);
+}
+
+.mes-dock__icon {
+  font-size: 16px;
+  filter: drop-shadow(0 0 6px rgba(201, 151, 74, 0.25));
+}
+
+.mes-dock__badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 18px;
+  padding: 1px 4px;
+  border: 1px solid rgba(233, 220, 192, 0.5);
+  border-radius: 10px;
+  color: #fff6e6;
+  background: var(--mes-danger);
+  font-family: var(--mes-font-data);
+  font-size: 9px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.mes-dock__seal {
+  margin: auto 7px 8px;
+  padding: 7px 2px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-gold-muted);
+  background: rgba(0, 0, 0, 0.24);
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+
+.mes-workspace {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(201, 151, 74, 0.07), transparent 30%),
+    radial-gradient(circle at 82% 90%, rgba(122, 32, 24, 0.075), transparent 32%),
+    linear-gradient(180deg, #0a0704, #060403);
+}
+
+.mes-workspace::before {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(255, 255, 255, 0.008) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgba(255, 255, 255, 0.006) 31px 32px);
+  content: "";
+  pointer-events: none;
+}
+
+.mes-workspace-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.mes-workspace-empty__panel {
+  max-width: 440px;
+  padding: 24px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-ash);
+  background: rgba(10, 7, 4, 0.72);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.mes-workspace-empty__title {
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.mes-workspace-empty__copy {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.mes-window {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: visible;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-parchment);
+  background:
+    linear-gradient(180deg, var(--mes-panel-elevated), var(--mes-panel) 15%, var(--mes-panel-deep)),
+    var(--mes-panel);
+  box-shadow:
+    0 0 0 1px #000,
+    0 18px 50px var(--mes-shadow),
+    inset 0 1px rgba(227, 185, 107, 0.08);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.mes-window.is-focused {
+  border-color: var(--mes-gold-muted);
+  box-shadow:
+    0 0 0 1px #000,
+    0 20px 58px rgba(0, 0, 0, 0.86),
+    0 0 22px rgba(201, 151, 74, 0.1),
+    inset 0 1px rgba(227, 185, 107, 0.17);
+}
+
+.mes-window__corner {
+  position: absolute;
+  z-index: 4;
+  width: 15px;
+  height: 15px;
+  border-color: var(--mes-gold);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.mes-window__corner::after {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--mes-gold);
+  box-shadow: 0 0 5px rgba(227, 185, 107, 0.4);
+  content: "";
+}
+
+.mes-window__corner--tl {
+  top: -4px;
+  left: -4px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.mes-window__corner--tl::after {
+  top: 3px;
+  left: 3px;
+}
+
+.mes-window__corner--tr {
+  top: -4px;
+  right: -4px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.mes-window__corner--tr::after {
+  top: 3px;
+  right: 3px;
+}
+
+.mes-window__corner--bl {
+  bottom: -4px;
+  left: -4px;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.mes-window__corner--bl::after {
+  bottom: 3px;
+  left: 3px;
+}
+
+.mes-window__corner--br {
+  right: -4px;
+  bottom: -4px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
+
+.mes-window__corner--br::after {
+  right: 3px;
+  bottom: 3px;
+}
+
+.mes-window__titlebar {
+  display: flex;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 8px 0 10px;
+  border-bottom: 1px solid var(--mes-line);
+  cursor: grab;
+  background: linear-gradient(180deg, #2b1f0d, #1c1408 60%, #150f06);
+  user-select: none;
+}
+
+.mes-window__titlebar:active {
+  cursor: grabbing;
+}
+
+.mes-window__rune {
+  display: grid;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  place-items: center;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-gold);
+  background: radial-gradient(circle, #302109, #160f04);
+  transform: rotate(45deg);
+}
+
+.mes-window__rune svg {
+  font-size: 10px;
+  transform: rotate(-45deg);
+}
+
+.mes-window__title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 11px rgba(227, 185, 107, 0.25), 0 1px #000;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mes-window__controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mes-window__control {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid #4a3819;
+  color: var(--mes-ash);
+  background: linear-gradient(180deg, #241a0b, #150e05);
+  font-size: 9px;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.mes-window__control:hover {
+  border-color: var(--mes-gold-muted);
+  color: var(--mes-gold);
+}
+
+.mes-window__control--close:hover {
+  border-color: var(--mes-danger-deep);
+  color: var(--mes-danger);
+}
+
+.mes-window__body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  scrollbar-color: var(--mes-line-strong) #0e0903;
+  scrollbar-width: thin;
+}
+
+.mes-window__body::-webkit-scrollbar,
+.mes-app-table-wrap::-webkit-scrollbar,
+.mes-dock::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.mes-window__body::-webkit-scrollbar-track,
+.mes-app-table-wrap::-webkit-scrollbar-track,
+.mes-dock::-webkit-scrollbar-track {
+  background: #0e0903;
+}
+
+.mes-window__body::-webkit-scrollbar-thumb,
+.mes-app-table-wrap::-webkit-scrollbar-thumb,
+.mes-dock::-webkit-scrollbar-thumb {
+  border: 1px solid #000;
+  background: linear-gradient(180deg, #4a3819, #2b1f0d);
+}
+
+.mes-resize-handle {
+  z-index: 5 !important;
+}
+
+.mes-resize-handle--corner::after {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--mes-gold-muted);
+  border-bottom: 1px solid var(--mes-gold-muted);
+  content: "";
+  opacity: 0.7;
+}
+
+.mes-statusbar {
+  position: relative;
+  z-index: 700;
+  display: flex;
+  height: 28px;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  overflow: hidden;
+  border-top: 1px solid var(--mes-line);
+  color: var(--mes-ash);
+  background: linear-gradient(180deg, #150f06, #0b0805);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mes-statusbar__group {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+}
+
+.mes-statusbar__connection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.mes-statusbar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mes-danger);
+  box-shadow: 0 0 7px currentColor;
+}
+
+.mes-statusbar__dot.is-loading {
+  color: var(--mes-ember);
+  background: var(--mes-ember);
+}
+
+.mes-statusbar__dot.is-live {
+  color: var(--mes-positive);
+  background: var(--mes-positive);
+}
+
+.mes-statusbar__minimized {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.mes-statusbar__restore {
+  max-width: 126px;
+  overflow: hidden;
+  padding: 2px 7px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-gold);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mes-statusbar__restore:hover {
+  border-color: var(--mes-gold-muted);
+}
+
+.mes-statusbar__signature {
+  color: var(--mes-gold-muted);
+  font-family: var(--mes-font-display);
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .mes-topbar__legacy,
+  .mes-topbar__feed {
+    display: none;
+  }
+
+  .mes-statusbar__secondary {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .mes-topbar {
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .mes-brand__emblem {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .mes-brand__subtitle,
+  .mes-topbar__day,
+  .mes-topbar__account {
+    display: none;
+  }
+
+  .mes-desktop-shell {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .mes-dock__button {
+    min-height: 52px;
+    font-size: 7px;
+  }
+
+  .mes-statusbar__signature {
+    display: none;
+  }
+}

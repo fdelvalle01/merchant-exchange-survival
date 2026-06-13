@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './trading-desktop/styles/merchant-theme.css';
+import './trading-desktop/styles/desktop-window.css';
+import './trading-desktop/styles/trading-components.css';
 import MainRouter from './router/MainRouter';
 import { BrowserRouter } from 'react-router-dom';
 import { TickerProvider } from './context/TickerContext';

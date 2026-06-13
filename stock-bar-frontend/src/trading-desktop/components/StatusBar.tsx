@@ -24,9 +24,9 @@ function connectionLabel(isLoadingProducts: boolean, isLiveData: boolean) {
 }
 
 function connectionDotClass(isLoadingProducts: boolean, isLiveData: boolean) {
-  if (isLoadingProducts) return "bg-amber-300";
-  if (isLiveData) return "bg-emerald-300";
-  return "bg-red-300";
+  if (isLoadingProducts) return "is-loading";
+  if (isLiveData) return "is-live";
+  return "";
 }
 
 export default function StatusBar({
@@ -53,26 +53,26 @@ export default function StatusBar({
   }).format(clock);
 
   return (
-    <footer className="flex h-7 shrink-0 items-center justify-between border-t border-[#3b2a1f] bg-[#0b0705] px-3 font-mono text-[11px] text-stone-500">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${connectionDotClass(isLoadingProducts, isLiveData)}`} />
+    <footer className="mes-statusbar">
+      <div className="mes-statusbar__connection">
+        <span className={`mes-statusbar__dot ${connectionDotClass(isLoadingProducts, isLiveData)}`} />
         <span>{connectionLabel(isLoadingProducts, isLiveData)}</span>
       </div>
-      <div className="hidden items-center gap-4 sm:flex">
+      <div className="mes-statusbar__group mes-statusbar__secondary">
         <span>{feedLabel(feedMode)}</span>
-        <span>ENV LOCAL</span>
         <span>ASSETS {instrumentCount}</span>
         <span>WINDOWS {windowCount}</span>
-        <span>ORDERS: {orderCount}</span>
+        <span>ORDERS {orderCount}</span>
         {minimizedWindows.length > 0 && (
-          <span className="flex items-center gap-1">
+          <span className="mes-statusbar__minimized">
             MIN
             {minimizedWindows.map((window) => (
               <button
                 key={window.id}
                 type="button"
                 onClick={() => onRestoreWindow(window.id)}
-                className="rounded border border-[#4a3323] bg-black/20 px-2 py-0.5 text-[10px] text-amber-300 hover:border-amber-700/60"
+                className="mes-statusbar__restore"
+                title={`Restore ${window.title}`}
               >
                 {window.title}
               </button>
@@ -81,7 +81,7 @@ export default function StatusBar({
         )}
         <span>{time}</span>
       </div>
-      <div>MES DESK v0.1</div>
+      <div className="mes-statusbar__signature">MES DESK · ROYAL EXCHANGE</div>
     </footer>
   );
 }

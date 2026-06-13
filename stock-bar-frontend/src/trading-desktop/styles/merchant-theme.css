@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+
+:root {
+  --mes-abyss: #0b0805;
+  --mes-iron: #171107;
+  --mes-panel: #1a130a;
+  --mes-panel-elevated: #221809;
+  --mes-panel-deep: #100b06;
+  --mes-ember: #c9974a;
+  --mes-gold: #e3b96b;
+  --mes-gold-muted: #8a6d3b;
+  --mes-parchment: #e9dcc0;
+  --mes-ash: #9b8a6c;
+  --mes-ash-dark: #665a46;
+  --mes-danger: #d65a4a;
+  --mes-danger-deep: #7a2018;
+  --mes-positive: #7fc46e;
+  --mes-info: #7e9fd6;
+  --mes-arcane: #caa0e8;
+  --mes-line: #3a2c14;
+  --mes-line-strong: #5d4520;
+  --mes-shadow: rgba(0, 0, 0, 0.78);
+  --mes-font-display: "Cinzel", Georgia, serif;
+  --mes-font-brand: "Cinzel Decorative", "Cinzel", Georgia, serif;
+  --mes-font-data: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--mes-abyss);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.mes-desktop {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--mes-parchment);
+  background:
+    radial-gradient(ellipse 70% 48% at 50% -12%, rgba(201, 151, 74, 0.075), transparent 62%),
+    radial-gradient(ellipse 48% 58% at 100% 110%, rgba(122, 32, 24, 0.09), transparent 64%),
+    var(--mes-abyss);
+  font-family: var(--mes-font-data);
+  font-size: 14px;
+}
+
+.mes-desktop::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.009) 1px, transparent 1px);
+  background-size: 26px 26px;
+  content: "";
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.mes-desktop ::selection {
+  color: #140d05;
+  background: var(--mes-gold);
+}
+
+.mes-desktop :focus-visible {
+  outline: 2px solid var(--mes-gold);
+  outline-offset: 2px;
+}
+
+.mes-display {
+  font-family: var(--mes-font-display);
+}
+
+.mes-data {
+  font-family: var(--mes-font-data);
+}
+
+.mes-positive {
+  color: var(--mes-positive);
+}
+
+.mes-negative {
+  color: var(--mes-danger);
+}
+
+.mes-neutral {
+  color: var(--mes-ash);
+}
+
+.mes-warning {
+  color: var(--mes-ember);
+}
+
+.mes-info {
+  color: var(--mes-info);
+}
+
+.mes-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mes-desktop *,
+  .mes-desktop *::before,
+  .mes-desktop *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

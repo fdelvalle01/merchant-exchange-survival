@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMyCompany, type PlayerCompanyResponse } from "../services/companyApi";
 
+let pendingCompanyRequest: Promise<PlayerCompanyResponse> | null = null;
+
+function getMyCompanyOnce() {
+  if (!pendingCompanyRequest) {
+    pendingCompanyRequest = getMyCompany().finally(() => {
+      pendingCompanyRequest = null;
+    });
+  }
+
+  return pendingCompanyRequest;
+}
+
 type CompanyState = {
   company: PlayerCompanyResponse | null;
   isLoadingCompany: boolean;
@@ -15,7 +27,7 @@ export function useCompany(): CompanyState {
 
   const refreshCompany = useCallback(async () => {
     try {
-      const nextCompany = await getMyCompany();
+      const nextCompany = await getMyCompanyOnce();
       setCompany(nextCompany);
       setCompanyError(null);
     } catch (error) {

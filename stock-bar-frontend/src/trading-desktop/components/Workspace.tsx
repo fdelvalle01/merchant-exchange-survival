@@ -102,34 +102,28 @@ export default function Workspace({
   const visibleWindows = windows.filter((window) => !window.minimized);
 
   return (
-    <main
-      className="relative min-h-0 overflow-hidden bg-[#070504]"
-      style={{
-        backgroundImage:
-          "radial-gradient(circle at 16% 0%, rgba(132, 85, 38, 0.16), transparent 30%), radial-gradient(circle at 78% 22%, rgba(91, 76, 55, 0.14), transparent 28%), linear-gradient(180deg, #080604 0%, #050403 100%)"
-      }}
-    >
+    <main className="mes-workspace">
       {windows.length === 0 && (
-        <div className="absolute inset-0 grid place-items-center p-6 text-center">
-          <div className="max-w-md rounded-md border border-[#3b2a1f] bg-black/25 p-6 shadow-2xl">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-              Workspace vacio
+        <div className="mes-workspace-empty">
+          <div className="mes-workspace-empty__panel">
+            <h2 className="mes-workspace-empty__title">
+              Trading desk closed
             </h2>
-            <p className="mt-2 text-sm text-stone-500">
-              Abre Market o Ticket desde el sidebar para comenzar a operar activos.
+            <p className="mes-workspace-empty__copy">
+              Open an application from the dock to begin reading the kingdom exchange.
             </p>
           </div>
         </div>
       )}
 
       {windows.length > 0 && visibleWindows.length === 0 && (
-        <div className="absolute inset-0 grid place-items-center p-6 text-center">
-          <div className="max-w-md rounded-md border border-[#3b2a1f] bg-black/25 p-6 shadow-2xl">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-              Ventanas minimizadas
+        <div className="mes-workspace-empty">
+          <div className="mes-workspace-empty__panel">
+            <h2 className="mes-workspace-empty__title">
+              Windows minimized
             </h2>
-            <p className="mt-2 text-sm text-stone-500">
-              Restaura una ventana desde la barra inferior.
+            <p className="mes-workspace-empty__copy">
+              Restore a window from the lower status bar.
             </p>
           </div>
         </div>
@@ -145,6 +139,7 @@ export default function Workspace({
             window={window}
             minWidth={app.minSize.width}
             minHeight={app.minSize.height}
+            icon={app.icon}
             isFocused={focusedWindowId === window.id}
             onFocus={onFocusWindow}
             onClose={onCloseWindow}

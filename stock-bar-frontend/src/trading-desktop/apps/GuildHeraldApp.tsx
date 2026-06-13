@@ -33,10 +33,17 @@ function formatTime(timestamp: string) {
 }
 
 function severityClass(severity: NewsSeverity) {
-  if (severity === "CRITICAL") return "border-red-500/70 bg-red-500/10 text-red-200";
-  if (severity === "HIGH") return "border-orange-500/70 bg-orange-500/10 text-orange-200";
-  if (severity === "MEDIUM") return "border-amber-500/70 bg-amber-500/10 text-amber-200";
-  return "border-emerald-500/70 bg-emerald-500/10 text-emerald-200";
+  if (severity === "CRITICAL") return "mes-negative";
+  if (severity === "HIGH") return "mes-warning";
+  if (severity === "MEDIUM") return "mes-info";
+  return "mes-positive";
+}
+
+function severityCardClass(severity: NewsSeverity) {
+  if (severity === "CRITICAL") return "mes-herald-card--critical";
+  if (severity === "HIGH") return "mes-herald-card--high";
+  if (severity === "MEDIUM") return "mes-herald-card--medium";
+  return "mes-herald-card--low";
 }
 
 function impactClass(news: WorldNewsItem) {
@@ -70,52 +77,50 @@ function NewsCard({
 
   return (
     <article
-      className={`rounded-md border p-3 transition hover:bg-black/35 ${
-        affectsYou
-          ? holdingImpactCardClass(impactMeta.tone)
-          : "border-[#3b2a1f] bg-black/25"
+      className={`mes-herald-card ${severityCardClass(news.severity)} ${
+        affectsYou ? holdingImpactCardClass(impactMeta.tone) : ""
       }`}
     >
       <div className="flex items-start gap-3">
-        <div className={`grid h-9 w-9 shrink-0 place-items-center rounded border text-sm ${severityClass(news.severity)}`}>
+        <div className={`grid h-8 w-8 shrink-0 place-items-center border border-current/40 text-xs ${severityClass(news.severity)}`}>
           <NewsIcon severity={news.severity} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${severityClass(news.severity)}`}>
+          <div className="mes-herald-card__meta">
+            <span className={`mes-herald-card__severity ${severityClass(news.severity)}`}>
               {news.severity}
             </span>
-            <span className="font-mono text-[11px] text-stone-500">{formatTime(news.timestamp)}</span>
-            <span className="font-mono text-[11px] text-stone-600">{news.category}</span>
+            <span className="mes-herald-card__time">{formatTime(news.timestamp)}</span>
+            <span className="mes-herald-card__time">{news.category}</span>
             {affectsYou && (
-              <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${holdingImpactClass(impactMeta.tone)}`}>
+              <span className={`mes-herald-card__severity ${holdingImpactClass(impactMeta.tone)}`}>
                 {impactMeta.label}
               </span>
             )}
           </div>
 
-          <div className="mt-2 flex items-start justify-between gap-3">
-            <h3 className="min-w-0 text-base font-semibold text-stone-100">{news.title}</h3>
-            <span className={`shrink-0 font-mono text-sm font-semibold ${impactClass(news)}`}>
+          <div className="mes-herald-card__title-row">
+            <h3 className="mes-herald-card__title">{news.title}</h3>
+            <span className={`mes-herald-card__impact ${impactClass(news)}`}>
               {impactLabel(news)}
             </span>
           </div>
 
-          <p className="mt-1 text-sm text-stone-300">{news.summary}</p>
+          <p className="mes-herald-card__summary">{news.summary}</p>
           {impactMeta && (
-            <div className={`mt-2 rounded border px-2 py-1 text-[11px] font-semibold ${holdingImpactClass(impactMeta.tone)}`}>
+            <div className={`mt-2 border px-2 py-1 text-[10px] font-semibold ${holdingImpactClass(impactMeta.tone)}`}>
               {impactMeta.hint}
             </div>
           )}
-          <p className="mt-2 text-xs leading-5 text-stone-500">{news.description}</p>
+          <p className="mes-herald-card__description">{news.description}</p>
 
-          <div className="mt-3 flex flex-wrap gap-2 font-mono text-[11px]">
+          <div className="mt-3 flex flex-wrap gap-2">
             {(news.affectedAssetName || news.affectedSector) && (
-              <span className="rounded border border-[#3b2a1f] bg-[#090604] px-2 py-1 text-stone-300">
+              <span className="mes-tag mes-warning">
                 {news.affectedAssetName ?? news.affectedSector}
               </span>
             )}
-            <span className="rounded border border-[#3b2a1f] bg-[#090604] px-2 py-1 text-stone-500">
+            <span className="mes-tag">
               {news.direction}
             </span>
           </div>
@@ -156,44 +161,33 @@ export default function GuildHeraldApp({
   );
 
   return (
-    <section
-      className={`min-h-full overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.10), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
+          <h2 className="mes-app__title">
             Guild Herald
           </h2>
-          <p className="text-[11px] text-stone-500">Latest kingdom market news</p>
+          <p className="mes-app__subtitle">Kingdom news with portfolio-aware impact</p>
         </div>
         <button
           type="button"
           onClick={onNewsChanged}
-          className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
+          className="mes-icon-button"
           title="Refresh news"
+          aria-label="Refresh news"
         >
           <FaSyncAlt aria-hidden="true" />
         </button>
       </div>
 
-      <div className="grid gap-3 p-3">
-        <div className="flex flex-wrap gap-1">
+      <div className="mes-app__body">
+        <div className="mes-filter-group">
           {filters.map((filter) => (
             <button
               key={filter.id}
               type="button"
               onClick={() => setActiveFilter(filter.id)}
-              className={`rounded border px-2.5 py-1 text-[11px] font-semibold transition ${
-                activeFilter === filter.id
-                  ? "border-amber-600/70 bg-amber-500/15 text-amber-100"
-                  : "border-[#3b2a1f] bg-black/20 text-stone-500 hover:text-stone-100"
-              }`}
+              className={`mes-filter ${activeFilter === filter.id ? "is-active" : ""}`}
             >
               {filter.label}
             </button>
@@ -201,28 +195,30 @@ export default function GuildHeraldApp({
         </div>
 
         {isLoadingNews && (
-          <div className="rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
+          <div className="mes-banner">
             Loading Guild Herald...
           </div>
         )}
         {newsError && (
-          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div className="mes-banner mes-banner--danger">
             {newsError}
           </div>
         )}
         {!isLoadingNews && worldNews.length === 0 && (
-          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-8 text-center text-sm text-stone-500">
+          <div className="mes-state">
             No kingdom news yet.
           </div>
         )}
         {!isLoadingNews && worldNews.length > 0 && filteredNews.length === 0 && (
-          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-8 text-center text-sm text-stone-500">
+          <div className="mes-state">
             No news matches this filter.
           </div>
         )}
-        {filteredNews.map(({ news, impactMeta }) => (
-          <NewsCard key={news.id} news={news} impactMeta={impactMeta} />
-        ))}
+        <div className="mes-herald-list">
+          {filteredNews.map(({ news, impactMeta }) => (
+            <NewsCard key={news.id} news={news} impactMeta={impactMeta} />
+          ))}
+        </div>
       </div>
     </section>
   );

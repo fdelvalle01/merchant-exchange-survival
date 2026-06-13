@@ -79,31 +79,28 @@ function buildUser(): DesktopUser | null {
 
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   return (
-    <div
-      className="grid min-h-screen place-items-center overflow-hidden bg-[#060403] p-6 text-stone-100"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.18), transparent 34%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 20px), linear-gradient(180deg, #080604 0%, #050403 100%)"
-      }}
-    >
-      <section className="w-full max-w-[460px] rounded-md border border-[#4a3324] bg-[#100b08]/95 p-6 shadow-2xl">
+    <div className="mes-login">
+      <section className="mes-login__panel">
+        <span className="mes-window__corner mes-window__corner--tl" />
+        <span className="mes-window__corner mes-window__corner--tr" />
+        <span className="mes-window__corner mes-window__corner--bl" />
+        <span className="mes-window__corner mes-window__corner--br" />
         <div className="grid justify-items-center gap-4 text-center">
-          <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-md border border-amber-700/60 bg-black/35 p-2 shadow-[0_0_0_1px_rgba(245,158,11,0.12)]">
+          <div className="mes-login__emblem">
             <img
               src="/branding/merchant-logo.png"
               alt="Merchant Exchange Survival emblem"
-              className="h-full w-full object-contain"
             />
           </div>
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded border border-amber-700/40 bg-black/25 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200">
+            <div className="mes-login__gate">
               <FaShieldAlt aria-hidden="true" />
-              Guild Access
+              Royal Exchange Access
             </div>
-            <h1 className="text-2xl font-semibold tracking-wide text-stone-50">
+            <h1 className="mes-login__title">
               Merchant Exchange Survival
             </h1>
-            <p className="mt-2 text-sm leading-6 text-stone-400">
+            <p className="mes-login__copy">
               Enter the guild desk, watch the kingdom markets, and defend your company through rumor, risk, and trade.
             </p>
           </div>
@@ -112,13 +109,13 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <button
           type="button"
           onClick={onLogin}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+          className="mes-button mes-button--primary mes-button--full mt-6"
         >
           <FaDoorOpen aria-hidden="true" />
-          Enter Market
+          Enter Royal Trading Desk
         </button>
 
-        <p className="mt-4 text-center text-[11px] text-stone-500">
+        <p className="mes-login__footnote">
           Authentication is handled by the guild gatekeeper.
         </p>
       </section>
@@ -223,8 +220,13 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   if (!isReady) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#060403] font-mono text-xs uppercase tracking-[0.16em] text-amber-200">
-        Loading Keycloak session...
+      <div className="mes-login">
+        <div className="mes-state">
+          <div>
+            <div className="mes-state__title">Opening the guild gate</div>
+            <div className="mes-state__copy">Loading Keycloak session...</div>
+          </div>
+        </div>
       </div>
     );
   }

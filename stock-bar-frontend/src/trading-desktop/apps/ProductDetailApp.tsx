@@ -21,16 +21,16 @@ function formatDate(value?: string) {
 function DetailMetric({
   label,
   value,
-  className = "text-stone-100"
+  className = ""
 }: {
   label: string;
   value: string;
   className?: string;
 }) {
   return (
-    <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-      <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">{label}</div>
-      <div className={`mt-1 font-mono text-sm ${className}`}>{value}</div>
+    <div className="mes-plate">
+      <div className="mes-plate__label">{label}</div>
+      <div className={`mes-plate__value ${className}`}>{value}</div>
     </div>
   );
 }
@@ -38,18 +38,17 @@ function DetailMetric({
 function ProductImage({ product }: { product: TradingInstrument }) {
   if (!product.imageUrl) {
     return (
-      <div className="grid h-32 w-full place-items-center rounded-md border border-[#3b2a1f] bg-black/25 text-xs text-stone-600">
+      <div className="mes-asset-image mes-neutral">
         No image
       </div>
     );
   }
 
   return (
-    <div className="grid h-32 w-full place-items-center rounded-md border border-[#3b2a1f] bg-black/25 p-3">
+    <div className="mes-asset-image">
       <img
         src={product.imageUrl}
         alt={product.name}
-        className="max-h-28 max-w-28 rounded object-contain"
       />
     </div>
   );
@@ -74,7 +73,7 @@ function HistoryBars({ history }: { history: PriceHistoryPoint[] }) {
   }, [history]);
 
   return (
-    <div className="flex h-24 items-end gap-1 overflow-hidden">
+    <div className="mes-history-bars">
       {history.map((point, index) => {
         const height = 18 + ((point.price - range.min) / range.spread) * 72;
 
@@ -82,7 +81,6 @@ function HistoryBars({ history }: { history: PriceHistoryPoint[] }) {
           <span
             key={`${point.timestamp}-${index}`}
             title={`${formatHistoryTime(point.timestamp)} ${money.format(point.price)}`}
-            className="min-w-[5px] flex-1 rounded-t bg-amber-500/40"
             style={{ height }}
           />
         );
@@ -94,11 +92,13 @@ function HistoryBars({ history }: { history: PriceHistoryPoint[] }) {
 export default function ProductDetailApp({
   currentUser,
   selectedProduct,
-  onOpenApp
+  onOpenApp,
+  isActive
 }: DesktopAppRenderProps) {
   const [history, setHistory] = useState<PriceHistoryPoint[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyReloadKey, setHistoryReloadKey] = useState(0);
 
   useEffect(() => {
     if (!selectedProduct) {
@@ -129,24 +129,18 @@ export default function ProductDetailApp({
     return () => {
       isMounted = false;
     };
-  }, [selectedProduct?.id]);
+  }, [historyReloadKey, selectedProduct?.id]);
 
   if (!selectedProduct) {
     return (
-      <section
-        className="min-h-full rounded-md border border-[#3b2a1f] bg-[#120d09]/95 p-5 shadow-2xl"
-        style={{
-          backgroundImage:
-            "linear-gradient(135deg, rgba(116, 72, 33, 0.10), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-        }}
-      >
-        <div className="grid min-h-[260px] place-items-center text-center">
+      <section className="mes-app" data-active={isActive}>
+        <div className="mes-state min-h-[260px]">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-              Asset Detail
+            <h2 className="mes-state__title">
+              Asset Chronicle
             </h2>
-            <p className="mt-3 max-w-sm text-sm text-stone-500">
-              Selecciona un activo desde Market Board para ver el detalle.
+            <p className="mes-state__copy">
+              Select an asset from Market Board to open its chronicle.
             </p>
           </div>
         </div>
@@ -158,54 +152,45 @@ export default function ProductDetailApp({
   const changePercent = percentFor(selectedProduct);
   const trendClass = valueClass(changePercent);
   const enabledLabel = selectedProduct.enabled === false ? "Disabled" : "Enabled";
-  const enabledClass = selectedProduct.enabled === false ? "text-red-300" : "text-emerald-300";
+  const enabledClass = selectedProduct.enabled === false ? "mes-negative" : "mes-positive";
   const canOpenTicket = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
 
   return (
-    <section
-      className="min-h-full rounded-md border border-[#3b2a1f] bg-[#120d09]/95 shadow-2xl"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.10), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Asset Detail
+          <h2 className="mes-app__title">
+            Asset Chronicle
           </h2>
-          <p className="text-[11px] text-stone-500">Ficha de instrumento seleccionado</p>
+          <p className="mes-app__subtitle">Selected instrument, history and exchange standing</p>
         </div>
-        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
+        <div className="mes-code-badge">
           PD-01
         </div>
       </div>
 
-      <div className="grid gap-4 p-4">
-        <div className="grid gap-4 md:grid-cols-[150px_minmax(0,1fr)]">
+      <div className="mes-app__body">
+        <div className="mes-asset-hero">
           <ProductImage product={selectedProduct} />
 
-          <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3.5">
+          <div className="mes-asset-summary">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">
+                <div className="mes-plate__label">
                   Selected Asset
                 </div>
-                <h3 className="mt-1 text-lg font-semibold text-stone-100">
+                <h3 className="mes-asset-summary__name">
                   {selectedProduct.name}
                 </h3>
               </div>
-              <div className={`rounded border border-[#3b2a1f] bg-black/30 px-3 py-1 font-mono text-xs ${enabledClass}`}>
+              <div className={`mes-tag ${enabledClass}`}>
                 {enabledLabel}
               </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap items-end gap-4">
+            <div className="flex flex-wrap items-end gap-4">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">
-                  Current Price
-                </div>
-                <div className="font-mono text-2xl text-stone-100">
+                <div className="mes-asset-summary__price">
                   {money.format(selectedProduct.currentPrice)}
                 </div>
               </div>
@@ -219,15 +204,15 @@ export default function ProductDetailApp({
               type="button"
               disabled={!canOpenTicket}
               onClick={() => onOpenApp("ticket")}
-              className="mt-4 rounded-md border border-amber-600/70 bg-amber-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
-              title={canOpenTicket ? "Abrir Investment Ticket" : "Ticket restringido por rol"}
+              className="mes-button mt-4"
+              title={canOpenTicket ? "Open Royal Ticket" : "Ticket restricted by role"}
             >
-              Buy / Open Ticket
+              Open Royal Ticket
             </button>
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mes-plate-grid">
           <DetailMetric label="Base Price" value={money.format(selectedProduct.basePrice)} />
           <DetailMetric
             label="Change"
@@ -247,32 +232,41 @@ export default function ProductDetailApp({
           <DetailMetric label="Last Trade" value={formatDate(selectedProduct.lastPurchasedAt)} />
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="mes-panel">
+          <div className="mes-panel__header">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
+              <div className="mes-panel__title">
                 Price History
               </div>
-              <p className="mt-1 text-xs text-stone-600">
-                Ultimos {history.length} registros desde /api/price-history.
+              <p className="mes-app__subtitle">
+                Latest {history.length} records from /api/price-history
               </p>
             </div>
           </div>
 
-          <div className="mt-4">
+          <div>
             {isLoadingHistory && (
-              <div className="grid h-24 place-items-center text-xs text-stone-500">
+              <div className="mes-state min-h-[96px]">
                 Loading price_history...
               </div>
             )}
             {!isLoadingHistory && historyError && (
-              <div className="grid h-24 place-items-center text-xs text-red-300">
-                {historyError}
+              <div className="mes-state min-h-[96px]">
+                <div>
+                  <div className="mes-negative">{historyError}</div>
+                  <button
+                    type="button"
+                    className="mes-button mes-button--compact mt-3"
+                    onClick={() => setHistoryReloadKey((current) => current + 1)}
+                  >
+                    Retry
+                  </button>
+                </div>
               </div>
             )}
             {!isLoadingHistory && !historyError && history.length === 0 && (
-              <div className="grid h-24 place-items-center text-xs text-stone-500">
-                Sin registros de historial para este activo.
+              <div className="mes-state min-h-[96px]">
+                No price history has been recorded for this asset.
               </div>
             )}
             {!isLoadingHistory && !historyError && history.length > 0 && (

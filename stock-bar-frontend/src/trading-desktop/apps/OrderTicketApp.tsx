@@ -16,9 +16,9 @@ function toBackendProductId(id: TradingInstrument["id"]) {
 }
 
 function statusClass(type: OrderStatus["type"]) {
-  if (type === "success") return "text-emerald-300";
-  if (type === "error") return "text-red-300";
-  return "text-stone-400";
+  if (type === "success") return "mes-positive";
+  if (type === "error") return "mes-negative";
+  return "mes-neutral";
 }
 
 export default function OrderTicketApp({
@@ -56,7 +56,10 @@ export default function OrderTicketApp({
   const hasOrderAccess = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
   const companyStatus = company?.status ?? "ACTIVE";
   const canTradeCompany = companyStatus === "ACTIVE";
-  const canSendOrders = hasOrderAccess && canTradeCompany;
+  const isAssetEnabled = selectedProduct?.enabled !== false;
+  const canSendOrders = hasOrderAccess && canTradeCompany && isAssetEnabled;
+  const normalizedQuantity = Math.max(1, Number(quantity) || 1);
+  const estimatedTotal = selectedProduct ? selectedProduct.currentPrice * normalizedQuantity : 0;
   const tradingDisabledMessage =
     companyStatus === "BANKRUPT"
       ? "Trading disabled: company is BANKRUPT."
@@ -156,31 +159,23 @@ export default function OrderTicketApp({
   }
 
   return (
-    <section
-      className={`overflow-hidden rounded-md border bg-[#100b08]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(160deg, rgba(188, 129, 60, 0.10), transparent 42%), repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 16px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Investment Ticket
+          <h2 className="mes-app__title">
+            Royal Ticket
           </h2>
-          <p className="text-[11px] text-stone-500">Ordenes contra /api/orders</p>
+          <p className="mes-app__subtitle">Real BUY / SELL orders through /api/orders</p>
         </div>
-        <div className="rounded border border-amber-700/40 bg-black/30 px-2 py-1 font-mono text-[10px] text-amber-300">
+        <div className="mes-code-badge">
           OT-01
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-4 p-4 text-sm">
-        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-          <label className="mb-2 block text-xs uppercase tracking-[0.14em] text-stone-500">
-            Asset
+      <form onSubmit={handleSubmit} className="mes-app__body">
+        <div className="mes-field">
+          <label className="mes-field__label">
+            Asset under seal
           </label>
           <select
             value={selectedProduct ? String(selectedProduct.id) : ""}
@@ -191,7 +186,7 @@ export default function OrderTicketApp({
               );
               if (next) onSelectProduct(next);
             }}
-            className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mes-select"
           >
             {products.length === 0 && <option value="">No assets</option>}
             {products.map((product) => (
@@ -202,16 +197,12 @@ export default function OrderTicketApp({
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="mes-segmented">
           <button
             type="button"
             onClick={() => setSide("BUY")}
             disabled={isSubmitting || !canTradeCompany}
-            className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
-              side === "BUY"
-                ? "border-emerald-400 bg-emerald-400/15 text-emerald-200"
-                : "border-[#3b2a1f] bg-black/25 text-stone-500 hover:text-stone-100"
-            } disabled:cursor-not-allowed disabled:opacity-60`}
+            className={`mes-segment ${side === "BUY" ? "is-buy" : ""}`}
           >
             BUY
           </button>
@@ -219,30 +210,30 @@ export default function OrderTicketApp({
             type="button"
             onClick={() => setSide("SELL")}
             disabled={isSubmitting || !canTradeCompany}
-            className={`rounded-md border px-3 py-2 text-center font-semibold transition ${
-              side === "SELL"
-                ? "border-red-400 bg-red-400/15 text-red-200"
-                : "border-[#3b2a1f] bg-black/25 text-stone-500 hover:text-stone-100"
-            } disabled:cursor-not-allowed disabled:opacity-60`}
+            className={`mes-segment ${side === "SELL" ? "is-sell" : ""}`}
           >
             SELL
           </button>
         </div>
 
         {!hasOrderAccess && (
-          <div className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-            Access denied. VIEWER puede mirar el mercado, pero no enviar ordenes.
+          <div className="mes-banner mes-banner--danger">
+            Access denied. VIEWER may inspect the market but cannot send orders.
           </div>
         )}
         {tradingDisabledMessage && (
-          <div className="rounded-md border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div className="mes-banner mes-banner--danger">
             {tradingDisabledMessage}
           </div>
         )}
+        {!isAssetEnabled && (
+          <div className="mes-banner mes-banner--warning">
+            This asset is disabled by the exchange and cannot be traded.
+          </div>
+        )}
 
-        <div className="grid gap-3">
-          <div>
-            <label className="mb-1 block text-xs uppercase tracking-[0.14em] text-stone-500">
+        <div className="mes-field">
+            <label className="mes-field__label">
               Quantity
             </label>
             <input
@@ -251,55 +242,55 @@ export default function OrderTicketApp({
               value={quantity}
               disabled={!selectedProduct || isSubmitting || !canSendOrders}
               onChange={(event) => setQuantity(Number(event.target.value))}
-              className="w-full rounded-md border border-[#4a3323] bg-[#090604] px-3 py-2 font-mono text-stone-100 outline-none focus:border-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mes-input"
             />
-          </div>
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-          <div className="flex items-center justify-between text-xs text-stone-500">
-            <span>Precio actual backend</span>
+        <div className="mes-ticket-price">
+          {selectedProduct?.imageUrl && (
+            <img
+              src={selectedProduct.imageUrl}
+              alt=""
+              className="mes-ticket-price__image"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <span className="mes-plate__label">Current exchange price</span>
             <span className={valueClass(selectedPercent)}>
               {selectedPercent > 0 ? "+" : ""}
               {selectedPercent.toFixed(2)}%
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-3">
-            {selectedProduct?.imageUrl && (
-              <img
-                src={selectedProduct.imageUrl}
-                alt=""
-                className="h-12 w-12 rounded border border-[#4a3323] object-cover"
-              />
-            )}
-            <div>
-              <div className="font-mono text-xl text-stone-100">
+              <div className="mes-ticket-price__value">
                 {selectedProduct ? money.format(selectedProduct.currentPrice) : money.format(0)}
               </div>
-              <div className="text-xs text-stone-500">
+              <div className="mes-ticket-price__base">
                 Base {selectedProduct ? money.format(selectedProduct.basePrice) : money.format(0)}
               </div>
-            </div>
           </div>
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
-          El precio no se envia al backend. El motor define el precio actual.
+        <div className="mes-plate">
+          <div className="mes-plate__label">Estimated total</div>
+          <div className="mes-plate__value mes-warning">{money.format(estimatedTotal)}</div>
+        </div>
+
+        <div className="mes-banner mes-banner--info">
+          The exchange engine sets the execution price. The frontend never sends a price.
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting || !selectedProduct || !canSendOrders}
-          className={`rounded-md border px-3 py-3 font-semibold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-50 ${
-            side === "SELL"
-              ? "border-red-500/70 bg-red-500/15 text-red-100 hover:bg-red-500/25"
-              : "border-amber-600/70 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25"
+          className={`mes-button mes-button--full ${
+            side === "SELL" ? "mes-button--danger" : "mes-button--primary"
           }`}
         >
-          {isSubmitting ? "Enviando..." : `ENVIAR ${side}`}
+          {isSubmitting ? "Sending..." : `Send ${side} Order`}
         </button>
 
-        <div className={`min-h-8 rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 font-mono text-[11px] ${statusClass(status.type)}`}>
+        <div className={`mes-statusline ${statusClass(status.type)}`} aria-live="polite">
           <div>{status.message}</div>
           {status.details && (
             <div className="mt-1 truncate text-[10px] text-amber-200/80" title={status.details}>

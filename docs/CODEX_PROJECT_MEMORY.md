@@ -19,6 +19,7 @@ Asset selection
   -> World news changes prices
   -> Portfolio P/L changes
   -> Company value and risk update
+  -> End Day applies operating costs and possible random events
   -> Player reacts
 ```
 
@@ -32,6 +33,7 @@ Important principle: market events should be presented as **Guild Herald news**,
 - Phase 4: World News + Risk System through Guild Herald.
 - Phase 4.2: improved portfolio-aware news semantics.
 - Market Engine 2.0: simulated market authority with BUY/SELL pressure and fair value reversion.
+- Phase 5: Survival Rules & Game Clock.
 - UX polish: portfolio holdings select global asset.
 - Auth polish: custom frontend login screen and custom Keycloak login theme.
 
@@ -109,6 +111,16 @@ Global selected asset:
 - Investment Ticket and Asset Detail update automatically when `selectedProduct` changes.
 
 Do not create parallel selected-asset state inside apps unless there is a specific local UI reason.
+
+Survival UI:
+
+- `CompanyDashboardApp.tsx` owns the visible `END DAY` action.
+- `stock-bar-frontend/src/trading-desktop/services/gameApi.ts` calls `/api/game/state` and `/api/game/end-day`.
+- After End Day, refresh products, company, portfolio, orders, news, and market events.
+- `OrderTicketApp.tsx` must disable BUY/SELL if `company.status !== ACTIVE`.
+- Terminal states:
+  - `BANKRUPT`: show defeat messaging and block trading.
+  - `VICTORIOUS`: show victory messaging and block trading for now.
 
 ## Frontend Style Rules
 
@@ -207,6 +219,15 @@ Important services:
 - `OrderService`
 - `WorldEventService`
 - `AdminMarketService`
+- `GameClockService`
+
+Survival files:
+
+- `PlayerCompanyStatus`
+- `SurvivalProperties`
+- `GameController`
+- `GameStateResponse`
+- `PlayerCompanySurvivalSchemaMigration`
 
 Backend rules:
 
@@ -217,6 +238,7 @@ Backend rules:
 - Preserve existing API contracts unless the user explicitly asks for a contract change.
 - Keep `/api/sales` compatibility unless explicitly removed.
 - For backend changes, run at least `mvn test`; use `mvn clean test` when verifying compilation after DTO/entity changes.
+- When adding non-null fields to existing entities, provide SQL defaults or a migration/backfill path. Hibernate `ddl-auto=update` can fail on existing rows if a new column is `NOT NULL` without a default.
 
 ## Trading Logic
 
@@ -266,6 +288,12 @@ Portfolio:
 - Do not show zero-quantity positions.
 - Response includes holding `createdAt` and `updatedAt` for news timing logic.
 
+Trading status:
+
+- `OrderService` must not move asset prices directly.
+- `OrderService` rejects BUY/SELL with `409` when `PlayerCompany.status` is not `ACTIVE`.
+- BUY/SELL still execute immediately against `Product.currentPrice` when active.
+
 ## Market Engine 2.0
 
 Design decision:
@@ -303,6 +331,8 @@ Default behavior:
 
 - Recent BUY quantity creates positive pressure.
 - Recent SELL quantity creates negative pressure.
+- Low quantity below `min-pressure-threshold` should not move price.
+- Pressure impact is scaled by `default-liquidity-depth`.
 - Net pressure is capped by `max-pressure-impact-pct`.
 - Fair value is currently `Product.basePrice`.
 - Reversion moves gradually toward `basePrice`.
@@ -324,6 +354,89 @@ Legacy Stock Bar schedulers:
 - `PriceUpdaterService` and `PriceDegraderService` are now conditional.
 - They only run with `price.legacy-enabled=true`.
 - Keep them disabled for Merchant Exchange Survival.
+
+Anti-exploit defaults:
+
+```yaml
+game:
+  market-engine:
+    min-pressure-threshold: 5
+    default-liquidity-depth: 100
+    buy-impact-factor: 0.001
+    sell-impact-factor: 0.0015
+    max-pressure-impact-pct: 0.04
+    reversion-rate-pct: 0.005
+    reversion-enabled: true
+```
+
+Goal: a small player BUY should not guarantee an immediate profitable resale.
+
+## Survival Rules & Game Clock
+
+Design principle:
+
+```txt
+The market gives opportunities, but time and liquidity can kill you.
+```
+
+Player company survival fields:
+
+- `gameDay`, starts at `1`.
+- `status`: `ACTIVE`, `BANKRUPT`, `VICTORIOUS`.
+- `dailyBurnRate`, default `500.00`.
+- `cashRunwayDays`, calculated from `cash / dailyBurnRate`.
+- `criticalDays`, consecutive critical liquidity/risk days.
+- `victoryTarget`, default `1_000_000.00`.
+- `lastDayProcessedAt`.
+- `bankruptcyReason`.
+
+Endpoints:
+
+- `GET /api/game/state`
+- `POST /api/game/end-day`
+
+Security:
+
+- `/api/game/state` and `/api/game/end-day` are for `TRADER` and `ADMIN_BAR`.
+- `VIEWER` cannot advance a company day.
+
+End Day flow:
+
+- If company status is not `ACTIVE`, return current state without processing another day.
+- Increment `gameDay`.
+- Deduct `dailyBurnRate` from cash.
+- Apply debt interest if debt exists.
+- Optionally generate random world news based on `game.survival.random-event-chance`.
+- Refresh portfolio value, company value, unrealized P/L, cash runway, and risk.
+- Increment `criticalDays` when cash is negative or risk is `CRITICAL`.
+- Set `BANKRUPT` when company value is `<= 0` or critical days reach `3`.
+- Set `VICTORIOUS` when company value reaches `victoryTarget`.
+
+Technical events:
+
+- `DAILY_BURN_APPLIED`
+- `DEBT_INTEREST_APPLIED`
+- `BANKRUPTCY_DECLARED`
+- `VICTORY_ACHIEVED`
+
+Deferred:
+
+- Forced liquidation is intentionally not implemented yet.
+- Config placeholders exist:
+  - `game.survival.forced-liquidation-enabled`
+  - `game.survival.forced-liquidation-discount-pct`
+
+Important migration note:
+
+- Phase 5 initially caused production/dev Docker DB failures because Hibernate tried to add new `NOT NULL` `player_company` columns to existing rows.
+- Fix retained in code:
+  - SQL defaults in `PlayerCompany` column definitions.
+  - `PlayerCompanySurvivalSchemaMigration` adds missing columns, backfills existing companies, then enforces not-null.
+- If `/api/company/me` or `/api/orders` returns 500 with `column pc1_0.cash_runway_days does not exist`, rebuild/restart backend so this migration runs:
+
+```bash
+docker compose up -d --build backend
+```
 
 ## World News Logic
 

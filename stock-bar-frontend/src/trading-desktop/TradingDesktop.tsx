@@ -147,15 +147,16 @@ export default function TradingDesktop() {
   }, [focusedWindow?.appId]);
 
   return (
-    <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[#060403] text-stone-100">
+    <div className="mes-desktop">
       <TopBar
         isLiveData={isLiveData}
         feedMode={feedMode}
         currentUser={currentUser}
+        gameDay={company?.gameDay}
         onLogout={logout}
       />
       <TickerTape instruments={products} />
-      <div className="grid min-h-0 flex-1 grid-cols-[82px_minmax(0,1fr)]">
+      <div className="mes-desktop-shell">
         <Sidebar
           focusedApp={focusedWindow?.appId ?? null}
           openAppIds={openAppIds}

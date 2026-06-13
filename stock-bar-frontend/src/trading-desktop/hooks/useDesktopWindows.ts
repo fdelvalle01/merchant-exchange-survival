@@ -1,18 +1,22 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { desktopApps } from "../desktopApps";
 import type { DesktopAppId, DesktopWindow } from "../types";
 
 function createDesktopWindow(appId: DesktopAppId, zIndex: number): DesktopWindow {
   const app = desktopApps[appId];
+  const workspaceWidth = typeof window === "undefined" ? 1280 : Math.max(window.innerWidth - 68, 320);
+  const workspaceHeight = typeof window === "undefined" ? 640 : Math.max(window.innerHeight - 126, 240);
+  const width = Math.min(app.defaultSize.width, workspaceWidth);
+  const height = Math.min(app.defaultSize.height, workspaceHeight);
 
   return {
     id: `${appId}-window`,
     appId,
     title: app.title,
-    x: app.defaultPosition.x,
-    y: app.defaultPosition.y,
-    width: app.defaultSize.width,
-    height: app.defaultSize.height,
+    x: Math.max(0, Math.min(app.defaultPosition.x, workspaceWidth - width)),
+    y: Math.max(0, Math.min(app.defaultPosition.y, workspaceHeight - height)),
+    width,
+    height,
     zIndex,
     minimized: false
   };
@@ -26,6 +30,30 @@ export function useDesktopWindows(initialApps: DesktopAppId[] = ["market", "tick
   const [windows, setWindows] = useState<DesktopWindow[]>(() =>
     initialApps.map((appId, index) => createDesktopWindow(appId, 31 + index))
   );
+
+  useEffect(() => {
+    const clampWindowsToViewport = () => {
+      const workspaceWidth = Math.max(window.innerWidth - (window.innerWidth <= 760 ? 56 : 68), 320);
+      const workspaceHeight = Math.max(window.innerHeight - 126, 240);
+
+      setWindows((currentWindows) =>
+        currentWindows.map((desktopWindow) => {
+          const width = Math.min(desktopWindow.width, workspaceWidth);
+          const height = Math.min(desktopWindow.height, workspaceHeight);
+          return {
+            ...desktopWindow,
+            width,
+            height,
+            x: Math.max(0, Math.min(desktopWindow.x, workspaceWidth - width)),
+            y: Math.max(0, Math.min(desktopWindow.y, workspaceHeight - height))
+          };
+        })
+      );
+    };
+
+    window.addEventListener("resize", clampWindowsToViewport);
+    return () => window.removeEventListener("resize", clampWindowsToViewport);
+  }, []);
 
   const nextZIndex = useCallback(() => {
     zIndexRef.current += 1;

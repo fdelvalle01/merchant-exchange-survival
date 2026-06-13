@@ -8,25 +8,25 @@ import type { DesktopAppRenderProps } from "../types";
 function Metric({
   label,
   value,
-  className = "text-stone-100"
+  className = ""
 }: {
   label: string;
   value: string;
   className?: string;
 }) {
   return (
-    <div className="rounded-md border border-[#3b2a1f] bg-black/25 p-3">
-      <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">{label}</div>
-      <div className={`mt-1 font-mono text-lg ${className}`}>{value}</div>
+    <div className="mes-plate">
+      <div className="mes-plate__label">{label}</div>
+      <div className={`mes-plate__value ${className}`}>{value}</div>
     </div>
   );
 }
 
 function riskClass(riskLevel?: string) {
-  if (riskLevel === "CRITICAL") return "text-red-300";
-  if (riskLevel === "HIGH") return "text-orange-300";
-  if (riskLevel === "MEDIUM") return "text-amber-200";
-  return "text-emerald-300";
+  if (riskLevel === "CRITICAL") return "mes-negative";
+  if (riskLevel === "HIGH") return "mes-warning";
+  if (riskLevel === "MEDIUM") return "mes-warning";
+  return "mes-positive";
 }
 
 type RiskAlert = {
@@ -38,9 +38,8 @@ type RiskAlert = {
 };
 
 function alertClass(tone: RiskAlert["tone"]) {
-  if (tone === "red") return "border-red-600/60 bg-red-500/10 text-red-200";
-  if (tone === "orange") return "border-orange-600/60 bg-orange-500/10 text-orange-200";
-  return "border-amber-600/60 bg-amber-500/10 text-amber-100";
+  if (tone === "red") return "mes-alert--danger";
+  return "mes-alert--warning";
 }
 
 function AlertIcon({ icon }: { icon: RiskAlert["icon"] }) {
@@ -198,21 +197,13 @@ export default function CompanyDashboardApp({
   }
 
   return (
-    <section
-      className={`min-h-full overflow-hidden rounded-md border bg-[#120d09]/95 shadow-2xl ${
-        isActive ? "border-amber-600/70" : "border-[#3b2a1f]"
-      }`}
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(116, 72, 33, 0.12), transparent 38%), repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 18px)"
-      }}
-    >
-      <div className="flex h-11 items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-4">
+    <section className="mes-app" data-active={isActive}>
+      <div className="mes-app__header">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-100">
-            Company Dashboard
+          <h2 className="mes-app__title">
+            Company Keep
           </h2>
-          <p className="text-[11px] text-stone-500">
+          <p className="mes-app__subtitle">
             {company?.companyName ?? "Merchant company"}
           </p>
         </div>
@@ -221,7 +212,7 @@ export default function CompanyDashboardApp({
             type="button"
             onClick={handleEndDay}
             disabled={!company || isEndingDay || isTerminalStatus}
-            className="rounded border border-amber-600/70 bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-100 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mes-button mes-button--primary mes-button--compact"
             title={isTerminalStatus ? `Game status: ${companyStatus}` : "Process next game day"}
           >
             {isEndingDay ? "Ending..." : "End Day"}
@@ -229,94 +220,95 @@ export default function CompanyDashboardApp({
           <button
             type="button"
             onClick={refreshAll}
-            className="grid h-7 w-7 place-items-center rounded border border-amber-700/40 bg-black/30 text-amber-300 transition hover:bg-amber-500/10"
+            className="mes-icon-button"
             title="Refresh company"
+            aria-label="Refresh company"
           >
             <FaSyncAlt aria-hidden="true" />
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3 p-4">
+      <div className="mes-app__body">
         {isLoadingCompany && (
-          <div className="rounded border border-[#3b2a1f] bg-black/20 px-3 py-2 text-xs text-stone-500">
+          <div className="mes-banner">
             Loading company...
           </div>
         )}
         {companyError && (
-          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div className="mes-banner mes-banner--danger">
             {companyError}
           </div>
         )}
         {companyStatus === "BANKRUPT" && (
-          <div className="rounded border border-red-700/60 bg-red-500/15 px-3 py-2 text-xs text-red-100">
+          <div className="mes-terminal-state mes-terminal-state--bankrupt">
             Bankruptcy declared. {company?.bankruptcyReason ?? "The guild has seized your trading license."}
           </div>
         )}
         {companyStatus === "VICTORIOUS" && (
-          <div className="rounded border border-emerald-700/60 bg-emerald-500/15 px-3 py-2 text-xs text-emerald-100">
+          <div className="mes-terminal-state mes-terminal-state--victorious">
             Victory achieved. Your merchant house dominates the exchange.
           </div>
         )}
         {dayResult && (
-          <div className="rounded border border-amber-700/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          <div className="mes-banner mes-banner--warning">
             {dayResult}
           </div>
         )}
         {dayError && (
-          <div className="rounded border border-red-700/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div className="mes-banner mes-banner--danger">
             {dayError}
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <Metric label="Day" value={String(gameDay)} className="text-amber-100" />
+        <div className="mes-plate-grid">
+          <Metric label="Game Day" value={String(gameDay)} className="mes-warning" />
           <Metric label="Status" value={String(companyStatus)} className={riskClass(companyStatus === "ACTIVE" ? company?.riskLevel : companyStatus === "VICTORIOUS" ? "LOW" : "CRITICAL")} />
-          <Metric label="Daily Burn" value={money.format(dailyBurnRate)} className="text-orange-200" />
-          <Metric label="Cash Runway" value={`${cashRunwayDays.toFixed(1)} days`} className={cashRunwayDays <= 3 ? "text-red-300" : cashRunwayDays <= 10 ? "text-amber-200" : "text-emerald-300"} />
-          <Metric label="Critical Days" value={String(criticalDays)} className={criticalDays > 0 ? "text-red-300" : "text-stone-100"} />
-          <Metric label="Victory Target" value={money.format(company?.victoryTarget ?? 1000000)} className="text-stone-100" />
-          <Metric label="Cash" value={money.format(company?.cash ?? 0)} className="text-emerald-300" />
-          <Metric label="Debt" value={money.format(company?.debt ?? 0)} className="text-red-300" />
-          <Metric label="Company Value" value={money.format(company?.companyValue ?? 0)} />
-          <Metric label="Portfolio Value" value={money.format(portfolioValue)} />
+          <Metric label="Daily Burn" value={money.format(dailyBurnRate)} className="mes-warning" />
+          <Metric label="Cash Runway" value={`${cashRunwayDays.toFixed(1)} days`} className={cashRunwayDays <= 3 ? "mes-negative" : cashRunwayDays <= 10 ? "mes-warning" : "mes-positive"} />
+          <Metric label="Critical Days" value={String(criticalDays)} className={criticalDays > 0 ? "mes-negative" : ""} />
+          <Metric label="Victory Target" value={money.format(company?.victoryTarget ?? 1000000)} />
+          <Metric label="Treasury / Cash" value={money.format(company?.cash ?? 0)} className="mes-positive" />
+          <Metric label="Debt to Crown" value={money.format(company?.debt ?? 0)} className="mes-negative" />
+          <Metric label="House Value" value={money.format(company?.companyValue ?? 0)} className="mes-warning" />
+          <Metric label="Vault Holdings" value={money.format(portfolioValue)} />
           <Metric label="Realized P/L" value={money.format(realizedPnl)} className={valueClass(realizedPnl)} />
-          <Metric label="Reputation" value={String(company?.reputation ?? 0)} />
-          <Metric label="Risk Level" value={company?.riskLevel ?? "N/A"} className={riskClass(company?.riskLevel)} />
+          <Metric label="Guild Renown" value={String(company?.reputation ?? 0)} />
+          <Metric label="Peril Level" value={company?.riskLevel ?? "N/A"} className={riskClass(company?.riskLevel)} />
           <Metric label="Unrealized P/L" value={money.format(totalPnl)} className={valueClass(totalPnl)} />
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-3">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
+        <div className="mes-panel">
+          <div className="mes-panel__header">
+            <div className="mes-panel__title">
               Risk Alerts
             </div>
-            <div className={`font-mono text-[11px] ${riskClass(company?.riskLevel)}`}>
+            <div className={`mes-data text-[10px] ${riskClass(company?.riskLevel)}`}>
               {company?.riskLevel ?? "N/A"}
             </div>
           </div>
 
           {riskAlerts.length === 0 && (
-            <div className="rounded border border-emerald-700/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+            <div className="mes-banner mes-banner--success">
               Risk desk clear.
             </div>
           )}
 
           {riskAlerts.length > 0 && (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="mes-alert-grid">
               {riskAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className={`flex items-center gap-3 rounded border px-3 py-2 ${alertClass(alert.tone)}`}
+                  className={`mes-alert ${alertClass(alert.tone)}`}
                 >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded border border-current/30 bg-black/20 text-xs">
+                  <span className="mes-alert__icon">
                     <AlertIcon icon={alert.icon} />
                   </span>
                   <div className="min-w-0">
-                    <div className="text-xs font-semibold uppercase tracking-[0.12em]">
+                    <div className="mes-alert__title">
                       {alert.label}
                     </div>
-                    <div className="truncate font-mono text-[11px] text-stone-400">
+                    <div className="mes-alert__detail">
                       {alert.detail}
                     </div>
                   </div>
@@ -326,28 +318,28 @@ export default function CompanyDashboardApp({
           )}
         </div>
 
-        <div className="rounded-md border border-[#3b2a1f] bg-black/20 p-3">
-          <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mes-panel">
+          <div className="mes-panel__header">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
-                Portfolio Snapshot
+              <div className="mes-panel__title">
+                Vault Inventory
               </div>
-              <div className="mt-1 font-mono text-sm text-stone-100">
+              <div className="mes-panel__value">
                 {money.format(portfolioValue)}
               </div>
             </div>
             <button
               type="button"
               onClick={() => onOpenApp("portfolio")}
-              className="rounded border border-amber-700/50 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-100 hover:bg-amber-500/20"
+              className="mes-button mes-button--compact"
             >
-              OPEN
+              Open Vault
             </button>
           </div>
 
           <div className="grid gap-1">
             {visiblePortfolio.length === 0 && (
-              <div className="py-4 text-center text-xs text-stone-500">No holdings yet.</div>
+              <div className="mes-state min-h-[76px]">The vault stands empty.</div>
             )}
             {visiblePortfolio.slice(0, 4).map((holding) => {
               const product = productForHolding(holding.assetId);
@@ -362,16 +354,12 @@ export default function CompanyDashboardApp({
                   }}
                   disabled={!product}
                   title={product ? "Click to select asset" : "Asset not available in market feed"}
-                  className={`flex w-full items-center justify-between gap-3 border-t border-[#241811] px-2 py-2 text-left font-mono text-xs transition ${
-                    isSelected
-                      ? "bg-amber-500/10 text-amber-100 outline outline-1 outline-amber-700/40"
-                      : product
-                      ? "hover:bg-[#20160f]"
-                      : "cursor-not-allowed opacity-70"
+                  className={`mes-holding-row ${isSelected ? "is-selected" : ""} ${
+                    product ? "" : "cursor-not-allowed opacity-60"
                   }`}
                 >
-                  <span className="truncate text-stone-200">{holding.assetName}</span>
-                  <span className="text-stone-500">x{holding.quantity}</span>
+                  <span className="truncate">{holding.assetName}</span>
+                  <span className="mes-neutral">x{holding.quantity}</span>
                   <span className={valueClass(holding.unrealizedPnl)}>
                     {money.format(holding.unrealizedPnl)}
                   </span>

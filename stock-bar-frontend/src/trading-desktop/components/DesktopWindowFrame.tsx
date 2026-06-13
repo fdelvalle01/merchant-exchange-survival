@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { type ComponentType, type ReactNode } from "react";
+import { FaMinus, FaTimes } from "react-icons/fa";
 import { Rnd } from "react-rnd";
 import type { DesktopWindow } from "../types";
 
@@ -6,6 +7,7 @@ type DesktopWindowFrameProps = {
   window: DesktopWindow;
   minWidth: number;
   minHeight: number;
+  icon: ComponentType<{ className?: string }>;
   isFocused: boolean;
   children: ReactNode;
   onFocus: (windowId: string) => void;
@@ -19,6 +21,7 @@ export default function DesktopWindowFrame({
   window,
   minWidth,
   minHeight,
+  icon: Icon,
   isFocused,
   children,
   onFocus,
@@ -36,6 +39,16 @@ export default function DesktopWindowFrame({
       minHeight={minHeight}
       dragHandleClassName="desktop-window-drag-handle"
       cancel=".desktop-window-no-drag"
+      resizeHandleClasses={{
+        top: "mes-resize-handle",
+        right: "mes-resize-handle",
+        bottom: "mes-resize-handle",
+        left: "mes-resize-handle",
+        topRight: "mes-resize-handle",
+        bottomRight: "mes-resize-handle mes-resize-handle--corner",
+        bottomLeft: "mes-resize-handle",
+        topLeft: "mes-resize-handle"
+      }}
       style={{ zIndex: window.zIndex }}
       onMouseDown={() => onFocus(window.id)}
       onDragStart={() => onFocus(window.id)}
@@ -46,44 +59,45 @@ export default function DesktopWindowFrame({
         onPositionChange(window.id, position.x, position.y);
       }}
     >
-      <section
-        className={`flex h-full min-h-0 flex-col overflow-hidden rounded-md border bg-[#100b08]/95 shadow-2xl ${
-          isFocused ? "border-amber-600/80" : "border-[#3b2a1f]"
-        }`}
-        style={{
-          backgroundImage:
-            "linear-gradient(150deg, rgba(188, 129, 60, 0.08), transparent 40%), repeating-linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 18px)"
-        }}
-      >
-        <header className="desktop-window-drag-handle flex h-10 shrink-0 cursor-move items-center justify-between border-b border-[#3b2a1f] bg-[#17100b] px-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${isFocused ? "bg-amber-300" : "bg-stone-600"}`} />
-            <h2 className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-stone-100">
+      <section className={`mes-window ${isFocused ? "is-focused" : ""}`}>
+        <span className="mes-window__corner mes-window__corner--tl" />
+        <span className="mes-window__corner mes-window__corner--tr" />
+        <span className="mes-window__corner mes-window__corner--bl" />
+        <span className="mes-window__corner mes-window__corner--br" />
+
+        <header className="desktop-window-drag-handle mes-window__titlebar">
+          <div className="mes-window__rune" aria-hidden="true">
+            <Icon />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="mes-window__title">
               {window.title}
             </h2>
           </div>
 
-          <div className="desktop-window-no-drag flex items-center gap-1">
+          <div className="desktop-window-no-drag mes-window__controls">
             <button
               type="button"
               title="Minimize"
+              aria-label={`Minimize ${window.title}`}
               onClick={() => onMinimize(window.id)}
-              className="grid h-6 w-6 place-items-center rounded border border-[#4a3323] bg-black/30 text-xs text-stone-400 hover:border-amber-700/60 hover:text-amber-200"
+              className="mes-window__control"
             >
-              -
+              <FaMinus aria-hidden="true" />
             </button>
             <button
               type="button"
               title="Close"
+              aria-label={`Close ${window.title}`}
               onClick={() => onClose(window.id)}
-              className="grid h-6 w-6 place-items-center rounded border border-[#4a3323] bg-black/30 text-xs text-stone-400 hover:border-red-700/70 hover:text-red-300"
+              className="mes-window__control mes-window__control--close"
             >
-              x
+              <FaTimes aria-hidden="true" />
             </button>
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+        <div className="mes-window__body">{children}</div>
       </section>
     </Rnd>
   );

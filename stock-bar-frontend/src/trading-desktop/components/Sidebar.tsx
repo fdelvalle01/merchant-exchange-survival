@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import { FaBriefcase, FaChartBar, FaExchangeAlt, FaListAlt, FaNewspaper, FaSearch, FaUserShield, FaWallet } from "react-icons/fa";
 import { canOpenDesktopApp } from "../desktopApps";
 import type { DesktopAppId, UserRole } from "../types";
@@ -14,16 +13,17 @@ type SidebarProps = {
 const apps: Array<{
   id: DesktopAppId;
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  fullLabel: string;
+  icon: typeof FaBriefcase;
 }> = [
-  { id: "company", label: "Company", icon: FaBriefcase },
-  { id: "market", label: "Market", icon: FaChartBar },
-  { id: "ticket", label: "Ticket", icon: FaExchangeAlt },
-  { id: "detail", label: "Asset", icon: FaSearch },
-  { id: "portfolio", label: "Portfolio", icon: FaWallet },
-  { id: "orders", label: "Trades", icon: FaListAlt },
-  { id: "herald", label: "News", icon: FaNewspaper },
-  { id: "admin", label: "GM", icon: FaUserShield }
+  { id: "company", label: "Keep", fullLabel: "Company Keep", icon: FaBriefcase },
+  { id: "market", label: "Market", fullLabel: "Market Board", icon: FaChartBar },
+  { id: "ticket", label: "Ticket", fullLabel: "Royal Ticket", icon: FaExchangeAlt },
+  { id: "detail", label: "Asset", fullLabel: "Asset Chronicle", icon: FaSearch },
+  { id: "portfolio", label: "Vault", fullLabel: "Vault Portfolio", icon: FaWallet },
+  { id: "orders", label: "Ledger", fullLabel: "Trade Ledger", icon: FaListAlt },
+  { id: "herald", label: "Herald", fullLabel: "Guild Herald", icon: FaNewspaper },
+  { id: "admin", label: "GM", fullLabel: "Game Master Controls", icon: FaUserShield }
 ];
 
 export default function Sidebar({
@@ -34,8 +34,8 @@ export default function Sidebar({
   onOpenApp
 }: SidebarProps) {
   return (
-    <aside className="flex min-h-0 w-[82px] shrink-0 flex-col border-r border-[#3b2a1f] bg-[#0d0906] px-2 py-3">
-      <div className="flex flex-1 flex-col gap-2">
+    <aside className="mes-dock" aria-label="Trading desk applications">
+      <div className="mes-dock__apps">
         {apps
           .filter((app) => canOpenDesktopApp(app.id, userRoles))
           .map((app) => {
@@ -47,20 +47,18 @@ export default function Sidebar({
             <button
               key={app.id}
               type="button"
-              title={app.label}
+              title={app.fullLabel}
+              aria-label={`Open ${app.fullLabel}`}
+              aria-pressed={isOpen}
               onClick={() => onOpenApp(app.id)}
-              className={`relative flex h-16 flex-col items-center justify-center gap-1 rounded-md border text-[11px] transition ${
-                isFocused
-                  ? "border-amber-600/60 bg-amber-500/10 text-amber-200 shadow-inner"
-                  : isOpen
-                  ? "border-[#4a3323] bg-[#17100b] text-stone-200"
-                  : "border-transparent text-stone-500 hover:border-[#4a3323] hover:bg-[#17100b] hover:text-stone-100"
+              className={`mes-dock__button ${isOpen ? "is-open" : ""} ${
+                isFocused ? "is-focused" : ""
               }`}
             >
-              <Icon className="text-base" />
+              <Icon className="mes-dock__icon" aria-hidden="true" />
               <span>{app.label}</span>
               {app.id === "herald" && unreadNewsCount > 0 && (
-                <span className="absolute right-1.5 top-1.5 min-w-5 rounded-full border border-red-300/60 bg-red-500 px-1 font-mono text-[10px] font-semibold text-white">
+                <span className="mes-dock__badge">
                   {unreadNewsCount > 9 ? "9+" : unreadNewsCount}
                 </span>
               )}
@@ -69,7 +67,7 @@ export default function Sidebar({
         })}
       </div>
 
-      <div className="rounded-md border border-[#3b2a1f] bg-black/30 p-2 text-center font-mono text-[10px] text-amber-700">
+      <div className="mes-dock__seal" title="Merchant Exchange Survival">
         MES
       </div>
     </aside>
