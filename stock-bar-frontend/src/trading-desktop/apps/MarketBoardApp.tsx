@@ -1,5 +1,6 @@
 import { money, percentFor, signalFor, valueClass } from "../marketUtils";
 import type { DesktopAppRenderProps } from "../types";
+import { AssetIcon } from "../visualCatalog";
 
 function MarketStateRow({
   message,
@@ -108,7 +109,7 @@ export default function MarketBoardApp({
                 >
                   <td>
                     <div className="mes-table__asset">
-                      <span className="mes-table__marker" />
+                      <AssetIcon name={product.name} sector={product.sector} />
                       <span className="mes-table__asset-name">
                         {product.name}
                       </span>

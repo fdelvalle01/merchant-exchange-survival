@@ -3,6 +3,7 @@ import { money, percentFor, valueClass } from "../marketUtils";
 import { normalizeApiError } from "../services/apiError";
 import { createOrder } from "../services/ordersApi";
 import type { DesktopAppRenderProps, OrderSide, TradingInstrument } from "../types";
+import { AssetIcon } from "../visualCatalog";
 
 type OrderStatus = {
   type: "info" | "success" | "error";
@@ -247,13 +248,11 @@ export default function OrderTicketApp({
         </div>
 
         <div className="mes-ticket-price">
-          {selectedProduct?.imageUrl && (
-            <img
-              src={selectedProduct.imageUrl}
-              alt=""
-              className="mes-ticket-price__image"
-            />
-          )}
+          <AssetIcon
+            name={selectedProduct?.name}
+            sector={selectedProduct?.sector}
+            className="mes-asset-icon--ticket"
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-3">
               <span className="mes-plate__label">Current exchange price</span>

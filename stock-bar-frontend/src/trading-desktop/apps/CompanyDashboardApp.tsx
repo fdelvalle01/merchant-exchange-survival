@@ -4,6 +4,7 @@ import { money, valueClass } from "../marketUtils";
 import { normalizeApiError } from "../services/apiError";
 import { endDay } from "../services/gameApi";
 import type { DesktopAppRenderProps } from "../types";
+import { AssetIcon } from "../visualCatalog";
 
 function Metric({
   label,
@@ -358,7 +359,10 @@ export default function CompanyDashboardApp({
                     product ? "" : "cursor-not-allowed opacity-60"
                   }`}
                 >
-                  <span className="truncate">{holding.assetName}</span>
+                  <span className="mes-holding-row__asset">
+                    <AssetIcon name={holding.assetName} sector={product?.sector} />
+                    <span className="truncate">{holding.assetName}</span>
+                  </span>
                   <span className="mes-neutral">x{holding.quantity}</span>
                   <span className={valueClass(holding.unrealizedPnl)}>
                     {money.format(holding.unrealizedPnl)}

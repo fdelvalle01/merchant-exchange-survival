@@ -1,5 +1,4 @@
 import type { ComponentType } from "react";
-import { FaBriefcase, FaChartBar, FaExchangeAlt, FaListAlt, FaNewspaper, FaSearch, FaUserShield, FaWallet } from "react-icons/fa";
 import AdminMarketControlsApp from "./apps/AdminMarketControlsApp";
 import CompanyDashboardApp from "./apps/CompanyDashboardApp";
 import GuildHeraldApp from "./apps/GuildHeraldApp";
@@ -9,6 +8,7 @@ import OrderTicketApp from "./apps/OrderTicketApp";
 import PortfolioApp from "./apps/PortfolioApp";
 import ProductDetailApp from "./apps/ProductDetailApp";
 import type { DesktopAppId, DesktopAppRenderProps, UserRole } from "./types";
+import { desktopAppIcons } from "./visualCatalog";
 
 export type DesktopAppDefinition = {
   id: DesktopAppId;
@@ -38,7 +38,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 14, y: 14 },
     defaultSize: { width: 420, height: 510 },
     minSize: { width: 390, height: 340 },
-    icon: FaBriefcase,
+    icon: desktopAppIcons.company,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   market: {
@@ -48,7 +48,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 446, y: 14 },
     defaultSize: { width: 515, height: 390 },
     minSize: { width: 500, height: 300 },
-    icon: FaChartBar,
+    icon: desktopAppIcons.market,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   ticket: {
@@ -58,7 +58,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 1000, y: 14 },
     defaultSize: { width: 320, height: 540 },
     minSize: { width: 300, height: 410 },
-    icon: FaExchangeAlt,
+    icon: desktopAppIcons.ticket,
     allowedRoles: ["TRADER", "ADMIN_BAR"]
   },
   detail: {
@@ -68,7 +68,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 420, y: 70 },
     defaultSize: { width: 620, height: 570 },
     minSize: { width: 420, height: 420 },
-    icon: FaSearch,
+    icon: desktopAppIcons.detail,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   portfolio: {
@@ -78,7 +78,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 220, y: 180 },
     defaultSize: { width: 840, height: 420 },
     minSize: { width: 620, height: 320 },
-    icon: FaWallet,
+    icon: desktopAppIcons.portfolio,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   orders: {
@@ -88,7 +88,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 140, y: 300 },
     defaultSize: { width: 780, height: 420 },
     minSize: { width: 560, height: 300 },
-    icon: FaListAlt,
+    icon: desktopAppIcons.orders,
     allowedRoles: ["TRADER", "ADMIN_BAR"]
   },
   herald: {
@@ -98,7 +98,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 260, y: 96 },
     defaultSize: { width: 720, height: 560 },
     minSize: { width: 460, height: 360 },
-    icon: FaNewspaper,
+    icon: desktopAppIcons.herald,
     allowedRoles: ["VIEWER", "TRADER", "ADMIN_BAR"]
   },
   admin: {
@@ -108,7 +108,7 @@ export const desktopApps: Record<DesktopAppId, DesktopAppDefinition> = {
     defaultPosition: { x: 170, y: 80 },
     defaultSize: { width: 980, height: 680 },
     minSize: { width: 760, height: 520 },
-    icon: FaUserShield,
+    icon: desktopAppIcons.admin,
     allowedRoles: ["ADMIN_BAR"]
   }
 };

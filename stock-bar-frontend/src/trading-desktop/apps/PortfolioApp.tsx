@@ -1,6 +1,7 @@
 import { FaSyncAlt } from "react-icons/fa";
 import { money, valueClass } from "../marketUtils";
 import type { DesktopAppRenderProps } from "../types";
+import { AssetIcon } from "../visualCatalog";
 
 export default function PortfolioApp({
   portfolio,
@@ -98,7 +99,10 @@ export default function PortfolioApp({
                   >
                     <td>
                       <div className="mes-table__asset">
-                        <span className="mes-table__marker" />
+                        <AssetIcon
+                          name={holding.assetName}
+                          sector={product?.sector}
+                        />
                         <span className="mes-table__asset-name">
                           {holding.assetName}
                         </span>

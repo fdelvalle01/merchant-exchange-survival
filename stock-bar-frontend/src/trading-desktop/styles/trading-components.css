@@ -489,6 +489,77 @@
   text-overflow: ellipsis;
 }
 
+.mes-asset-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  color: var(--mes-gold);
+  background: rgba(201, 151, 74, 0.08);
+  font-size: 10px;
+  line-height: 1;
+  box-shadow: inset 0 0 8px rgba(201, 151, 74, 0.05);
+}
+
+.mes-asset-icon--bank {
+  color: #83cfd6;
+}
+
+.mes-asset-icon--shipping {
+  color: #aebdce;
+}
+
+.mes-asset-icon--brewery {
+  color: #e8c96f;
+}
+
+.mes-asset-icon--mining {
+  color: #c5a56d;
+}
+
+.mes-asset-icon--logistics {
+  color: #d88758;
+}
+
+.mes-asset-icon--arcane {
+  color: var(--mes-arcane);
+}
+
+.mes-asset-icon--grain {
+  color: var(--mes-positive);
+}
+
+.mes-asset-icon--ticker {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 11px;
+  box-shadow: none;
+}
+
+.mes-asset-icon--ticket {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+  border-color: var(--mes-line);
+  background:
+    radial-gradient(circle, rgba(201, 151, 74, 0.12), transparent 68%),
+    #0b0704;
+  font-size: 22px;
+}
+
+.mes-asset-icon--hero {
+  width: 74px;
+  height: 74px;
+  border-color: var(--mes-line-strong);
+  font-size: 34px;
+}
+
 .mes-table__marker {
   width: 6px;
   height: 6px;
@@ -664,6 +735,13 @@
   box-shadow: inset 2px 0 var(--mes-gold);
 }
 
+.mes-holding-row__asset {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
 .mes-herald-list {
   display: grid;
   gap: 8px;
@@ -787,6 +865,12 @@
   object-fit: contain;
 }
 
+.mes-asset-image--icon {
+  background:
+    radial-gradient(circle, rgba(201, 151, 74, 0.1), transparent 64%),
+    #0b0704;
+}
+
 .mes-asset-summary {
   padding: 11px;
   border: 1px solid var(--mes-line);
@@ -794,6 +878,9 @@
 }
 
 .mes-asset-summary__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 3px;
   color: var(--mes-parchment);
   font-family: var(--mes-font-display);

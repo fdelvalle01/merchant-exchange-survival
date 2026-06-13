@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { changeFor, money, percentFor, valueClass } from "../marketUtils";
 import { getPriceHistory, type PriceHistoryPoint } from "../services/priceHistoryApi";
 import type { DesktopAppRenderProps, TradingInstrument } from "../types";
+import { AssetIcon } from "../visualCatalog";
 
 function formatDate(value?: string) {
   if (!value) return "N/A";
@@ -38,8 +39,12 @@ function DetailMetric({
 function ProductImage({ product }: { product: TradingInstrument }) {
   if (!product.imageUrl) {
     return (
-      <div className="mes-asset-image mes-neutral">
-        No image
+      <div className="mes-asset-image mes-asset-image--icon">
+        <AssetIcon
+          name={product.name}
+          sector={product.sector}
+          className="mes-asset-icon--hero"
+        />
       </div>
     );
   }
@@ -180,6 +185,10 @@ export default function ProductDetailApp({
                   Selected Asset
                 </div>
                 <h3 className="mes-asset-summary__name">
+                  <AssetIcon
+                    name={selectedProduct.name}
+                    sector={selectedProduct.sector}
+                  />
                   {selectedProduct.name}
                 </h3>
               </div>

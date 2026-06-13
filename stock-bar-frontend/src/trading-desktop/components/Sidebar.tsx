@@ -1,5 +1,5 @@
-import { FaBriefcase, FaChartBar, FaExchangeAlt, FaListAlt, FaNewspaper, FaSearch, FaUserShield, FaWallet } from "react-icons/fa";
-import { canOpenDesktopApp } from "../desktopApps";
+import type { ComponentType } from "react";
+import { canOpenDesktopApp, desktopApps } from "../desktopApps";
 import type { DesktopAppId, UserRole } from "../types";
 
 type SidebarProps = {
@@ -14,16 +14,16 @@ const apps: Array<{
   id: DesktopAppId;
   label: string;
   fullLabel: string;
-  icon: typeof FaBriefcase;
+  icon: ComponentType<{ className?: string }>;
 }> = [
-  { id: "company", label: "Keep", fullLabel: "Company Keep", icon: FaBriefcase },
-  { id: "market", label: "Market", fullLabel: "Market Board", icon: FaChartBar },
-  { id: "ticket", label: "Ticket", fullLabel: "Royal Ticket", icon: FaExchangeAlt },
-  { id: "detail", label: "Asset", fullLabel: "Asset Chronicle", icon: FaSearch },
-  { id: "portfolio", label: "Vault", fullLabel: "Vault Portfolio", icon: FaWallet },
-  { id: "orders", label: "Ledger", fullLabel: "Trade Ledger", icon: FaListAlt },
-  { id: "herald", label: "Herald", fullLabel: "Guild Herald", icon: FaNewspaper },
-  { id: "admin", label: "GM", fullLabel: "Game Master Controls", icon: FaUserShield }
+  { id: "company", label: "Company", fullLabel: "Company Keep", icon: desktopApps.company.icon },
+  { id: "market", label: "Market", fullLabel: "Market Board", icon: desktopApps.market.icon },
+  { id: "ticket", label: "Ticket", fullLabel: "Royal Ticket", icon: desktopApps.ticket.icon },
+  { id: "detail", label: "Asset", fullLabel: "Asset Chronicle", icon: desktopApps.detail.icon },
+  { id: "portfolio", label: "Vault", fullLabel: "Vault Portfolio", icon: desktopApps.portfolio.icon },
+  { id: "orders", label: "Ledger", fullLabel: "Trade Ledger", icon: desktopApps.orders.icon },
+  { id: "herald", label: "Herald", fullLabel: "Guild Herald", icon: desktopApps.herald.icon },
+  { id: "admin", label: "GM", fullLabel: "Game Master Controls", icon: desktopApps.admin.icon }
 ];
 
 export default function Sidebar({
