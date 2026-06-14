@@ -10,6 +10,11 @@ import {
   simulateMarketCrash
 } from "../services/adminApi";
 import { generateRandomNewsEvent, triggerNewsEvent } from "../services/newsApi";
+import {
+  expireSealedAuction,
+  grantTestRelic,
+  spawnSealedAuction
+} from "../services/relicsApi";
 import type {
   DesktopAppRenderProps,
   MarketEvent,
@@ -125,6 +130,7 @@ export default function AdminMarketControlsApp({
   onCompanyChanged,
   onPortfolioChanged,
   onNewsChanged,
+  onGameItemsChanged,
   onOpenApp,
   marketEvents,
   addMarketEvent,
@@ -531,6 +537,78 @@ export default function AdminMarketControlsApp({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="mes-panel">
+          <div className="mes-panel__header">
+            <div>
+              <h3 className="mes-panel__title">Sealed Auction & Relics</h3>
+              <p className="mes-app__subtitle">Company-scoped development controls</p>
+            </div>
+          </div>
+          <div className="mes-action-grid">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              className="mes-button"
+              onClick={() =>
+                runBackendAction({
+                  type: "SEALED_AUCTION_CREATED",
+                  description: "Spawn sealed auction",
+                  action: async () => {
+                    const auction = await spawnSealedAuction();
+                    await onGameItemsChanged();
+                    return `Auction #${auction.id} ready`;
+                  }
+                })
+              }
+            >
+              SPAWN SEALED AUCTION
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              className="mes-button"
+              onClick={() =>
+                runBackendAction({
+                  type: "SEALED_AUCTION_EXPIRED",
+                  description: "Expire active sealed auction",
+                  action: async () => {
+                    const auction = await expireSealedAuction();
+                    await onGameItemsChanged();
+                    return `Auction #${auction.id} expired`;
+                  }
+                })
+              }
+            >
+              EXPIRE ACTIVE AUCTION
+            </button>
+            {[
+              ["RING_OF_LAST_MERCY", "GRANT RING"],
+              ["BOOK_OF_THREE_OMENS", "GRANT BOOK"],
+              ["FORTUNE_DRAUGHT", "GRANT DRAUGHT"]
+            ].map(([code, label]) => (
+              <button
+                key={code}
+                type="button"
+                disabled={isSubmitting}
+                className="mes-button"
+                onClick={() =>
+                  runBackendAction({
+                    type: "RELIC_ACQUIRED",
+                    description: `Grant test relic ${code}`,
+                    action: async () => {
+                      const relic = await grantTestRelic(code);
+                      await onGameItemsChanged();
+                      return `${relic.name} granted`;
+                    }
+                  })
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 

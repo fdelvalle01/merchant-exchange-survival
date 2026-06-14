@@ -52,6 +52,13 @@ game:
     random-event-chance: ${GAME_SURVIVAL_RANDOM_EVENT_CHANCE:0.35}
     forced-liquidation-enabled: ${GAME_SURVIVAL_FORCED_LIQUIDATION_ENABLED:false}
     forced-liquidation-discount-pct: ${GAME_SURVIVAL_FORCED_LIQUIDATION_DISCOUNT_PCT:0.10}
+  sealed-auction:
+    entry-cost: ${GAME_SEALED_AUCTION_ENTRY_COST:10000}
+    card-count: ${GAME_SEALED_AUCTION_CARD_COUNT:4}
+    appearance-chance: ${GAME_SEALED_AUCTION_APPEARANCE_CHANCE:0.30}
+    duration-days: ${GAME_SEALED_AUCTION_DURATION_DAYS:1}
+    fortune-recovery: ${GAME_RELIC_FORTUNE_RECOVERY:8000}
+    fortune-treasury-cap: ${GAME_RELIC_FORTUNE_TREASURY_CAP:100000}
 
 logging:
   level:

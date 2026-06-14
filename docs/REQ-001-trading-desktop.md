@@ -60,6 +60,13 @@ stock-bar-frontend/src/trading-desktop/
 | `detail` | Asset Chronicle | VIEWER, TRADER, ADMIN_BAR |
 | `admin` | Game Master | ADMIN_BAR |
 
+Phase 6A agrega elementos del escritorio, no aplicaciones nuevas:
+
+- Fila `ROYAL SEALED AUCTION` dentro de Market Board.
+- Modal central de cuatro cartas, fuera de `react-rnd`.
+- Pestaña `INVENTORY` dentro de Vault.
+- Barra inferior `ACTIVE RELICS` con cuatro slots sobre Status Bar.
+
 ## Comportamiento De Ventanas
 
 El desktop permite:
@@ -101,6 +108,8 @@ El cambio se refleja en:
 | `/api/price-history` | Asset Chronicle |
 | `/api/market-events` | Game Master |
 | `/api/admin/**` | Acciones administrativas |
+| `/api/game/auctions/**` | Subasta sellada activa y seleccion |
+| `/api/game/relics/**` | Inventario, equipamiento y activacion |
 
 Productos se refrescan cada 5 segundos y noticias cada 10 segundos.
 
@@ -175,7 +184,8 @@ persistidos por el backend actual.
 - Corregir cualquier texto heredado o mojibake restante.
 - Evaluar SSE para reducir polling.
 - Persistir preferencias/layout de ventanas si se desea continuidad.
-- Definir experiencia de reinicio despues de BANKRUPT o VICTORIOUS.
+- Ampliar el reinicio terminal con estadisticas comparativas entre partidas.
+- Ampliar la suite frontend de Phase 6A a pruebas E2E con navegador real.
 
 ## Criterio De Fuente De Verdad
 

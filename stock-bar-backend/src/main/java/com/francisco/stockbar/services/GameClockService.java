@@ -29,12 +29,13 @@ public class GameClockService {
     private final MarketEventRepository marketEventRepository;
     private final WorldEventService worldEventService;
     private final SurvivalProperties survivalProperties;
+    private final SealedAuctionService sealedAuctionService;
+    private final RelicService relicService;
 
     @Transactional
     public GameStateResponse getCurrentState() {
         PlayerCompany company = playerCompanyService.getOrCreateCompanyForCurrentUser();
         PlayerCompany refreshed = playerCompanyService.refreshCompanyValue(company);
-        evaluateTerminalState(refreshed);
         PlayerCompany saved = playerCompanyRepository.save(refreshed);
         return toGameState(saved);
     }
@@ -52,6 +53,7 @@ public class GameClockService {
         LocalDateTime now = LocalDateTime.now();
         BigDecimal dailyBurn = dailyBurn(company);
 
+        sealedAuctionService.expireAtEndDay(company);
         company.setGameDay(company.getGameDay() + 1);
         company.setCash(money(company.getCash()).subtract(dailyBurn).setScale(2, RoundingMode.HALF_UP));
         company.setLastDayProcessedAt(now);
@@ -63,9 +65,12 @@ public class GameClockService {
         PlayerCompany refreshed = playerCompanyService.refreshCompanyValue(company);
         updateCriticalDays(refreshed);
         // TODO: Forced liquidation is configured but intentionally deferred to a later survival phase.
-        evaluateTerminalState(refreshed);
+        boolean protectedByRelic = relicService.hasBankruptcyProtection(refreshed);
+        boolean bankruptcyPrevented = evaluateTerminalState(refreshed, protectedByRelic);
+        relicService.processEndDay(refreshed, bankruptcyPrevented);
 
         PlayerCompany saved = playerCompanyRepository.save(refreshed);
+        sealedAuctionService.spawnForNewDay(saved);
         return toGameState(saved);
     }
 
@@ -122,25 +127,28 @@ public class GameClockService {
         company.setCriticalDays(critical ? company.getCriticalDays() + 1 : 0);
     }
 
-    private void evaluateTerminalState(PlayerCompany company) {
+    private boolean evaluateTerminalState(PlayerCompany company, boolean bankruptcyProtected) {
         if (company.getStatus() == PlayerCompanyStatus.BANKRUPT
                 || company.getStatus() == PlayerCompanyStatus.VICTORIOUS) {
-            return;
+            return false;
         }
 
         if (money(company.getCompanyValue()).compareTo(BigDecimal.ZERO) <= 0) {
+            if (bankruptcyProtected) return true;
             bankrupt(company, "Company value fell below zero.");
-            return;
+            return false;
         }
 
         if (company.getCriticalDays() != null && company.getCriticalDays() >= 3) {
+            if (bankruptcyProtected) return true;
             bankrupt(company, "Liquidity collapse: cash remained negative or critical for 3 days.");
-            return;
+            return false;
         }
 
         if (company.getReputation() != null && company.getReputation() <= 0) {
+            if (bankruptcyProtected) return true;
             bankrupt(company, "The guild council revoked your trading license.");
-            return;
+            return false;
         }
 
         if (money(company.getCompanyValue()).compareTo(money(company.getVictoryTarget())) >= 0) {
@@ -151,6 +159,7 @@ public class GameClockService {
                     LocalDateTime.now()
             );
         }
+        return false;
     }
 
     private void bankrupt(PlayerCompany company, String reason) {

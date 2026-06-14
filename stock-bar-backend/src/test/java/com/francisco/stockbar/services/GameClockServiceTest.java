@@ -38,6 +38,12 @@ class GameClockServiceTest {
     @Mock
     private WorldEventService worldEventService;
 
+    @Mock
+    private SealedAuctionService sealedAuctionService;
+
+    @Mock
+    private RelicService relicService;
+
     private SurvivalProperties survivalProperties;
     private GameClockService gameClockService;
     private BigDecimal portfolioValue;
@@ -52,7 +58,9 @@ class GameClockServiceTest {
                 playerCompanyRepository,
                 marketEventRepository,
                 worldEventService,
-                survivalProperties
+                survivalProperties,
+                sealedAuctionService,
+                relicService
         );
         portfolioValue = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         portfolioCostBasis = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);

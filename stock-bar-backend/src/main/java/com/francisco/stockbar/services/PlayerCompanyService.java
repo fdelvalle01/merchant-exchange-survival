@@ -49,6 +49,7 @@ public class PlayerCompanyService {
                                 .reputation(INITIAL_REPUTATION)
                                 .riskLevel(INITIAL_RISK_LEVEL)
                                 .gameDay(1)
+                                .gameSeed(seedFor(username))
                                 .status(PlayerCompanyStatus.ACTIVE)
                                 .dailyBurnRate(DEFAULT_DAILY_BURN_RATE)
                                 .cashRunwayDays(INITIAL_CASH.divide(DEFAULT_DAILY_BURN_RATE, 1, RoundingMode.HALF_UP))
@@ -56,6 +57,31 @@ public class PlayerCompanyService {
                                 .victoryTarget(DEFAULT_VICTORY_TARGET)
                                 .build()
                 ));
+    }
+
+    @Transactional
+    public PlayerCompany getCompanyForCurrentUserForUpdate() {
+        String username = currentUsername();
+        return playerCompanyRepository.findByUsernameForUpdate(username)
+                .orElseGet(this::getOrCreateCompanyForCurrentUser);
+    }
+
+    public void resetForNewGame(PlayerCompany company, long gameSeed) {
+        company.setCash(INITIAL_CASH);
+        company.setDebt(INITIAL_DEBT);
+        company.setCompanyValue(INITIAL_CASH);
+        company.setRealizedPnl(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+        company.setReputation(INITIAL_REPUTATION);
+        company.setRiskLevel(INITIAL_RISK_LEVEL);
+        company.setGameDay(1);
+        company.setGameSeed(gameSeed);
+        company.setStatus(PlayerCompanyStatus.ACTIVE);
+        company.setDailyBurnRate(DEFAULT_DAILY_BURN_RATE);
+        company.setCashRunwayDays(INITIAL_CASH.divide(DEFAULT_DAILY_BURN_RATE, 1, RoundingMode.HALF_UP));
+        company.setCriticalDays(0);
+        company.setVictoryTarget(DEFAULT_VICTORY_TARGET);
+        company.setLastDayProcessedAt(null);
+        company.setBankruptcyReason(null);
     }
 
     @Transactional
@@ -115,6 +141,9 @@ public class PlayerCompanyService {
     public void applySurvivalDefaults(PlayerCompany company) {
         if (company.getGameDay() == null || company.getGameDay() < 1) {
             company.setGameDay(1);
+        }
+        if (company.getGameSeed() == null || company.getGameSeed() == 0L) {
+            company.setGameSeed(seedFor(company.getUsername()));
         }
         if (company.getStatus() == null) {
             company.setStatus(PlayerCompanyStatus.ACTIVE);
@@ -222,5 +251,10 @@ public class PlayerCompanyService {
                 ? "Merchant"
                 : username.substring(0, 1).toUpperCase(Locale.ROOT) + username.substring(1);
         return cleanUsername + " Trading Company";
+    }
+
+    private long seedFor(String username) {
+        long hash = username == null ? 1L : Integer.toUnsignedLong(username.hashCode());
+        return hash == 0L ? 1L : hash;
     }
 }

@@ -7,6 +7,7 @@ import { useLocalOrders } from "./hooks/useLocalOrders";
 import { useMarketEvents } from "./hooks/useMarketEvents";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { useProductsFeed } from "./hooks/useProductsFeed";
+import { useRelics } from "./hooks/useRelics";
 import { useWorldNews } from "./hooks/useWorldNews";
 import type { DesktopAppId, DesktopUser, TradingInstrument, WorldNewsItem } from "./types";
 import NewsToasts from "./components/NewsToasts";
@@ -15,6 +16,8 @@ import StatusBar from "./components/StatusBar";
 import TickerTape from "./components/TickerTape";
 import TopBar from "./components/TopBar";
 import Workspace from "./components/Workspace";
+import ActiveRelicsBar from "./components/ActiveRelicsBar";
+import SealedAuctionModal from "./components/SealedAuctionModal";
 
 export default function TradingDesktop() {
   const { user, hasAnyRole, logout } = useAuth();
@@ -33,6 +36,7 @@ export default function TradingDesktop() {
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<TradingInstrument["id"]>();
   const [newsToasts, setNewsToasts] = useState<WorldNewsItem[]>([]);
   const [unreadNewsCount, setUnreadNewsCount] = useState(0);
+  const [isAuctionOpen, setIsAuctionOpen] = useState(false);
   const handleNewNews = useCallback((items: WorldNewsItem[]) => {
     setNewsToasts((currentItems) => {
       const currentIds = new Set(currentItems.map((item) => item.id));
@@ -93,6 +97,13 @@ export default function TradingDesktop() {
     newsError,
     refreshNews
   } = useWorldNews(handleNewNews);
+  const {
+    relics,
+    activeAuction,
+    isLoadingRelics,
+    relicsError,
+    refreshGameItems
+  } = useRelics(currentUser.roles.length > 0);
   const userRolesKey = currentUser.roles.join("|");
 
   useEffect(() => {
@@ -126,7 +137,8 @@ export default function TradingDesktop() {
       refreshPortfolio(),
       refreshOrders(),
       refreshNews(),
-      refreshMarketEvents()
+      refreshMarketEvents(),
+      refreshGameItems()
     ]);
   };
   const openAllowedWindow = (appId: DesktopAppId) => {
@@ -180,6 +192,7 @@ export default function TradingDesktop() {
           onOrdersChanged={refreshOrders}
           onNewsChanged={refreshNews}
           onMarketEventsChanged={refreshMarketEvents}
+          onGameItemsChanged={refreshGameItems}
           localOrders={orders}
           addFilledOrder={addFilledOrder}
           addRejectedOrder={addRejectedOrder}
@@ -198,6 +211,11 @@ export default function TradingDesktop() {
           portfolioError={portfolioError}
           isLoadingProducts={isLoading}
           productsError={error}
+          relics={relics}
+          activeAuction={activeAuction}
+          isLoadingRelics={isLoadingRelics}
+          relicsError={relicsError}
+          onOpenAuction={() => setIsAuctionOpen(true)}
           onRetryProducts={refreshProducts}
           onOpenApp={openAllowedWindow}
           onCloseWindow={closeWindow}
@@ -214,6 +232,13 @@ export default function TradingDesktop() {
         onDismiss={dismissNewsToast}
         onOpenNews={() => openAllowedWindow("herald")}
       />
+      <ActiveRelicsBar
+        relics={relics}
+        products={products}
+        canManage={canUseOrders}
+        onChanged={refreshGameItems}
+        onCompanyChanged={refreshCompany}
+      />
       <StatusBar
         isLiveData={isLiveData}
         isLoadingProducts={isLoading}
@@ -224,6 +249,15 @@ export default function TradingDesktop() {
         minimizedWindows={windows.filter((window) => window.minimized)}
         onRestoreWindow={restoreWindow}
       />
+      {isAuctionOpen && activeAuction && (
+        <SealedAuctionModal
+          auction={activeAuction}
+          onClose={() => setIsAuctionOpen(false)}
+          onResolved={async () => {
+            await Promise.all([refreshGameItems(), refreshCompany()]);
+          }}
+        />
+      )}
     </div>
   );
 }

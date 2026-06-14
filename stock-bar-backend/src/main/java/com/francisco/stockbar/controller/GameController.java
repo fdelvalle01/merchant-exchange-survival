@@ -1,7 +1,9 @@
 package com.francisco.stockbar.controller;
 
 import com.francisco.stockbar.dto.GameStateResponse;
+import com.francisco.stockbar.dto.PlayerCompanyResponse;
 import com.francisco.stockbar.services.GameClockService;
+import com.francisco.stockbar.services.GameRestartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GameController {
 
     private final GameClockService gameClockService;
+    private final GameRestartService gameRestartService;
 
     @GetMapping("/state")
     public GameStateResponse state() {
@@ -23,5 +26,10 @@ public class GameController {
     @PostMapping("/end-day")
     public GameStateResponse endDay() {
         return gameClockService.endDay();
+    }
+
+    @PostMapping("/restart")
+    public PlayerCompanyResponse restart() {
+        return gameRestartService.restartCurrentGame();
     }
 }

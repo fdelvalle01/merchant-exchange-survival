@@ -22,6 +22,8 @@ Implementado:
 - Motor de precios por presion neta y reversion al valor base.
 - Noticias y rumores que alteran activos o sectores.
 - Reloj de juego por dias, gasto operativo, riesgo, quiebra y victoria.
+- Reinicio company-scoped tras quiebra o victoria, sin alterar el mercado compartido.
+- Subastas selladas deterministas con cuatro lotes, inventario y reliquias activas.
 - Controles de Game Master para administradores.
 - Autenticacion y roles con Keycloak.
 - Entorno local completo con Docker Compose.
@@ -73,6 +75,7 @@ muestra ese impacto y destaca si afecta activos que el jugador posee.
 | Market Board | Activos, precios, variacion y acceso a compra/venta |
 | Royal Ticket | Ordenes BUY y SELL |
 | Vault | Holdings, costo promedio, valor y asignacion |
+| Active Relics | Cuatro slots persistentes para equipar, mover y activar reliquias |
 | Trade Ledger | Historial de ordenes y P/L realizado |
 | Guild Herald | Noticias, rumores y alertas sobre el portfolio |
 | Asset Chronicle | Detalle e historial de un activo |
@@ -239,12 +242,33 @@ VITE_KEYCLOAK_CLIENT_ID=stockbar-frontend
 | GET | `/api/news` | Noticias de mundo |
 | GET | `/api/game/state` | Estado de la partida |
 | POST | `/api/game/end-day` | Avanzar una jornada |
+| GET/POST | `/api/game/auctions/**` | Consultar y resolver la subasta sellada |
+| GET/POST | `/api/game/relics/**` | Inventario, slots, activacion e historial |
 | GET | `/api/price-history` | Historial de precios |
 | GET | `/api/market-events` | Auditoria tecnica del mercado |
 | POST/DELETE | `/api/admin/**` | Acciones de Game Master |
 
 `/api/sales` sigue disponible como adaptador de compatibilidad para compras
 antiguas. El contrato principal nuevo es `/api/orders`.
+
+## Phase 6A - Sealed Auction & Relics
+
+Market Board puede mostrar `ROYAL SEALED AUCTION` como una fila especial no
+negociable. El backend crea y persiste cuatro cartas antes de cualquier
+seleccion usando la seed de la compania, el dia, el id de subasta y la posicion.
+El payload publico solo muestra posiciones y estado; el contenido de las cartas
+permanece oculto.
+
+La recompensa llega a `Vault > INVENTORY` y puede equiparse en uno de cuatro
+slots inferiores mediante drag and drop o botones. El catalogo inicial incluye:
+
+- `Ring of Last Mercy`: evita exactamente dos evaluaciones de quiebra de End Day.
+- `Book of Three Omens`: consume una carga y entrega tres perspectivas
+  cualitativas de un activo.
+- `Fortune Draught`: recupera hasta `8,000` de cash sin superar el limite
+  configurable de tesoreria de `100,000`.
+
+Game Master puede crear/expirar una subasta y otorgar reliquias de prueba.
 
 ## Activos Demo
 

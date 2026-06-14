@@ -27,6 +27,7 @@ public class PlayerCompanySurvivalSchemaMigration implements ApplicationRunner {
 
     private void addSurvivalColumnsIfMissing() {
         jdbcTemplate.execute("alter table player_company add column if not exists game_day integer default 1");
+        jdbcTemplate.execute("alter table player_company add column if not exists game_seed bigint default 0");
         jdbcTemplate.execute("alter table player_company add column if not exists status varchar(20) default 'ACTIVE'");
         jdbcTemplate.execute("alter table player_company add column if not exists daily_burn_rate numeric(14,2) default 500.00");
         jdbcTemplate.execute("alter table player_company add column if not exists cash_runway_days numeric(10,1) default 0.0");
@@ -40,6 +41,11 @@ public class PlayerCompanySurvivalSchemaMigration implements ApplicationRunner {
         jdbcTemplate.update("""
                 update player_company
                 set game_day = coalesce(game_day, 1),
+                    game_seed = case
+                        when game_seed is null or game_seed in (0, 1)
+                        then abs(hashtext(username)::bigint) + 1
+                        else game_seed
+                    end,
                     status = coalesce(status, 'ACTIVE'),
                     daily_burn_rate = coalesce(daily_burn_rate, 500.00),
                     cash_runway_days = case
@@ -50,6 +56,9 @@ public class PlayerCompanySurvivalSchemaMigration implements ApplicationRunner {
                     critical_days = coalesce(critical_days, 0),
                     victory_target = coalesce(victory_target, 1000000.00)
                 where game_day is null
+                   or game_seed is null
+                   or game_seed = 0
+                   or game_seed = 1
                    or status is null
                    or daily_burn_rate is null
                    or cash_runway_days is null
@@ -60,6 +69,8 @@ public class PlayerCompanySurvivalSchemaMigration implements ApplicationRunner {
 
     private void enforceSurvivalColumnNullability() {
         jdbcTemplate.execute("alter table player_company alter column game_day set not null");
+        jdbcTemplate.execute("alter table player_company alter column game_seed set not null");
+        jdbcTemplate.execute("alter table player_company alter column game_seed set default 1");
         jdbcTemplate.execute("alter table player_company alter column status set not null");
         jdbcTemplate.execute("alter table player_company alter column daily_burn_rate set not null");
         jdbcTemplate.execute("alter table player_company alter column cash_runway_days set not null");

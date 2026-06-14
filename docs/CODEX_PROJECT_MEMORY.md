@@ -47,6 +47,7 @@ Important principle: market events should be presented as **Guild Herald news**,
 - Phase 4.2: improved portfolio-aware news semantics.
 - Market Engine 2.0: simulated market authority with BUY/SELL pressure and fair value reversion.
 - Phase 5: Survival Rules & Game Clock.
+- Phase 6A: Sealed Auction, Inventory & Active Relics.
 - UX polish: portfolio holdings select global asset.
 - Auth polish: custom frontend login screen and custom Keycloak login theme.
 
@@ -592,3 +593,71 @@ Next strong candidates:
 - Cloud deployment.
 
 Keep the guiding idea: every technical system should become a gameplay affordance.
+
+## Phase 6A - Sealed Auction, Inventory & Active Relics
+
+Implemented June 13, 2026.
+
+Architecture decisions:
+
+- Reuse `PlayerCompany` as the company-scoped game session.
+- Persist `gameSeed`; never expose it through DTOs.
+- Generate four cards before selection with centralized SHA-256 deterministic RNG.
+- Keep auction and relic authority in backend services.
+- Keep Vault as the only inventory application and add a lower desktop slot bar.
+- Use cash as the real survival resource; Fortune Draught is treasury recovery.
+- Since there is no future market queue, Book of Three Omens uses current/base
+  market-engine state plus deterministic variation and returns qualitative data.
+
+Backend:
+
+- Models: `SealedAuction`, `SealedAuctionCard`, `RelicDefinition`,
+  `CompanyRelic`, `RelicHistory`.
+- Services: `SealedAuctionService`, `RelicService`, `DeterministicGameRng`.
+- Defensive schema hardening: `Phase6SchemaMigration`.
+- Idempotent catalog: `RelicCatalogSeeder`.
+- Ring protects exactly two End Day bankruptcy evaluations.
+- Book consumes once after a product target is confirmed.
+- Fortune Draught restores `8,000` cash up to the configured `100,000` cap.
+- Terminal runs restart through `POST /api/game/restart`; the operation clears
+  only company-owned run data, returns to Day 1 with a new seed, and preserves
+  shared products, prices and news.
+- Auction selection uses ownership checks, pessimistic locking and idempotent retry.
+
+Frontend:
+
+- Special Market Board row and central `SealedAuctionModal`.
+- Vault tabs `HOLDINGS` and `INVENTORY`.
+- Four `ActiveRelicsBar` slots.
+- Drag/drop plus button and keyboard alternatives.
+- Game Master spawn, expire and grant controls.
+- Vitest/Testing Library is now configured.
+
+Verification baseline:
+
+```bash
+cd stock-bar-backend
+mvn test
+
+cd stock-bar-frontend
+npm test
+npm run build
+
+docker compose up -d --build
+docker compose ps
+```
+
+Verified result on June 13, 2026:
+
+- 32 backend tests passed.
+- 4 frontend tests passed.
+- Frontend production build passed.
+- PostgreSQL migration/catalog checks passed.
+- Backend, frontend, Keycloak and PostgreSQL were healthy in Docker.
+
+Known limitations:
+
+- Hibernate still creates new tables; Flyway/Liquibase remains deferred.
+- Book forecasts are qualitative approximations until a real future event queue exists.
+- Frontend tests cover core components, not a browser-level E2E flow.
+- The requested concept PNG was absent from the checkout.

@@ -40,7 +40,9 @@ export default function MarketBoardApp({
   isLoadingProducts,
   productsError,
   onRetryProducts,
-  onOpenApp
+  onOpenApp,
+  activeAuction,
+  onOpenAuction
 }: DesktopAppRenderProps) {
   const hasProducts = products.length > 0;
   const canOpenTicket = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
@@ -79,6 +81,54 @@ export default function MarketBoardApp({
             </tr>
           </thead>
           <tbody>
+            {activeAuction && (
+              <tr
+                className="mes-auction-row"
+                tabIndex={0}
+                onClick={onOpenAuction}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  onOpenAuction();
+                }}
+                title="One bid, one sealed choice"
+              >
+                <td>
+                  <div className="mes-table__asset">
+                    <span className="mes-auction-row__icon" aria-hidden="true">A</span>
+                    <span>
+                      <span className="mes-table__asset-name">ROYAL SEALED AUCTION</span>
+                      <span className="mes-auction-row__badge">
+                        {activeAuction.status === "RESOLVED"
+                          ? "RESOLVED"
+                          : activeAuction.status === "EXPIRED"
+                          ? "EXPIRED"
+                          : activeAuction.daysRemaining <= 0
+                          ? "CLOSES TODAY"
+                          : `${activeAuction.daysRemaining}D LEFT`}
+                      </span>
+                    </span>
+                  </div>
+                </td>
+                <td className="text-right mes-warning">????</td>
+                <td className="text-right mes-warning">????</td>
+                <td className="text-right mes-warning">????</td>
+                <td className="text-right mes-neutral">SEALED</td>
+                <td className="text-right mes-warning">{activeAuction.status}</td>
+                <td className="text-right">
+                  <button
+                    type="button"
+                    className="mes-button mes-button--compact"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenAuction();
+                    }}
+                  >
+                    OPEN
+                  </button>
+                </td>
+              </tr>
+            )}
             {isLoadingProducts && !hasProducts && <MarketStateRow message="Loading assets..." />}
             {!isLoadingProducts && productsError && !hasProducts && (
               <MarketStateRow

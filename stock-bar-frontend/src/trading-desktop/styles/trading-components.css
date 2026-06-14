@@ -628,6 +628,10 @@
 }
 
 .mes-terminal-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 11px 12px;
   border: 1px solid;
   font-family: var(--mes-font-display);
@@ -1084,6 +1088,501 @@
   text-align: center;
 }
 
+.mes-terminal-state > div {
+  display: grid;
+  gap: 3px;
+}
+
+.mes-terminal-state span {
+  font-family: var(--mes-font-mono);
+  font-size: 9px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mes-restart-confirmation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--mes-gold-muted);
+  background: rgba(36, 21, 10, 0.72);
+  box-shadow: inset 3px 0 0 rgba(190, 139, 48, 0.55);
+}
+
+.mes-restart-confirmation > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.mes-restart-confirmation__eyebrow {
+  color: var(--mes-ember);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+.mes-restart-confirmation strong {
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.mes-restart-confirmation p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--mes-ash);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.mes-restart-confirmation__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.mes-auction-row {
+  cursor: pointer;
+  background:
+    linear-gradient(90deg, rgba(122, 32, 24, 0.2), rgba(201, 151, 74, 0.05)),
+    #120b06;
+  box-shadow: inset 2px 0 var(--mes-gold-muted);
+}
+
+.mes-auction-row__icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-gold);
+  background: #210c08;
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+}
+
+.mes-auction-row__badge {
+  display: block;
+  margin-top: 2px;
+  color: var(--mes-danger);
+  font-size: 8px;
+  letter-spacing: 0.09em;
+}
+
+.mes-auction-overlay {
+  position: fixed;
+  z-index: 12000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 1, 0, 0.78);
+}
+
+.mes-auction-modal {
+  width: min(920px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-parchment);
+  background:
+    linear-gradient(145deg, rgba(122, 32, 24, 0.14), transparent 42%),
+    #100a06;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.86);
+}
+
+.mes-auction-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--mes-line);
+}
+
+.mes-auction-modal__header p {
+  margin-top: 6px;
+  color: var(--mes-ash);
+  font-size: 11px;
+}
+
+.mes-auction-modal__title {
+  margin-top: 9px;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: clamp(15px, 2vw, 22px);
+  letter-spacing: 0.12em;
+}
+
+.mes-auction-modal__terms {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 10px;
+  border-bottom: 1px solid var(--mes-line);
+  color: var(--mes-ember);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.mes-sealed-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+
+.mes-sealed-card {
+  position: relative;
+  display: flex;
+  min-height: 245px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 10px;
+  border: 1px solid #5a3f22;
+  color: var(--mes-ash);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 12px, rgba(227, 185, 107, 0.025) 12px 13px),
+    #190b09;
+  box-shadow: inset 0 0 0 3px #0c0604, inset 0 0 0 4px #3d2917;
+  transition: border-color 140ms ease, transform 140ms ease, color 140ms ease;
+}
+
+.mes-sealed-card:hover:not(:disabled),
+.mes-sealed-card.is-selected {
+  border-color: var(--mes-gold);
+  color: var(--mes-gold);
+  transform: translateY(-3px);
+}
+
+.mes-sealed-card.is-revealed {
+  color: var(--mes-gold);
+  background: #1d1308;
+}
+
+.mes-sealed-card__lot,
+.mes-sealed-card__seal {
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.mes-sealed-card__icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border: 1px solid currentColor;
+  font-size: 29px;
+  transform: rotate(45deg);
+}
+
+.mes-sealed-card__icon svg {
+  transform: rotate(-45deg);
+}
+
+.mes-sealed-card__mystery {
+  min-height: 32px;
+  color: var(--mes-parchment);
+  font-family: var(--mes-font-display);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.mes-sealed-card__seal {
+  padding: 5px 8px;
+  border: 1px solid #8a3025;
+  color: #df8f82;
+  background: #3b100d;
+}
+
+.mes-auction-reveal {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 0 20px 12px;
+  padding: 12px;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-gold);
+  background: rgba(201, 151, 74, 0.07);
+}
+
+.mes-auction-reveal > svg {
+  flex: 0 0 auto;
+  font-size: 28px;
+}
+
+.mes-auction-reveal p {
+  margin-top: 3px;
+  color: var(--mes-ash);
+  font-size: 10px;
+}
+
+.mes-auction-modal > .mes-banner {
+  margin: 0 20px 12px;
+}
+
+.mes-auction-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--mes-line);
+}
+
+.mes-vault-tabs {
+  display: flex;
+  gap: 5px;
+}
+
+.mes-inventory {
+  min-height: 180px;
+  padding: 4px;
+  border: 1px dashed rgba(138, 109, 59, 0.55);
+}
+
+.mes-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+}
+
+.mes-inventory-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--mes-line);
+  background: #120c06;
+}
+
+.mes-inventory-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-gold);
+  font-size: 19px;
+}
+
+.mes-inventory-card__title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--mes-parchment);
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+}
+
+.mes-inventory-card__title span {
+  color: var(--mes-ember);
+  font-family: var(--mes-font-data);
+  font-size: 8px;
+}
+
+.mes-inventory-card p {
+  margin-top: 5px;
+  color: var(--mes-ash);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.mes-inventory-card__meta,
+.mes-inventory-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.mes-inventory-card__meta span {
+  padding: 2px 5px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-ash);
+  font-size: 8px;
+}
+
+.mes-relic-bar {
+  position: relative;
+  z-index: 800;
+  display: flex;
+  min-height: 62px;
+  flex: 0 0 62px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--mes-line-strong);
+  background: linear-gradient(180deg, #171006, #0b0704);
+}
+
+.mes-relic-bar__label {
+  color: var(--mes-gold-muted);
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+.mes-relic-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 52px);
+  gap: 5px;
+}
+
+.mes-relic-slot {
+  position: relative;
+  display: grid;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-ash-dark);
+  background: #090604;
+}
+
+.mes-relic-slot.is-filled {
+  color: var(--mes-gold);
+  background: #160e06;
+}
+
+.mes-relic-slot.is-active {
+  border-color: var(--mes-positive);
+  color: var(--mes-positive);
+}
+
+.mes-relic-slot__key {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+}
+
+.mes-relic-slot__icon {
+  font-size: 17px;
+}
+
+.mes-relic-slot__count {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  color: var(--mes-ash);
+  font-size: 7px;
+}
+
+.mes-relic-slot__drag {
+  position: absolute;
+  inset: 0;
+}
+
+.mes-relic-bar__error {
+  max-width: 260px;
+  color: var(--mes-danger);
+  font-size: 9px;
+}
+
+.mes-relic-popover {
+  position: absolute;
+  z-index: 900;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  width: min(390px, calc(100vw - 24px));
+  padding: 12px;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-parchment);
+  background: #100a06;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.78);
+  transform: translateX(-50%);
+}
+
+.mes-relic-popover__close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  color: var(--mes-ash);
+  background: transparent;
+}
+
+.mes-relic-popover__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 11px;
+}
+
+.mes-relic-popover > p {
+  margin-top: 6px;
+  color: var(--mes-ash);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.mes-relic-popover__meta,
+.mes-omen-result {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  color: var(--mes-ember);
+  font-size: 9px;
+}
+
+.mes-relic-popover__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.mes-relic-confirmation {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--mes-gold-muted);
+  background:
+    linear-gradient(90deg, rgba(151, 104, 28, 0.1), transparent 70%),
+    rgba(36, 21, 10, 0.72);
+  box-shadow: inset 3px 0 0 rgba(190, 139, 48, 0.55);
+}
+
+.mes-relic-confirmation__eyebrow {
+  color: var(--mes-ember);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+}
+
+.mes-relic-confirmation > strong {
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+}
+
+.mes-relic-confirmation > p {
+  margin: 0;
+  color: var(--mes-ash);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.mes-relic-confirmation__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.mes-omen-result {
+  padding: 7px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-parchment);
+}
+
 @media (max-width: 760px) {
   .mes-app__header {
     align-items: flex-start;
@@ -1100,5 +1599,22 @@
 
   .mes-news-toast-stack {
     top: 104px;
+  }
+
+  .mes-sealed-cards {
+    grid-template-columns: repeat(2, minmax(110px, 1fr));
+  }
+
+  .mes-sealed-card {
+    min-height: 180px;
+  }
+
+  .mes-relic-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .mes-relic-bar__label {
+    display: none;
   }
 }

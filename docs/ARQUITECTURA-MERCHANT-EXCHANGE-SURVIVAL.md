@@ -588,6 +588,12 @@ Victoria:
 
 Una compania BANKRUPT o VICTORIOUS ya no procesa nuevas jornadas ni ordenes.
 
+`POST /api/game/restart` toma un bloqueo pesimista sobre la compania y ejecuta
+un reinicio transaccional. Elimina los datos company-scoped de la partida
+anterior (`holding`, `market_order`, subastas, cartas, reliquias e historial),
+restaura los valores iniciales y asigna una seed nueva. No modifica productos,
+precios, historial de precios ni noticias globales.
+
 ## 12. API
 
 ### 12.1 Lectura Compartida
@@ -611,6 +617,7 @@ Una compania BANKRUPT o VICTORIOUS ya no procesa nuevas jornadas ni ordenes.
 |---|---|---|
 | GET | `/api/game/state` | Estado de supervivencia |
 | POST | `/api/game/end-day` | Terminar jornada |
+| POST | `/api/game/restart` | Reiniciar una partida BANKRUPT o VICTORIOUS |
 | GET | `/api/orders` | Ordenes de la compania |
 | POST | `/api/orders` | Ejecutar BUY o SELL |
 | GET | `/api/sales` | Ventas legacy |
@@ -815,3 +822,116 @@ Orden recomendado para entender el proyecto:
 6. Nota historica de Trading Bar Exchange.
 
 Cuando una nota historica contradiga el codigo actual, prevalece el codigo.
+
+## 22. Phase 6A - Sealed Auction, Inventory & Active Relics
+
+### 22.1 Sesion Y RNG
+
+No se creo una entidad `GameSession` paralela porque `PlayerCompany` ya
+representa la partida individual con `gameDay` y `status`. Se agrego
+`gameSeed`, persistida y no expuesta por API.
+
+`DeterministicGameRng` usa SHA-256 sobre:
+
+```text
+gameSeed + currentDay + auctionId + cardPosition
+```
+
+Las cuatro `SealedAuctionCard` se guardan antes de permitir seleccion. El
+endpoint publico no serializa definicion, efecto, valor ni orden generado. Una
+subasta usa locking pesimista y la repeticion del mismo claim devuelve el item
+existente sin un segundo cobro.
+
+### 22.2 Persistencia
+
+Nuevas tablas:
+
+```text
+relic_definitions
+sealed_auctions
+sealed_auction_cards
+company_relics
+relic_history
+```
+
+`Phase6SchemaMigration` agrega indices parciales para una subasta activa y un
+item por slot, indices de consulta y checks `1..4`. El backfill de
+`PlayerCompanySurvivalSchemaMigration` agrega una seed estable a companias
+existentes antes de imponer `NOT NULL`. `RelicCatalogSeeder` mantiene las tres
+definiciones iniciales de forma idempotente.
+
+El proyecto aun no usa Flyway. Hibernate crea las tablas nuevas y la migracion
+defensiva endurece constraints e indices PostgreSQL despues del arranque.
+
+### 22.3 Servicios
+
+`SealedAuctionService`:
+
+- Aparicion determinista diaria con probabilidad configurable.
+- Maximo una subasta activa por compania.
+- Cuatro cartas persistidas y preferencia por variedad.
+- Cobro, resolucion, premio y reintento idempotente en transaccion.
+- Expiracion durante End Day y controles administrativos.
+
+`RelicService`:
+
+- Inventario company-scoped.
+- Equipar, intercambiar, mover y desequipar slots.
+- Activacion explicita y estados persistentes.
+- Historial de adquisicion, equipamiento, uso, ticks y expiracion.
+- Forecast cualitativo basado en precio actual/base mas variacion determinista.
+- Recuperacion de tesoreria con tope configurable.
+
+`GameClockService` expira la subasta del dia, procesa costos, evalua proteccion
+de quiebra, consume un ciclo del Ring y genera la oportunidad del nuevo dia en
+la misma transaccion.
+
+### 22.4 API
+
+| Metodo | Endpoint | Descripcion |
+|---|---|---|
+| GET | `/api/game/auctions/active` | Subasta del dia o `null` |
+| GET | `/api/game/auctions/{id}` | Detalle publico sin cartas ocultas |
+| POST | `/api/game/auctions/{id}/select` | Seleccion y premio |
+| GET | `/api/game/relics` | Inventario y slots |
+| GET | `/api/game/relics/history` | Historial de reliquias |
+| POST | `/api/game/relics/{id}/equip` | Equipar o mover |
+| POST | `/api/game/relics/{id}/unequip` | Volver a inventario |
+| POST | `/api/game/relics/{id}/activate` | Activar con objetivo opcional |
+| POST | `/api/game/relics/reorder` | Reordenar slot |
+| POST | `/api/admin/sealed-auctions/spawn` | Forzar subasta |
+| POST | `/api/admin/sealed-auctions/expire` | Expirar subasta |
+| POST | `/api/admin/relics/grant/{code}` | Otorgar reliquia de prueba |
+
+GET permite `VIEWER`, `TRADER` y `ADMIN_BAR`; mutaciones jugables requieren
+`TRADER` o `ADMIN_BAR`, y controles de desarrollo requieren `ADMIN_BAR`.
+
+### 22.5 Frontend
+
+- `MarketBoardApp`: fila especial con `????` y apertura por mouse o teclado.
+- `SealedAuctionModal`: cuatro lotes, confirmacion y reconstruccion tras recarga.
+- `PortfolioApp`: tabs `HOLDINGS` e `INVENTORY`.
+- `ActiveRelicsBar`: cuatro slots, teclas `1..4`, detalle y activacion.
+- Drag and drop comparte los mismos endpoints que los botones accesibles.
+- `prefers-reduced-motion` hereda la regla global del desktop.
+
+### 22.6 Verificacion
+
+Ejecutado el 13 de junio de 2026:
+
+- Backend: `mvn test`, 32 tests correctos.
+- Frontend: `npm test`, 4 tests correctos.
+- Frontend: `npm run build`, correcto.
+- Docker: `docker compose up -d --build`, cuatro servicios levantados.
+- PostgreSQL: tablas, catalogo, indices y checks confirmados.
+- Smoke autenticado: cuatro cartas ocultas, sin campos sensibles, y expiracion
+  administrativa correcta.
+
+Limitaciones:
+
+- No existe cola futura del mercado; Book usa una aproximacion cualitativa del
+  estado real del motor.
+- No hay rareza, maldiciones, crafting ni multiplayer.
+- La suite frontend es de componentes; no reemplaza una futura prueba E2E.
+- El asset `designs/sealed-auction-four-fates-concept.png` no estaba presente en
+  el checkout, por lo que la composicion siguio la especificacion textual.

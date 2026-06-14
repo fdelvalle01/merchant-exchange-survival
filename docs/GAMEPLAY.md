@@ -275,8 +275,18 @@ La compania no puede seguir operando ni procesando jornadas.
 
 La compania alcanzo el objetivo de valor y la partida se considera ganada.
 
-La version actual no implementa reinicio individual de partida desde la UI. Los
-resets administrativos deben tratarse como herramientas de desarrollo.
+En ambos estados terminales, Company Keep ofrece `START AGAIN` o
+`START NEW RUN`. Tras confirmarlo:
+
+- la compania vuelve a Dia 1 con `$100,000`, deuda cero y estado `ACTIVE`;
+- se genera una nueva seed de partida;
+- se eliminan holdings, ordenes, subastas, reliquias e historial de reliquias
+  pertenecientes a esa compania;
+- se conservan productos, precios y noticias compartidas del reino.
+
+El backend rechaza el reinicio mientras la compania siga `ACTIVE`. Los resets
+administrativos siguen siendo herramientas de desarrollo y no sustituyen este
+flujo company-scoped.
 
 ## 12. Sistemas Modelados Pero Incompletos
 
@@ -290,3 +300,55 @@ resets administrativos deben tratarse como herramientas de desarrollo.
 - Competencia directa entre companias.
 
 Estas areas son extensiones naturales, no comportamiento disponible hoy.
+
+## 13. Subasta Sellada Y Reliquias
+
+Una subasta especial puede aparecer al comenzar un dia. No es un activo y no
+abre Royal Ticket:
+
+```text
+Market Board
+  -> Royal Sealed Auction
+  -> cuatro lotes ocultos
+  -> una seleccion confirmada
+  -> una reliquia en Vault Inventory
+```
+
+La entrada cuesta `10,000` por defecto. Las cuatro recompensas se generan y
+persisten antes del clic; recargar no cambia las cartas y repetir la misma
+seleccion no vuelve a cobrar ni crea otro premio. Si End Day cierra una subasta
+sin resolver, queda expirada.
+
+Vault posee `HOLDINGS` e `INVENTORY`. Las reliquias pueden moverse entre cuatro
+slots persistentes mediante drag and drop o controles de teclado/botones. Mover
+una reliquia no la activa.
+
+### Ring of Last Mercy
+
+Se equipa y activa manualmente. Protege dos cierres de dia completos. No entrega
+cash, no borra deuda y no evita que el riesgo o las perdidas sigan creciendo.
+Despues del segundo cierre expira; una condicion de quiebra se aplica con
+normalidad en el siguiente End Day.
+
+### Book of Three Omens
+
+Requiere seleccionar un activo. Consume una carga y devuelve tres lecturas
+`BULLISH`, `BEARISH`, `VOLATILE`, `STABLE` o `UNKNOWN`, mas confianza
+`LOW`, `MEDIUM` o `HIGH`. No revela precios, porcentajes ni la seed.
+
+El mercado actual no posee una cola de eventos futuros. Por eso la primera
+version deriva la lectura del estado real del motor, especialmente precio actual
+contra precio base, y agrega una variacion determinista de la partida.
+
+### Fortune Draught
+
+La supervivencia real sigue siendo financiera, no una barra de vida. La pocion
+recupera `8,000` de cash de tesoreria, limitada por defecto a `100,000`, y se
+consume una sola vez.
+
+### Aparicion
+
+- Maximo una subasta disponible por compania.
+- Probabilidad diaria inicial: `30%`.
+- Duracion: el dia actual.
+- Game Master puede forzar aparicion, expiracion y reliquias de prueba.

@@ -4,6 +4,10 @@ import com.francisco.stockbar.dto.PriceAdjustmentRequest;
 import com.francisco.stockbar.dto.WorldNewsResponse;
 import com.francisco.stockbar.model.WorldEventType;
 import com.francisco.stockbar.repository.HoldingRepository;
+import com.francisco.stockbar.repository.CompanyRelicRepository;
+import com.francisco.stockbar.repository.RelicHistoryRepository;
+import com.francisco.stockbar.repository.SealedAuctionCardRepository;
+import com.francisco.stockbar.repository.SealedAuctionRepository;
 import com.francisco.stockbar.repository.MarketEventRepository;
 import com.francisco.stockbar.repository.MarketOrderRepository;
 import com.francisco.stockbar.repository.PriceHistoryRepository;
@@ -11,6 +15,10 @@ import com.francisco.stockbar.repository.ProductRepository;
 import com.francisco.stockbar.repository.SaleRepository;
 import com.francisco.stockbar.repository.WorldNewsRepository;
 import com.francisco.stockbar.services.AdminMarketService;
+import com.francisco.stockbar.services.RelicService;
+import com.francisco.stockbar.services.SealedAuctionService;
+import com.francisco.stockbar.dto.RelicResponse;
+import com.francisco.stockbar.dto.SealedAuctionResponse;
 import com.francisco.stockbar.services.WorldEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,9 +42,19 @@ public class AdminController {
     private final MarketEventRepository marketEventRepository;
     private final AdminMarketService adminMarketService;
     private final WorldEventService worldEventService;
+    private final RelicHistoryRepository relicHistoryRepository;
+    private final CompanyRelicRepository companyRelicRepository;
+    private final SealedAuctionCardRepository sealedAuctionCardRepository;
+    private final SealedAuctionRepository sealedAuctionRepository;
+    private final SealedAuctionService sealedAuctionService;
+    private final RelicService relicService;
 
     @DeleteMapping("/reset")
     public String resetDB() {
+        relicHistoryRepository.deleteAll();
+        companyRelicRepository.deleteAll();
+        sealedAuctionCardRepository.deleteAll();
+        sealedAuctionRepository.deleteAll();
         priceHistoryRepo.deleteAll();
         saleRepo.deleteAll();
         marketOrderRepo.deleteAll();
@@ -96,5 +114,20 @@ public class AdminController {
     @PostMapping("/events/{type}")
     public WorldNewsResponse triggerWorldEvent(@PathVariable WorldEventType type) {
         return worldEventService.triggerWorldEvent(type);
+    }
+
+    @PostMapping("/sealed-auctions/spawn")
+    public SealedAuctionResponse spawnSealedAuction() {
+        return sealedAuctionService.forceSpawn();
+    }
+
+    @PostMapping("/sealed-auctions/expire")
+    public SealedAuctionResponse expireSealedAuction() {
+        return sealedAuctionService.expireActive();
+    }
+
+    @PostMapping("/relics/grant/{code}")
+    public RelicResponse grantRelic(@PathVariable String code) {
+        return relicService.grantTestRelic(code);
     }
 }

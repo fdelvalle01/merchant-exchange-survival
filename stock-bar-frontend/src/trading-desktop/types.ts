@@ -1,8 +1,10 @@
 import type { PlayerCompanyResponse } from "./services/companyApi";
 import type { OrderResponse } from "./services/ordersApi";
 import type { PortfolioHoldingResponse } from "./services/portfolioApi";
+import type { RelicResponse, SealedAuctionResponse } from "./services/relicsApi";
 
 export type { OrderResponse, PlayerCompanyResponse, PortfolioHoldingResponse };
+export type { RelicResponse, SealedAuctionResponse };
 
 export type DesktopAppId =
   | "company"
@@ -54,6 +56,19 @@ export type MarketEventType =
   | "DEBT_INTEREST_APPLIED"
   | "BANKRUPTCY_DECLARED"
   | "VICTORY_ACHIEVED"
+  | "GAME_RESTARTED"
+  | "SEALED_AUCTION_CREATED"
+  | "SEALED_AUCTION_ENTERED"
+  | "SEALED_AUCTION_RESOLVED"
+  | "SEALED_AUCTION_EXPIRED"
+  | "RELIC_ACQUIRED"
+  | "RELIC_EQUIPPED"
+  | "RELIC_UNEQUIPPED"
+  | "RELIC_ACTIVATED"
+  | "RELIC_CONSUMED"
+  | "RELIC_DAY_TICKED"
+  | "RELIC_EXPIRED"
+  | "BANKRUPTCY_PREVENTED"
   | "MARKET_CRASH"
   | "MARKET_BOOM"
   | "MARKET_RESET"
@@ -141,6 +156,7 @@ export type DesktopAppRenderProps = {
   onOrdersChanged: () => void | Promise<void>;
   onNewsChanged: () => void | Promise<void>;
   onMarketEventsChanged: () => void | Promise<void>;
+  onGameItemsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
@@ -160,6 +176,11 @@ export type DesktopAppRenderProps = {
   portfolioError: string | null;
   isLoadingProducts: boolean;
   productsError: string | null;
+  relics: RelicResponse[];
+  activeAuction: SealedAuctionResponse | null;
+  isLoadingRelics: boolean;
+  relicsError: string | null;
+  onOpenAuction: () => void;
   onRetryProducts: () => void;
   onOpenApp: (appId: DesktopAppId) => void;
 };

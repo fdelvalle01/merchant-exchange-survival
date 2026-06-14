@@ -10,6 +10,8 @@ import type {
   MarketEventDraft,
   PortfolioHoldingResponse,
   PlayerCompanyResponse,
+  RelicResponse,
+  SealedAuctionResponse,
   TradingInstrument,
   WorldNewsItem
 } from "../types";
@@ -30,6 +32,7 @@ type WorkspaceProps = {
   onOrdersChanged: () => void | Promise<void>;
   onNewsChanged: () => void | Promise<void>;
   onMarketEventsChanged: () => void | Promise<void>;
+  onGameItemsChanged: () => void | Promise<void>;
   localOrders: LocalOrder[];
   addFilledOrder: (orderData: LocalOrderDraft) => LocalOrder;
   addRejectedOrder: (orderData: LocalOrderDraft) => LocalOrder;
@@ -48,6 +51,11 @@ type WorkspaceProps = {
   portfolioError: string | null;
   isLoadingProducts: boolean;
   productsError: string | null;
+  relics: RelicResponse[];
+  activeAuction: SealedAuctionResponse | null;
+  isLoadingRelics: boolean;
+  relicsError: string | null;
+  onOpenAuction: () => void;
   onRetryProducts: () => void;
   onOpenApp: (appId: DesktopAppId) => void;
   onCloseWindow: (windowId: string) => void;
@@ -73,6 +81,7 @@ export default function Workspace({
   onOrdersChanged,
   onNewsChanged,
   onMarketEventsChanged,
+  onGameItemsChanged,
   localOrders,
   addFilledOrder,
   addRejectedOrder,
@@ -91,6 +100,11 @@ export default function Workspace({
   portfolioError,
   isLoadingProducts,
   productsError,
+  relics,
+  activeAuction,
+  isLoadingRelics,
+  relicsError,
+  onOpenAuction,
   onRetryProducts,
   onOpenApp,
   onCloseWindow,
@@ -161,6 +175,7 @@ export default function Workspace({
               onOrdersChanged={onOrdersChanged}
               onNewsChanged={onNewsChanged}
               onMarketEventsChanged={onMarketEventsChanged}
+              onGameItemsChanged={onGameItemsChanged}
               localOrders={localOrders}
               addFilledOrder={addFilledOrder}
               addRejectedOrder={addRejectedOrder}
@@ -180,6 +195,11 @@ export default function Workspace({
               portfolioError={portfolioError}
               isLoadingProducts={isLoadingProducts}
               productsError={productsError}
+              relics={relics}
+              activeAuction={activeAuction}
+              isLoadingRelics={isLoadingRelics}
+              relicsError={relicsError}
+              onOpenAuction={onOpenAuction}
               onRetryProducts={onRetryProducts}
               onOpenApp={onOpenApp}
             />

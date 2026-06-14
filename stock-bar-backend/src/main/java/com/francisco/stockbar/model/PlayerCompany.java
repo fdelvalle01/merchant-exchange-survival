@@ -66,6 +66,10 @@ public class PlayerCompany {
     private Integer gameDay = 1;
 
     @Builder.Default
+    @Column(nullable = false, columnDefinition = "bigint default 1")
+    private Long gameSeed = 1L;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
     private PlayerCompanyStatus status = PlayerCompanyStatus.ACTIVE;
@@ -122,6 +126,9 @@ public class PlayerCompany {
     private void applySurvivalDefaults() {
         if (gameDay == null || gameDay < 1) {
             gameDay = 1;
+        }
+        if (gameSeed == null || gameSeed == 0L) {
+            gameSeed = 1L;
         }
         if (status == null) {
             status = PlayerCompanyStatus.ACTIVE;

@@ -16,3 +16,8 @@ export async function endDay(): Promise<GameStateResponse> {
   const response = await apiClient.post<GameStateResponse>("/api/game/end-day");
   return response.data;
 }
+
+export async function restartGame(): Promise<PlayerCompanyResponse> {
+  const response = await apiClient.post<PlayerCompanyResponse>("/api/game/restart");
+  return response.data;
+}

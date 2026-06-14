@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaChartPie, FaExclamationTriangle, FaHourglassHalf, FaSyncAlt, FaWallet } from "react-icons/fa";
 import { money, valueClass } from "../marketUtils";
 import { normalizeApiError } from "../services/apiError";
-import { endDay } from "../services/gameApi";
+import { endDay, restartGame } from "../services/gameApi";
 import type { DesktopAppRenderProps } from "../types";
 import { AssetIcon } from "../visualCatalog";
 
@@ -51,6 +51,7 @@ function AlertIcon({ icon }: { icon: RiskAlert["icon"] }) {
 }
 
 export default function CompanyDashboardApp({
+  currentUser,
   company,
   portfolio,
   products,
@@ -64,12 +65,15 @@ export default function CompanyDashboardApp({
   onOrdersChanged,
   onNewsChanged,
   onMarketEventsChanged,
+  onGameItemsChanged,
   onOpenApp,
   isActive
 }: DesktopAppRenderProps) {
   const [isEndingDay, setIsEndingDay] = useState(false);
   const [dayResult, setDayResult] = useState<string | null>(null);
   const [dayError, setDayError] = useState<string | null>(null);
+  const [isConfirmingRestart, setIsConfirmingRestart] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
   const visiblePortfolio = portfolio.filter((holding) => holding.quantity > 0);
   const totalMarketValue = visiblePortfolio.reduce((total, holding) => total + holding.marketValue, 0);
   const totalPnl = visiblePortfolio.reduce((total, holding) => total + holding.unrealizedPnl, 0);
@@ -83,6 +87,7 @@ export default function CompanyDashboardApp({
   const cashRunwayDays = company?.cashRunwayDays ?? 0;
   const criticalDays = company?.criticalDays ?? 0;
   const isTerminalStatus = companyStatus === "BANKRUPT" || companyStatus === "VICTORIOUS";
+  const canRestart = currentUser.roles.some((role) => role === "TRADER" || role === "ADMIN_BAR");
   const productForHolding = (assetId: number) =>
     products.find((product) => String(product.id) === String(assetId));
   const largestHolding = visiblePortfolio.reduce(
@@ -187,13 +192,37 @@ export default function CompanyDashboardApp({
         onPortfolioChanged(),
         onOrdersChanged(),
         onNewsChanged(),
-        onMarketEventsChanged()
+        onMarketEventsChanged(),
+        onGameItemsChanged()
       ]);
     } catch (error) {
       const apiError = normalizeApiError(error);
       setDayError(apiError.message);
     } finally {
       setIsEndingDay(false);
+    }
+  }
+
+  async function handleRestart() {
+    if (!isTerminalStatus || !canRestart) return;
+    setIsRestarting(true);
+    setDayError(null);
+
+    try {
+      await restartGame();
+      setIsConfirmingRestart(false);
+      setDayResult("A new company run has begun at Day 1.");
+      await Promise.all([
+        onCompanyChanged(),
+        onPortfolioChanged(),
+        onOrdersChanged(),
+        onMarketEventsChanged(),
+        onGameItemsChanged()
+      ]);
+    } catch (error) {
+      setDayError(normalizeApiError(error).message);
+    } finally {
+      setIsRestarting(false);
     }
   }
 
@@ -243,12 +272,66 @@ export default function CompanyDashboardApp({
         )}
         {companyStatus === "BANKRUPT" && (
           <div className="mes-terminal-state mes-terminal-state--bankrupt">
-            Bankruptcy declared. {company?.bankruptcyReason ?? "The guild has seized your trading license."}
+            <div>
+              <strong>Bankruptcy declared.</strong>
+              <span>{company?.bankruptcyReason ?? "The guild has seized your trading license."}</span>
+            </div>
+            {canRestart && !isConfirmingRestart && (
+              <button
+                type="button"
+                className="mes-button mes-button--primary"
+                onClick={() => setIsConfirmingRestart(true)}
+              >
+                START AGAIN
+              </button>
+            )}
           </div>
         )}
         {companyStatus === "VICTORIOUS" && (
           <div className="mes-terminal-state mes-terminal-state--victorious">
-            Victory achieved. Your merchant house dominates the exchange.
+            <div>
+              <strong>Victory achieved.</strong>
+              <span>Your merchant house dominates the exchange.</span>
+            </div>
+            {canRestart && !isConfirmingRestart && (
+              <button
+                type="button"
+                className="mes-button mes-button--primary"
+                onClick={() => setIsConfirmingRestart(true)}
+              >
+                START NEW RUN
+              </button>
+            )}
+          </div>
+        )}
+        {isTerminalStatus && isConfirmingRestart && (
+          <div className="mes-restart-confirmation" role="alertdialog" aria-labelledby="restart-title">
+            <div>
+              <span className="mes-restart-confirmation__eyebrow">NEW COMPANY RUN</span>
+              <strong id="restart-title">Return to Day 1?</strong>
+              <p>
+                Holdings, orders, auctions, relics and their history will be cleared.
+                Shared market prices, products and kingdom news remain unchanged.
+              </p>
+            </div>
+            <div className="mes-restart-confirmation__actions">
+              <button
+                type="button"
+                className="mes-button mes-button--primary"
+                disabled={isRestarting}
+                onClick={handleRestart}
+              >
+                {isRestarting ? "RESTARTING..." : "CONFIRM NEW GAME"}
+              </button>
+              <button
+                type="button"
+                className="mes-button"
+                disabled={isRestarting}
+                onClick={() => setIsConfirmingRestart(false)}
+              >
+                CANCEL
+              </button>
+            </div>
           </div>
         )}
         {dayResult && (
