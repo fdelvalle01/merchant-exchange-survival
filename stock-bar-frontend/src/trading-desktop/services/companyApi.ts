@@ -20,6 +20,7 @@ export type PlayerCompanyResponse = {
   criticalDays?: number;
   victoryTarget?: number;
   bankruptcyReason?: string | null;
+  buyBlockedUntilDay?: number | null;
   victoryMessage?: string | null;
   lastDayProcessedAt?: string | null;
   createdAt?: string;

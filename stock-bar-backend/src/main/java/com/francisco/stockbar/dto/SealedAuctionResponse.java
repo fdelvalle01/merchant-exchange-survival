@@ -17,6 +17,10 @@ public class SealedAuctionResponse {
     private Integer daysRemaining;
     private String status;
     private Integer selectedCardPosition;
+    private String selectedOutcomePolarity;
+    private String selectedOutcomeCode;
+    private String selectedOutcomeTitle;
+    private String selectedOutcomeDescription;
     private RelicResponse selectedRelic;
     private List<AuctionCardResponse> cards;
 }

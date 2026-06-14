@@ -82,6 +82,7 @@ public class PlayerCompanyService {
         company.setVictoryTarget(DEFAULT_VICTORY_TARGET);
         company.setLastDayProcessedAt(null);
         company.setBankruptcyReason(null);
+        company.setBuyBlockedUntilDay(null);
     }
 
     @Transactional

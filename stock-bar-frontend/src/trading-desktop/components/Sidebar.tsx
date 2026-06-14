@@ -16,7 +16,6 @@ const apps: Array<{
   fullLabel: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
-  { id: "company", label: "Company", fullLabel: "Company Keep", icon: desktopApps.company.icon },
   { id: "market", label: "Market", fullLabel: "Market Board", icon: desktopApps.market.icon },
   { id: "ticket", label: "Ticket", fullLabel: "Royal Ticket", icon: desktopApps.ticket.icon },
   { id: "detail", label: "Asset", fullLabel: "Asset Chronicle", icon: desktopApps.detail.icon },

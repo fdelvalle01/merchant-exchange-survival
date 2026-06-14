@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { FaBalanceScale, FaClock, FaCrown, FaSkull } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { FaSkull } from "react-icons/fa";
 import { money } from "../marketUtils";
 import { normalizeApiError } from "../services/apiError";
 import {
@@ -10,7 +10,6 @@ import {
 } from "../services/relicsApi";
 import RelicIcon from "./RelicIcon";
 
-const cardIcons = [FaSkull, FaCrown, FaClock, FaBalanceScale];
 const roman = ["I", "II", "III", "IV"];
 
 type Props = {
@@ -19,6 +18,30 @@ type Props = {
   onResolved: () => Promise<void> | void;
 };
 
+function resultFromAuction(auction: SealedAuctionResponse): AuctionSelectionResponse | null {
+  if (
+    auction.status !== "RESOLVED" ||
+    auction.selectedCardPosition == null ||
+    !auction.selectedOutcomePolarity ||
+    !auction.selectedOutcomeCode ||
+    !auction.selectedOutcomeTitle ||
+    !auction.selectedOutcomeDescription
+  ) {
+    return null;
+  }
+  return {
+    auctionId: auction.id,
+    status: auction.status,
+    selectedCardPosition: auction.selectedCardPosition,
+    selectedOutcomePolarity: auction.selectedOutcomePolarity,
+    selectedOutcomeCode: auction.selectedOutcomeCode,
+    selectedOutcomeTitle: auction.selectedOutcomeTitle,
+    selectedOutcomeDescription: auction.selectedOutcomeDescription,
+    relic: auction.selectedRelic,
+    cash: 0
+  };
+}
+
 export default function SealedAuctionModal({ auction, onClose, onResolved }: Props) {
   const [detail, setDetail] = useState(auction);
   const [selectedPosition, setSelectedPosition] = useState<number | null>(
@@ -26,43 +49,58 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
   );
   const [confirming, setConfirming] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [justResolved, setJustResolved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLElement>(null);
   const [result, setResult] = useState<AuctionSelectionResponse | null>(
-    auction.selectedRelic && auction.selectedCardPosition
-      ? {
-          auctionId: auction.id,
-          status: auction.status,
-          selectedCardPosition: auction.selectedCardPosition,
-          relic: auction.selectedRelic,
-          cash: 0
-        }
-      : null
+    resultFromAuction(auction)
   );
 
   useEffect(() => {
     getAuction(auction.id)
       .then((nextDetail) => {
+        const restoredResult = resultFromAuction(nextDetail);
         setDetail(nextDetail);
-        if (nextDetail.selectedRelic && nextDetail.selectedCardPosition) {
-          setSelectedPosition(nextDetail.selectedCardPosition);
-          setResult({
-            auctionId: nextDetail.id,
-            status: nextDetail.status,
-            selectedCardPosition: nextDetail.selectedCardPosition,
-            relic: nextDetail.selectedRelic,
-            cash: 0
-          });
+        if (restoredResult) {
+          setSelectedPosition(restoredResult.selectedCardPosition);
+          setResult(restoredResult);
         }
       })
       .catch((requestError) => setError(normalizeApiError(requestError).message));
   }, [auction.id]);
 
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSubmitting) onClose();
+    const handleModalKeys = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSubmitting) {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !modalRef.current) return;
+
+      const focusable = Array.from(
+        modalRef.current.querySelectorAll<HTMLElement>(
+          "button:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex='-1'])"
+        )
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleModalKeys);
+    const initialFocus = window.setTimeout(() => {
+      modalRef.current?.querySelector<HTMLElement>("button:not(:disabled)")?.focus();
+    }, 0);
+    return () => {
+      window.clearTimeout(initialFocus);
+      window.removeEventListener("keydown", handleModalKeys);
+    };
   }, [isSubmitting, onClose]);
 
   async function claim() {
@@ -72,10 +110,16 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
     try {
       const nextResult = await selectAuctionCard(detail.id, selectedPosition);
       setResult(nextResult);
+      setJustResolved(true);
       setDetail((current) => ({
         ...current,
         status: "RESOLVED",
         selectedCardPosition: nextResult.selectedCardPosition,
+        selectedOutcomePolarity: nextResult.selectedOutcomePolarity,
+        selectedOutcomeCode: nextResult.selectedOutcomeCode,
+        selectedOutcomeTitle: nextResult.selectedOutcomeTitle,
+        selectedOutcomeDescription: nextResult.selectedOutcomeDescription,
+        selectedRelic: nextResult.relic,
         cards: current.cards.map((card) => ({
           ...card,
           selected: card.position === nextResult.selectedCardPosition,
@@ -91,9 +135,14 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
     }
   }
 
+  const outcomeClass = result
+    ? `is-${result.selectedOutcomePolarity.toLowerCase()}`
+    : "";
+
   return (
     <div className="mes-auction-overlay" role="presentation" onMouseDown={onClose}>
       <section
+        ref={modalRef}
         className="mes-auction-modal"
         role="dialog"
         aria-modal="true"
@@ -120,17 +169,19 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
 
         <div className="mes-sealed-cards" aria-label="Four sealed lots">
           {detail.cards.map((card, index) => {
-            const Icon = cardIcons[index];
             const selected = selectedPosition === card.position;
             const revealed = (result?.selectedCardPosition ?? detail.selectedCardPosition) === card.position
               && detail.status === "RESOLVED";
+            const lost = detail.status === "RESOLVED" && !revealed;
             return (
               <button
                 key={card.position}
                 type="button"
-                disabled={detail.status === "RESOLVED" || isSubmitting}
+                disabled={lost || detail.status === "RESOLVED" || isSubmitting}
                 aria-pressed={selected}
-                className={`mes-sealed-card ${selected ? "is-selected" : ""} ${revealed ? "is-revealed" : ""}`}
+                className={`mes-sealed-card ${selected ? "is-selected" : ""} ${
+                  revealed ? `is-revealed ${outcomeClass} ${justResolved ? "is-revealing" : ""}` : ""
+                } ${lost ? "is-lost" : ""}`}
                 onClick={() => {
                   setSelectedPosition(card.position);
                   setConfirming(false);
@@ -138,25 +189,40 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
               >
                 <span className="mes-sealed-card__lot">LOT {roman[index]}</span>
                 <span className="mes-sealed-card__icon">
-                  {revealed && result ? <RelicIcon iconKey={result.relic.iconKey} /> : <Icon aria-hidden="true" />}
+                  {revealed && result?.relic
+                    ? <RelicIcon iconKey={result.relic.iconKey} />
+                    : <FaSkull aria-hidden="true" />}
                 </span>
                 <span className="mes-sealed-card__mystery">
-                  {revealed && result ? result.relic.name : "????"}
+                  {revealed && result ? result.selectedOutcomeTitle : lost ? "LOST" : "????"}
                 </span>
-                <span className="mes-sealed-card__seal">{revealed ? "REVEALED" : "SEALED"}</span>
+                {revealed && result && (
+                  <span className="mes-sealed-card__description">
+                    {result.selectedOutcomeDescription}
+                  </span>
+                )}
+                <span className="mes-sealed-card__seal">
+                  {revealed ? result?.selectedOutcomePolarity : lost ? "LOT LOST" : "SEALED"}
+                </span>
               </button>
             );
           })}
         </div>
 
         {result && (
-          <div className="mes-auction-reveal" aria-live="polite">
-            <RelicIcon iconKey={result.relic.iconKey} />
-            <div>
-              <strong>{result.relic.name}</strong>
-              <p>{result.relic.description}</p>
+          <>
+            <div className="mes-auction-lost-notice">THE REMAINING LOTS ARE LOST</div>
+            <div className={`mes-auction-reveal ${outcomeClass}`} aria-live="polite">
+              {result.relic
+                ? <RelicIcon iconKey={result.relic.iconKey} />
+                : <FaSkull aria-hidden="true" />}
+              <div>
+                <span className="mes-auction-reveal__polarity">{result.selectedOutcomePolarity}</span>
+                <strong>{result.selectedOutcomeTitle}</strong>
+                <p>{result.selectedOutcomeDescription}</p>
+              </div>
             </div>
-          </div>
+          </>
         )}
         {error && <div className="mes-banner mes-banner--danger" role="alert">{error}</div>}
         {confirming && !result && (
@@ -167,7 +233,7 @@ export default function SealedAuctionModal({ auction, onClose, onResolved }: Pro
 
         <footer className="mes-auction-modal__actions">
           <button type="button" className="mes-button" onClick={onClose} disabled={isSubmitting}>
-            {result ? "SEND TO INVENTORY" : "LEAVE AUCTION"}
+            {result ? "CONTINUE" : "LEAVE AUCTION"}
           </button>
           {!result && !confirming && (
             <button

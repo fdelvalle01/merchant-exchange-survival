@@ -5,7 +5,7 @@ import type { DesktopAppId, DesktopWindow } from "../types";
 function createDesktopWindow(appId: DesktopAppId, zIndex: number): DesktopWindow {
   const app = desktopApps[appId];
   const workspaceWidth = typeof window === "undefined" ? 1280 : Math.max(window.innerWidth - 68, 320);
-  const workspaceHeight = typeof window === "undefined" ? 640 : Math.max(window.innerHeight - 126, 240);
+  const workspaceHeight = typeof window === "undefined" ? 640 : Math.max(window.innerHeight - 204, 240);
   const width = Math.min(app.defaultSize.width, workspaceWidth);
   const height = Math.min(app.defaultSize.height, workspaceHeight);
 
@@ -34,7 +34,7 @@ export function useDesktopWindows(initialApps: DesktopAppId[] = ["market", "tick
   useEffect(() => {
     const clampWindowsToViewport = () => {
       const workspaceWidth = Math.max(window.innerWidth - (window.innerWidth <= 760 ? 56 : 68), 320);
-      const workspaceHeight = Math.max(window.innerHeight - 126, 240);
+      const workspaceHeight = Math.max(window.innerHeight - 204, 240);
 
       setWindows((currentWindows) =>
         currentWindows.map((desktopWindow) => {

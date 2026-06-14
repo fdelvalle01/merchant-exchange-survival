@@ -59,6 +59,11 @@ export default function OrderTicketApp({
   const canTradeCompany = companyStatus === "ACTIVE";
   const isAssetEnabled = selectedProduct?.enabled !== false;
   const canSendOrders = hasOrderAccess && canTradeCompany && isAssetEnabled;
+  const isBuyBlocked =
+    company?.buyBlockedUntilDay != null &&
+    company?.gameDay != null &&
+    company.gameDay < company.buyBlockedUntilDay;
+  const canSendSelectedSide = canSendOrders && !(side === "BUY" && isBuyBlocked);
   const normalizedQuantity = Math.max(1, Number(quantity) || 1);
   const estimatedTotal = selectedProduct ? selectedProduct.currentPrice * normalizedQuantity : 0;
   const tradingDisabledMessage =
@@ -91,6 +96,13 @@ export default function OrderTicketApp({
       setStatus({
         type: "error",
         message: "Select an asset first."
+      });
+      return;
+    }
+    if (side === "BUY" && isBuyBlocked) {
+      setStatus({
+        type: "error",
+        message: "Buy orders are blocked until next day."
       });
       return;
     }
@@ -202,7 +214,7 @@ export default function OrderTicketApp({
           <button
             type="button"
             onClick={() => setSide("BUY")}
-            disabled={isSubmitting || !canTradeCompany}
+            disabled={isSubmitting || !canTradeCompany || isBuyBlocked}
             className={`mes-segment ${side === "BUY" ? "is-buy" : ""}`}
           >
             BUY
@@ -227,6 +239,11 @@ export default function OrderTicketApp({
             {tradingDisabledMessage}
           </div>
         )}
+        {isBuyBlocked && (
+          <div className="mes-banner mes-banner--warning">
+            Buy orders are blocked until next day. SELL remains available.
+          </div>
+        )}
         {!isAssetEnabled && (
           <div className="mes-banner mes-banner--warning">
             This asset is disabled by the exchange and cannot be traded.
@@ -241,7 +258,7 @@ export default function OrderTicketApp({
               type="number"
               min="1"
               value={quantity}
-              disabled={!selectedProduct || isSubmitting || !canSendOrders}
+              disabled={!selectedProduct || isSubmitting || !canSendSelectedSide}
               onChange={(event) => setQuantity(Number(event.target.value))}
               className="mes-input"
             />
@@ -281,7 +298,7 @@ export default function OrderTicketApp({
 
         <button
           type="submit"
-          disabled={isSubmitting || !selectedProduct || !canSendOrders}
+          disabled={isSubmitting || !selectedProduct || !canSendSelectedSide}
           className={`mes-button mes-button--full ${
             side === "SELL" ? "mes-button--danger" : "mes-button--primary"
           }`}

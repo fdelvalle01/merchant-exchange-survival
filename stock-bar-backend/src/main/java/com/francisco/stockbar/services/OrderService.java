@@ -60,6 +60,11 @@ public class OrderService {
         if (company.getStatus() != null && company.getStatus() != PlayerCompanyStatus.ACTIVE) {
             throw new ApiException(HttpStatus.CONFLICT, "Trading disabled: company is " + company.getStatus() + ".");
         }
+        if (request.getSide() == OrderSide.BUY
+                && company.getBuyBlockedUntilDay() != null
+                && company.getGameDay() < company.getBuyBlockedUntilDay()) {
+            throw new ApiException(HttpStatus.CONFLICT, "Buy orders are blocked until next day.");
+        }
 
         MarketOrder order = switch (request.getSide()) {
             case BUY -> fillBuyOrder(company, product, request.getQuantity(), executedPrice);

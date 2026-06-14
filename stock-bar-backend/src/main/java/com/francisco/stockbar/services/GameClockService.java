@@ -55,6 +55,11 @@ public class GameClockService {
 
         sealedAuctionService.expireAtEndDay(company);
         company.setGameDay(company.getGameDay() + 1);
+        if (company.getBuyBlockedUntilDay() != null
+                && company.getGameDay() >= company.getBuyBlockedUntilDay()) {
+            company.setBuyBlockedUntilDay(null);
+            recordEvent("COMPANY_BLACKOUT_CLEARED", "The company trading desk is operational again.", now);
+        }
         company.setCash(money(company.getCash()).subtract(dailyBurn).setScale(2, RoundingMode.HALF_UP));
         company.setLastDayProcessedAt(now);
         recordEvent("DAILY_BURN_APPLIED", "Guild operating costs reduced cash by " + dailyBurn + ".", now);

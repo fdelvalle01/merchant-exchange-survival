@@ -56,7 +56,7 @@ export function normalizeApiError(error: unknown): NormalizedApiError {
     if (error.code === "ECONNABORTED" || diagnostic.includes("timeout")) {
       return {
         status,
-        message: "Order request timed out.",
+        message: "Request timed out.",
         details
       };
     }
@@ -72,7 +72,7 @@ export function normalizeApiError(error: unknown): NormalizedApiError {
     ) {
       return {
         status,
-        message: "Backend offline. Unable to send order.",
+        message: "Backend offline. Unable to complete request.",
         details
       };
     }
@@ -80,27 +80,27 @@ export function normalizeApiError(error: unknown): NormalizedApiError {
     if (status === 500) {
       return {
         status,
-        message: "Backend error while processing order.",
+        message: backendMessage ?? "Backend error while processing request.",
         details
       };
     }
 
     return {
       status,
-      message: backendMessage ?? "Backend rejected the order.",
+      message: backendMessage ?? "Backend rejected the request.",
       details
     };
   }
 
   if (error instanceof Error) {
     return {
-      message: "Unexpected error while sending order.",
+      message: "Unexpected error while completing request.",
       details: trimDetails(error.message)
     };
   }
 
   return {
-    message: "Unexpected error while sending order.",
+    message: "Unexpected error while completing request.",
     details: toText(error)
   };
 }

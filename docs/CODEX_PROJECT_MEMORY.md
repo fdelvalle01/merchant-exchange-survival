@@ -627,8 +627,8 @@ Backend:
 Frontend:
 
 - Special Market Board row and central `SealedAuctionModal`.
-- Vault tabs `HOLDINGS` and `INVENTORY`.
-- Four `ActiveRelicsBar` slots.
+- Vault is portfolio-only; relic inventory opens from empty HUD slots.
+- Four `ActiveRelicsBar` slots with anchored picker/detail popovers.
 - Drag/drop plus button and keyboard alternatives.
 - Game Master spawn, expire and grant controls.
 - Vitest/Testing Library is now configured.
@@ -661,3 +661,92 @@ Known limitations:
 - Book forecasts are qualitative approximations until a real future event queue exists.
 - Frontend tests cover core components, not a browser-level E2E flow.
 - The requested concept PNG was absent from the checkout.
+
+## Phase 6A.1 - Desktop, Auction & Relics UX Refinement
+
+Implemented June 14, 2026.
+
+UX contracts:
+
+- Company Keep is no longer a dock item. `CompanyHudLauncher` in the lower HUD
+  opens, restores or focuses the single existing company window.
+- TopBar owns `VictoryProgress` and `DAY`; Company Keep no longer renders Game
+  Day or Victory Target.
+- Victory progress uses real `companyValue / victoryTarget`.
+- Vault is portfolio-only again.
+- `ActiveRelicsBar` keeps four larger persistent slots above Status Bar.
+- Empty slots open `RelicInventoryPicker`; occupied slots open
+  `RelicDetailPopover`.
+- Picker/detail are anchored, viewport-clamped, Escape/outside-click dismissible
+  and return focus to their originating slot.
+- Keys `1..4`, drag/drop and button alternatives remain supported.
+- Market Board presents `AVAILABLE`, `CLAIMED` and `EXPIRED` without reopening
+  settled auctions.
+- Auction reveal exposes only the selected relic; the other three cards become
+  non-interactive `LOST`.
+
+Architecture:
+
+- Reuse the existing `useCompany`, `useRelics`, API clients and window manager.
+- Do not add inventory polling or a new desktop application.
+- `SealedAuctionResponse.selectedRelic` is sufficient for the resolved row; no
+  backend contract change was needed.
+- Global `prefers-reduced-motion` remains authoritative for the new animations.
+
+Verification:
+
+```text
+Frontend Vitest: 11 passed
+TypeScript: npx tsc --noEmit passed
+Frontend build: passed
+Backend Maven: 33 passed
+Docker Compose: four runtime services up
+Visual: 1920x1080, 1440x900, 1366x768
+```
+
+The visual pass used authenticated Edge headless against the Docker stack and
+covered normal desktop, Company HUD, Victory/Day, picker, detail, Vault,
+AVAILABLE, EXPIRED, reveal with three LOST cards, and CLAIMED.
+
+## Phase 6A.2 - Risky Sealed Auction & Misfortune Outcomes
+
+Implemented June 14, 2026.
+
+Domain contracts:
+
+- A sealed card persists `POSITIVE`, `NEGATIVE` or `NEUTRAL` plus an internal
+  outcome code before selection.
+- Hidden cards expose only position, selected and revealed flags.
+- All four unrevealed cards use the same skull/sealed visual.
+- Entry cost is always charged once. Pessimistic locking and resolved retries
+  preserve idempotency.
+- Positive outcomes reuse the existing Ring, Book and Fortune Draught flow.
+- Negative outcomes are `CUTPURSE_IN_THE_HALL`, `VAULT_THEFT` and
+  `COMPANY_BLACKOUT`.
+- `BROKEN_SEAL` is neutral and applies no damage beyond the entry bid.
+- Outcome weights, cutpurse loss and vault theft range are configured under
+  `game.sealed-auction`.
+
+Blackout contract:
+
+- `PlayerCompany.buyBlockedUntilDay` is nullable and company-scoped.
+- Backend rejects only BUY with `Buy orders are blocked until next day.`
+- SELL remains available while the company is ACTIVE.
+- End Day clears the block after incrementing to the next game day.
+- Restart clears the field.
+
+Persistence and API:
+
+- `SealedAuctionCard.relicDefinition` is nullable for non-positive outcomes.
+- `resolutionDetails` stores the exact resolved narrative and variable damage
+  so retries never reroll effects.
+- `Phase6SchemaMigration` adds/backfills outcome columns and relaxes the relic
+  foreign key nullability.
+- Auction responses expose selected polarity, code, title and description only
+  after resolution. `selectedRelic`/`relic` are optional.
+- `RelicHistory` records `SEALED_AUCTION_OUTCOME` for all polarities.
+
+Verification:
+
+- No Maven, npm, build or Docker commands were run, per the phase instruction.
+- Only source inspection and `git diff --check` were used.

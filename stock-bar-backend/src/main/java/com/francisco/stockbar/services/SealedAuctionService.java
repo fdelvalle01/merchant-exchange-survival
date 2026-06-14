@@ -6,18 +6,21 @@ import com.francisco.stockbar.dto.AuctionSelectionResponse;
 import com.francisco.stockbar.dto.RelicResponse;
 import com.francisco.stockbar.dto.SealedAuctionResponse;
 import com.francisco.stockbar.exception.ApiException;
+import com.francisco.stockbar.model.AuctionOutcomePolarity;
 import com.francisco.stockbar.model.AuctionStatus;
 import com.francisco.stockbar.model.CompanyRelic;
 import com.francisco.stockbar.model.MarketEvent;
 import com.francisco.stockbar.model.PlayerCompany;
 import com.francisco.stockbar.model.PlayerCompanyStatus;
 import com.francisco.stockbar.model.RelicDefinition;
+import com.francisco.stockbar.model.RelicHistory;
 import com.francisco.stockbar.model.SealedAuction;
 import com.francisco.stockbar.model.SealedAuctionCard;
 import com.francisco.stockbar.repository.CompanyRelicRepository;
 import com.francisco.stockbar.repository.MarketEventRepository;
 import com.francisco.stockbar.repository.PlayerCompanyRepository;
 import com.francisco.stockbar.repository.RelicDefinitionRepository;
+import com.francisco.stockbar.repository.RelicHistoryRepository;
 import com.francisco.stockbar.repository.SealedAuctionCardRepository;
 import com.francisco.stockbar.repository.SealedAuctionRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +41,18 @@ public class SealedAuctionService {
 
     private static final int CARD_COUNT = 4;
     private static final String AUCTION_TITLE = "The Auction of Four Fates";
+    private static final String CUTPURSE = "CUTPURSE_IN_THE_HALL";
+    private static final String VAULT_THEFT = "VAULT_THEFT";
+    private static final String COMPANY_BLACKOUT = "COMPANY_BLACKOUT";
+    private static final String BROKEN_SEAL = "BROKEN_SEAL";
+    private static final List<String> NEGATIVE_OUTCOMES = List.of(CUTPURSE, VAULT_THEFT, COMPANY_BLACKOUT);
 
     private final SealedAuctionRepository sealedAuctionRepository;
     private final SealedAuctionCardRepository sealedAuctionCardRepository;
     private final RelicDefinitionRepository relicDefinitionRepository;
     private final CompanyRelicRepository companyRelicRepository;
     private final PlayerCompanyRepository playerCompanyRepository;
+    private final RelicHistoryRepository relicHistoryRepository;
     private final MarketEventRepository marketEventRepository;
     private final PlayerCompanyService playerCompanyService;
     private final RelicService relicService;
@@ -65,7 +74,7 @@ public class SealedAuctionService {
     @Transactional
     public SealedAuctionResponse getAuction(Long auctionId) {
         PlayerCompany company = playerCompanyService.getOrCreateCompanyForCurrentUser();
-        SealedAuction auction = sealedAuctionRepository.findByIdAndPlayerCompany(auctionId, company)
+        SealedAuction auction = sealedAuctionRepository.findOwnedForUpdate(auctionId, company)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Sealed auction not found."));
         if (auction.getOpenedAt() == null) {
             auction.setOpenedAt(LocalDateTime.now());
@@ -78,7 +87,7 @@ public class SealedAuctionService {
     @Transactional
     public AuctionSelectionResponse select(Long auctionId, Integer cardPosition) {
         if (cardPosition == null || cardPosition < 1 || cardPosition > CARD_COUNT) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Card position must be between 1 and 4.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Selected lot is invalid.");
         }
 
         PlayerCompany company = playerCompanyService.getOrCreateCompanyForCurrentUser();
@@ -88,11 +97,11 @@ public class SealedAuctionService {
         if (auction.getStatus() == AuctionStatus.RESOLVED) {
             SealedAuctionCard selectedCard = selectedCard(auction);
             if (!selectedCard.getPosition().equals(cardPosition)) {
-                throw new ApiException(HttpStatus.CONFLICT, "This auction was already resolved with another lot.");
+                throw new ApiException(HttpStatus.CONFLICT, "Auction already resolved with another lot.");
             }
             CompanyRelic existingRelic = companyRelicRepository
                     .findByPlayerCompanyAndSourceAuction(company, auction)
-                    .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "Resolved auction reward is unavailable."));
+                    .orElse(null);
             return selectionResponse(auction, selectedCard, existingRelic, company);
         }
 
@@ -105,32 +114,37 @@ public class SealedAuctionService {
             throw new ApiException(HttpStatus.CONFLICT, "This sealed auction is not available.");
         }
         if (company.getStatus() != PlayerCompanyStatus.ACTIVE) {
-            throw new ApiException(HttpStatus.CONFLICT, "Only an active company can enter a sealed auction.");
+            throw new ApiException(HttpStatus.CONFLICT, "Company is not active.");
         }
 
         BigDecimal entryCost = money(auction.getEntryCost());
         if (money(company.getCash()).compareTo(entryCost) < 0) {
-            throw new ApiException(HttpStatus.CONFLICT, "Insufficient cash for the sealed auction entry bid.");
+            throw new ApiException(HttpStatus.CONFLICT, "Insufficient cash.");
         }
 
         SealedAuctionCard card = sealedAuctionCardRepository.findByAuctionAndPosition(auction, cardPosition)
-                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "Auction card is unavailable."));
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "Selected lot is invalid."));
 
         company.setCash(money(company.getCash()).subtract(entryCost));
-        playerCompanyRepository.save(company);
-        playerCompanyService.refreshCompanyValue(company);
-
         card.setSelected(true);
         card.setRevealed(true);
-        sealedAuctionCardRepository.save(card);
-
         auction.setSelectedCardId(card.getId());
         auction.setStatus(AuctionStatus.RESOLVED);
         auction.setResolvedAt(LocalDateTime.now());
-        sealedAuctionRepository.save(auction);
 
-        CompanyRelic relic = relicService.acquire(company, card.getRelicDefinition(), auction);
-        event(company, "SEALED_AUCTION_RESOLVED", "Lot " + cardPosition + " revealed " + card.getRelicDefinition().getName() + ".");
+        CompanyRelic relic = resolveOutcome(company, auction, card);
+        sealedAuctionCardRepository.save(card);
+        sealedAuctionRepository.save(auction);
+        playerCompanyRepository.save(company);
+        playerCompanyService.refreshCompanyValue(company);
+
+        OutcomeView outcome = outcomeView(card);
+        history(company, relic, outcome, card.getResolutionDetails());
+        event(
+                company,
+                "SEALED_AUCTION_RESOLVED",
+                "Lot " + cardPosition + " revealed " + outcome.title() + ": " + card.getResolutionDetails()
+        );
         return selectionResponse(auction, card, relic, company);
     }
 
@@ -223,28 +237,44 @@ public class SealedAuctionService {
             throw new ApiException(HttpStatus.CONFLICT, "The relic catalog is not ready.");
         }
 
-        int start = deterministicGameRng.index(
+        int positiveStart = deterministicGameRng.index(
                 definitions.size(),
                 company.getGameSeed(),
                 company.getGameDay(),
                 auction.getId(),
-                0
+                200
         );
+        int positiveSequence = 0;
         for (int position = 1; position <= CARD_COUNT; position++) {
-            int definitionIndex = position <= definitions.size()
-                    ? (start + position - 1) % definitions.size()
-                    : deterministicGameRng.index(
-                            definitions.size(),
-                            company.getGameSeed(),
-                            company.getGameDay(),
-                            auction.getId(),
-                            position
-                    );
+            AuctionOutcomePolarity polarity = choosePolarity(company, auction, position);
+            RelicDefinition relicDefinition = null;
+            String outcomeCode;
+
+            if (polarity == AuctionOutcomePolarity.POSITIVE) {
+                int definitionIndex = (positiveStart + positiveSequence) % definitions.size();
+                positiveSequence++;
+                relicDefinition = definitions.get(definitionIndex);
+                outcomeCode = relicDefinition.getCode();
+            } else if (polarity == AuctionOutcomePolarity.NEGATIVE) {
+                int outcomeIndex = deterministicGameRng.index(
+                        NEGATIVE_OUTCOMES.size(),
+                        company.getGameSeed(),
+                        company.getGameDay(),
+                        auction.getId(),
+                        300 + position
+                );
+                outcomeCode = NEGATIVE_OUTCOMES.get(outcomeIndex);
+            } else {
+                outcomeCode = BROKEN_SEAL;
+            }
+
             sealedAuctionCardRepository.save(
                     SealedAuctionCard.builder()
                             .auction(auction)
                             .position(position)
-                            .relicDefinition(definitions.get(definitionIndex))
+                            .relicDefinition(relicDefinition)
+                            .outcomePolarity(polarity)
+                            .outcomeCode(outcomeCode)
                             .revealed(false)
                             .selected(false)
                             .generatedOrder(deterministicGameRng.value(
@@ -256,6 +286,91 @@ public class SealedAuctionService {
                             .build()
             );
         }
+    }
+
+    private AuctionOutcomePolarity choosePolarity(PlayerCompany company, SealedAuction auction, int position) {
+        int positive = Math.max(0, properties.getPositiveOutcomeWeight());
+        int negative = Math.max(0, properties.getNegativeOutcomeWeight());
+        int neutral = Math.max(0, properties.getNeutralOutcomeWeight());
+        int total = positive + negative + neutral;
+        if (total <= 0) {
+            return AuctionOutcomePolarity.POSITIVE;
+        }
+
+        int roll = deterministicGameRng.index(
+                total,
+                company.getGameSeed(),
+                company.getGameDay(),
+                auction.getId(),
+                100 + position
+        );
+        if (roll < positive) return AuctionOutcomePolarity.POSITIVE;
+        if (roll < positive + negative) return AuctionOutcomePolarity.NEGATIVE;
+        return AuctionOutcomePolarity.NEUTRAL;
+    }
+
+    private CompanyRelic resolveOutcome(PlayerCompany company, SealedAuction auction, SealedAuctionCard card) {
+        AuctionOutcomePolarity polarity = effectivePolarity(card);
+        if (polarity == AuctionOutcomePolarity.POSITIVE) {
+            if (card.getRelicDefinition() == null) {
+                throw new ApiException(HttpStatus.CONFLICT, "Selected relic outcome is unavailable.");
+            }
+            CompanyRelic relic = relicService.acquire(company, card.getRelicDefinition(), auction);
+            card.setResolutionDetails(card.getRelicDefinition().getDescription());
+            return relic;
+        }
+
+        if (polarity == AuctionOutcomePolarity.NEUTRAL) {
+            card.setResolutionDetails("The seal breaks into dust. Nothing of value remains.");
+            return null;
+        }
+
+        switch (card.getOutcomeCode()) {
+            case CUTPURSE -> applyCutpurse(company, card);
+            case VAULT_THEFT -> applyVaultTheft(company, auction, card);
+            case COMPANY_BLACKOUT -> applyBlackout(company, card);
+            default -> throw new ApiException(HttpStatus.CONFLICT, "Selected auction outcome is unavailable.");
+        }
+        return null;
+    }
+
+    private void applyCutpurse(PlayerCompany company, SealedAuctionCard card) {
+        BigDecimal loss = money(properties.getCutpurseLoss()).max(BigDecimal.ZERO.setScale(2));
+        company.setCash(money(company.getCash()).subtract(loss));
+        card.setResolutionDetails(
+                "A thief disappears into the crowd with part of your treasury. Lost " + loss + " cash."
+        );
+    }
+
+    private void applyVaultTheft(PlayerCompany company, SealedAuction auction, SealedAuctionCard card) {
+        BigDecimal min = percentage(properties.getVaultTheftMinPct());
+        BigDecimal max = percentage(properties.getVaultTheftMaxPct());
+        if (min.compareTo(max) > 0) {
+            BigDecimal swap = min;
+            min = max;
+            max = swap;
+        }
+        BigDecimal unit = BigDecimal.valueOf(deterministicGameRng.unit(
+                company.getGameSeed(),
+                company.getGameDay(),
+                auction.getId(),
+                400 + card.getPosition()
+        ));
+        BigDecimal rate = min.add(max.subtract(min).multiply(unit)).setScale(4, RoundingMode.HALF_UP);
+        BigDecimal availableCash = money(company.getCash()).max(BigDecimal.ZERO.setScale(2));
+        BigDecimal loss = availableCash.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+        company.setCash(money(company.getCash()).subtract(loss));
+        card.setResolutionDetails(
+                "A sealed lot was bait. Your vault is lighter than before. Lost "
+                        + loss + " cash (" + rate.multiply(BigDecimal.valueOf(100)).setScale(1, RoundingMode.HALF_UP) + "%)."
+        );
+    }
+
+    private void applyBlackout(PlayerCompany company, SealedAuctionCard card) {
+        company.setBuyBlockedUntilDay(company.getGameDay() + 1);
+        card.setResolutionDetails(
+                "A power failure strikes your company desk. BUY orders are unavailable until the next day; SELL remains open."
+        );
     }
 
     private void expirePastDue(PlayerCompany company) {
@@ -286,20 +401,24 @@ public class SealedAuctionService {
             CompanyRelic relic,
             PlayerCompany company
     ) {
+        OutcomeView outcome = outcomeView(card);
         return AuctionSelectionResponse.builder()
                 .auctionId(auction.getId())
                 .status(auction.getStatus().name())
                 .selectedCardPosition(card.getPosition())
-                .relic(RelicResponse.from(relic, company.getGameDay()))
+                .selectedOutcomePolarity(outcome.polarity().name())
+                .selectedOutcomeCode(outcome.code())
+                .selectedOutcomeTitle(outcome.title())
+                .selectedOutcomeDescription(resolvedDescription(card, outcome))
+                .relic(relic == null ? null : RelicResponse.from(relic, company.getGameDay()))
                 .cash(company.getCash())
                 .build();
     }
 
     private SealedAuctionResponse toResponse(SealedAuction auction, int currentDay) {
         List<SealedAuctionCard> cards = sealedAuctionCardRepository.findByAuctionOrderByPositionAsc(auction);
-        Integer selectedPosition = cards.stream()
+        SealedAuctionCard selectedCard = cards.stream()
                 .filter(card -> Boolean.TRUE.equals(card.getSelected()))
-                .map(SealedAuctionCard::getPosition)
                 .findFirst()
                 .orElse(null);
         RelicResponse selectedRelic = auction.getStatus() == AuctionStatus.RESOLVED
@@ -307,6 +426,10 @@ public class SealedAuctionService {
                         .map(relic -> RelicResponse.from(relic, currentDay))
                         .orElse(null)
                 : null;
+        OutcomeView outcome = auction.getStatus() == AuctionStatus.RESOLVED && selectedCard != null
+                ? outcomeView(selectedCard)
+                : null;
+
         return SealedAuctionResponse.builder()
                 .id(auction.getId())
                 .title(auction.getTitle())
@@ -315,7 +438,13 @@ public class SealedAuctionService {
                 .closesAtDay(auction.getClosesAtDay())
                 .daysRemaining(Math.max(0, auction.getClosesAtDay() - currentDay))
                 .status(auction.getStatus().name())
-                .selectedCardPosition(selectedPosition)
+                .selectedCardPosition(selectedCard == null ? null : selectedCard.getPosition())
+                .selectedOutcomePolarity(outcome == null ? null : outcome.polarity().name())
+                .selectedOutcomeCode(outcome == null ? null : outcome.code())
+                .selectedOutcomeTitle(outcome == null ? null : outcome.title())
+                .selectedOutcomeDescription(
+                        outcome == null ? null : resolvedDescription(selectedCard, outcome)
+                )
                 .selectedRelic(selectedRelic)
                 .cards(cards.stream()
                         .map(card -> AuctionCardResponse.builder()
@@ -325,6 +454,68 @@ public class SealedAuctionService {
                                 .build())
                         .toList())
                 .build();
+    }
+
+    private OutcomeView outcomeView(SealedAuctionCard card) {
+        AuctionOutcomePolarity polarity = effectivePolarity(card);
+        String code = card.getOutcomeCode() == null ? "" : card.getOutcomeCode();
+        if (polarity == AuctionOutcomePolarity.POSITIVE && card.getRelicDefinition() != null) {
+            return new OutcomeView(
+                    polarity,
+                    card.getRelicDefinition().getCode(),
+                    card.getRelicDefinition().getName(),
+                    card.getRelicDefinition().getDescription()
+            );
+        }
+        return switch (code) {
+            case CUTPURSE -> new OutcomeView(
+                    polarity, CUTPURSE, "Cutpurse in the Hall",
+                    "A thief disappears into the crowd with part of your treasury."
+            );
+            case VAULT_THEFT -> new OutcomeView(
+                    polarity, VAULT_THEFT, "Vault Theft",
+                    "A sealed lot was bait. Your vault is lighter than before."
+            );
+            case COMPANY_BLACKOUT -> new OutcomeView(
+                    polarity, COMPANY_BLACKOUT, "Company Blackout",
+                    "BUY orders are unavailable until the next day. SELL remains open."
+            );
+            case BROKEN_SEAL -> new OutcomeView(
+                    polarity, BROKEN_SEAL, "Broken Seal",
+                    "The seal breaks into dust. Nothing of value remains."
+            );
+            default -> new OutcomeView(polarity, code, "Sealed Outcome", "The sealed lot has been resolved.");
+        };
+    }
+
+    private AuctionOutcomePolarity effectivePolarity(SealedAuctionCard card) {
+        return card.getOutcomePolarity() == null
+                ? AuctionOutcomePolarity.POSITIVE
+                : card.getOutcomePolarity();
+    }
+
+    private String resolvedDescription(SealedAuctionCard card, OutcomeView outcome) {
+        return card.getResolutionDetails() == null || card.getResolutionDetails().isBlank()
+                ? outcome.description()
+                : card.getResolutionDetails();
+    }
+
+    private void history(
+            PlayerCompany company,
+            CompanyRelic relic,
+            OutcomeView outcome,
+            String details
+    ) {
+        relicHistoryRepository.save(
+                RelicHistory.builder()
+                        .playerCompany(company)
+                        .companyRelic(relic)
+                        .eventType("SEALED_AUCTION_OUTCOME")
+                        .gameDay(company.getGameDay())
+                        .details(outcome.polarity() + " - " + outcome.title() + ": "
+                                + (details == null ? outcome.description() : details))
+                        .build()
+        );
     }
 
     private void event(PlayerCompany company, String type, String description) {
@@ -338,7 +529,21 @@ public class SealedAuctionService {
         );
     }
 
+    private BigDecimal percentage(BigDecimal value) {
+        return (value == null ? BigDecimal.ZERO : value)
+                .max(BigDecimal.ZERO)
+                .min(BigDecimal.ONE);
+    }
+
     private BigDecimal money(BigDecimal value) {
         return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private record OutcomeView(
+            AuctionOutcomePolarity polarity,
+            String code,
+            String title,
+            String description
+    ) {
     }
 }

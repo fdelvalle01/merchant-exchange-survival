@@ -28,6 +28,7 @@ public class GameStateResponse {
     private BigDecimal victoryTarget;
     private String bankruptcyReason;
     private String victoryMessage;
+    private Integer buyBlockedUntilDay;
     private LocalDateTime lastDayProcessedAt;
 
     public static GameStateResponse from(
@@ -58,6 +59,7 @@ public class GameStateResponse {
                 .victoryMessage("VICTORIOUS".equals(status)
                         ? "Your merchant house has become a dominant market power."
                         : null)
+                .buyBlockedUntilDay(company.getBuyBlockedUntilDay())
                 .lastDayProcessedAt(company.getLastDayProcessedAt())
                 .build();
     }

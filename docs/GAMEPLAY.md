@@ -311,17 +311,33 @@ Market Board
   -> Royal Sealed Auction
   -> cuatro lotes ocultos
   -> una seleccion confirmada
-  -> una reliquia en Vault Inventory
+  -> una reliquia, una desgracia o un sello roto
 ```
 
-La entrada cuesta `10,000` por defecto. Las cuatro recompensas se generan y
+La entrada cuesta `10,000` por defecto. Los cuatro resultados se generan y
 persisten antes del clic; recargar no cambia las cartas y repetir la misma
-seleccion no vuelve a cobrar ni crea otro premio. Si End Day cierra una subasta
-sin resolver, queda expirada.
+seleccion no vuelve a cobrar ni repite efectos. Antes del reveal todos los
+reversos usan la misma calavera, `????` y `SEALED`. Si End Day cierra una
+subasta sin resolver, queda expirada.
 
-Vault posee `HOLDINGS` e `INVENTORY`. Las reliquias pueden moverse entre cuatro
+Vault representa solo holdings, valor, P/L y asignacion. El inventario de
+reliquias se abre desde un slot vacio del HUD inferior y se ancla al slot
+destino. Las reliquias pueden equiparse, moverse y desequiparse entre cuatro
 slots persistentes mediante drag and drop o controles de teclado/botones. Mover
 una reliquia no la activa.
+
+Un slot ocupado abre el detalle anclado con estado, cargas o dias restantes y
+las acciones `USE` y `UNEQUIP`. Las teclas `1` a `4` abren el picker o detalle
+del slot correspondiente.
+
+Tras resolver:
+
+- la carta elegida revela nombre, icono y descripcion;
+- las otras tres quedan `LOST`, no revelan contenido y salen del orden de foco;
+- Market Board muestra `CLAIMED` y el resultado obtenido hasta el siguiente dia.
+
+Si no se reclama ningun lote, Market Board muestra `EXPIRED` hasta limpiar la
+fila al avanzar la jornada.
 
 ### Ring of Last Mercy
 
@@ -345,6 +361,19 @@ contra precio base, y agrega una variacion determinista de la partida.
 La supervivencia real sigue siendo financiera, no una barra de vida. La pocion
 recupera `8,000` de cash de tesoreria, limitada por defecto a `100,000`, y se
 consume una sola vez.
+
+### Desgracias y resultado neutro
+
+- `CUTPURSE_IN_THE_HALL`: pierde `6,000` cash por defecto.
+- `VAULT_THEFT`: pierde de forma determinista entre `5%` y `12%` del cash
+  disponible despues de pagar la entrada.
+- `COMPANY_BLACKOUT`: bloquea BUY hasta avanzar al siguiente End Day; SELL
+  permanece habilitado.
+- `BROKEN_SEAL`: no entrega reliquia ni aplica dano adicional; solo se pierde
+  el entry bid.
+
+Los pesos iniciales son `50/40/10` para positivo, negativo y neutro. Se
+configuran bajo `game.sealed-auction` y nunca se exponen al frontend.
 
 ### Aparicion
 

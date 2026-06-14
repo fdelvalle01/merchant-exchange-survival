@@ -1,97 +1,101 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeApiError } from "../services/apiError";
-import {
-  activateRelic,
-  equipRelic,
-  unequipRelic,
-  type RelicActivationResponse,
-  type RelicResponse
-} from "../services/relicsApi";
+import { equipRelic, type RelicResponse } from "../services/relicsApi";
 import type { TradingInstrument } from "../types";
+import RelicDetailPopover from "./RelicDetailPopover";
 import RelicIcon from "./RelicIcon";
+import RelicInventoryPicker from "./RelicInventoryPicker";
 
 type Props = {
   relics: RelicResponse[];
   products: TradingInstrument[];
   canManage: boolean;
+  isLoading: boolean;
+  loadError: string | null;
   onChanged: () => Promise<void> | void;
   onCompanyChanged: () => Promise<void> | void;
 };
 
+type OpenPopover =
+  | { kind: "picker"; slot: number }
+  | { kind: "detail"; slot: number }
+  | null;
+
 function relicCounter(relic: RelicResponse) {
   if (relic.status === "ACTIVE") return `${relic.daysRemaining ?? 0}D`;
   if (relic.chargesRemaining != null) return `${relic.chargesRemaining}X`;
-  return relic.status;
+  if (relic.durationDays != null) return `${relic.durationDays}D`;
+  return "";
 }
 
 export default function ActiveRelicsBar({
   relics,
   products,
   canManage,
+  isLoading,
+  loadError,
   onChanged,
   onCompanyChanged
 }: Props) {
-  const [selectedRelicId, setSelectedRelicId] = useState<number | null>(null);
-  const [targetProductId, setTargetProductId] = useState<number | null>(null);
-  const [activationResult, setActivationResult] = useState<RelicActivationResponse | null>(null);
-  const [isConfirmingActivation, setIsConfirmingActivation] = useState(false);
+  const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recentlyEquippedSlot, setRecentlyEquippedSlot] = useState<number | null>(null);
+  const slotRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const slotted = useMemo(
-    () => new Map(relics.filter((relic) => relic.equippedSlot).map((relic) => [relic.equippedSlot, relic])),
+    () => new Map(relics.filter((relic) => relic.equippedSlot).map((relic) => [relic.equippedSlot!, relic])),
     [relics]
   );
-  const selectedRelic = relics.find((relic) => relic.id === selectedRelicId) ?? null;
 
-  useEffect(() => {
-    const openSlot = (event: KeyboardEvent) => {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      if (!["1", "2", "3", "4"].includes(event.key)) return;
-      const target = event.target as HTMLElement | null;
-      if (target?.matches("input, select, textarea")) return;
-      const relic = slotted.get(Number(event.key));
-      if (relic) setSelectedRelicId(relic.id);
-    };
-    window.addEventListener("keydown", openSlot);
-    return () => window.removeEventListener("keydown", openSlot);
+  const closePopover = useCallback(() => {
+    const slot = openPopover?.slot;
+    setOpenPopover(null);
+    if (slot) {
+      window.setTimeout(() => slotRefs.current[slot]?.focus(), 0);
+    }
+  }, [openPopover?.slot]);
+
+  const openSlot = useCallback((slot: number) => {
+    setError(null);
+    setOpenPopover(slotted.has(slot) ? { kind: "detail", slot } : { kind: "picker", slot });
   }, [slotted]);
 
   useEffect(() => {
-    if (!isConfirmingActivation) return;
-    const cancelConfirmation = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsConfirmingActivation(false);
+    const handleHotkey = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (!["1", "2", "3", "4"].includes(event.key)) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLElement
+        && target.matches("input, select, textarea, [contenteditable='true']")
+      ) return;
+      event.preventDefault();
+      openSlot(Number(event.key));
     };
-    window.addEventListener("keydown", cancelConfirmation);
-    return () => window.removeEventListener("keydown", cancelConfirmation);
-  }, [isConfirmingActivation]);
+    window.addEventListener("keydown", handleHotkey);
+    return () => window.removeEventListener("keydown", handleHotkey);
+  }, [openSlot]);
+
+  useEffect(() => {
+    if (!openPopover || openPopover.kind !== "detail") return;
+    if (!slotted.has(openPopover.slot)) closePopover();
+  }, [closePopover, openPopover, slotted]);
+
+  useEffect(() => {
+    if (recentlyEquippedSlot == null) return;
+    const timeout = window.setTimeout(() => setRecentlyEquippedSlot(null), 650);
+    return () => window.clearTimeout(timeout);
+  }, [recentlyEquippedSlot]);
 
   async function moveRelic(relicId: number, slot: number) {
-    if (!canManage) return;
+    if (!canManage || isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
     try {
       await equipRelic(relicId, slot);
       await onChanged();
-    } catch (requestError) {
-      setError(normalizeApiError(requestError).message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function activate() {
-    if (!selectedRelic) return;
-    setIsSubmitting(true);
-    setError(null);
-    setActivationResult(null);
-    try {
-      const result = await activateRelic(
-        selectedRelic.id,
-        selectedRelic.targetType === "PRODUCT" ? targetProductId ?? undefined : undefined
-      );
-      setActivationResult(result);
-      setIsConfirmingActivation(false);
-      await Promise.all([onChanged(), onCompanyChanged()]);
+      setRecentlyEquippedSlot(slot);
+      setOpenPopover({ kind: "detail", slot });
     } catch (requestError) {
       setError(normalizeApiError(requestError).message);
     } finally {
@@ -105,166 +109,79 @@ export default function ActiveRelicsBar({
       <div className="mes-relic-slots">
         {[1, 2, 3, 4].map((slot) => {
           const relic = slotted.get(slot);
+          const status = relic?.status === "ACTIVE" ? "ACTIVE" : relic ? "EQUIPPED" : "EMPTY";
+          const label = relic
+            ? `Slot ${slot}, ${relic.name}, ${status}, ${relicCounter(relic)}`
+            : `Empty relic slot ${slot}. Open relic inventory.`;
+
           return (
             <button
               key={slot}
+              ref={(element) => {
+                slotRefs.current[slot] = element;
+              }}
               type="button"
-              className={`mes-relic-slot ${relic ? "is-filled" : ""} ${relic?.status === "ACTIVE" ? "is-active" : ""}`}
-              onClick={() => relic && setSelectedRelicId(relic.id)}
+              draggable={canManage && Boolean(relic) && relic?.status !== "ACTIVE"}
+              className={`mes-relic-slot ${relic ? "is-filled" : ""} ${
+                relic?.status === "ACTIVE" ? "is-active" : ""
+              } ${recentlyEquippedSlot === slot ? "is-equipped-pulse" : ""}`}
+              onClick={() => openSlot(slot)}
+              onDragStart={(event) => {
+                if (relic) event.dataTransfer.setData("text/relic-id", String(relic.id));
+              }}
               onDragOver={(event) => canManage && event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
                 const relicId = Number(event.dataTransfer.getData("text/relic-id"));
                 if (Number.isFinite(relicId)) moveRelic(relicId, slot);
               }}
-              title={relic ? `${relic.name}: ${relic.description}` : `Empty relic slot ${slot}`}
+              title={label}
+              aria-label={label}
+              aria-expanded={openPopover?.slot === slot}
             >
               <span className="mes-relic-slot__key">{slot}</span>
               <span className="mes-relic-slot__icon">
                 {relic ? <RelicIcon iconKey={relic.iconKey} /> : <span>+</span>}
               </span>
-              <span className="mes-relic-slot__count">{relic ? relicCounter(relic) : "EMPTY"}</span>
-              {relic && (
-                <span
-                  draggable={canManage && relic.status !== "ACTIVE"}
-                  onDragStart={(event) => event.dataTransfer.setData("text/relic-id", String(relic.id))}
-                  className="mes-relic-slot__drag"
-                />
+              <span className="mes-relic-slot__status">{status}</span>
+              {relic && relicCounter(relic) && (
+                <span className="mes-relic-slot__count">{relicCounter(relic)}</span>
               )}
             </button>
           );
         })}
       </div>
+
       {error && <div className="mes-relic-bar__error" role="alert">{error}</div>}
 
-      {selectedRelic && (
-        <div className="mes-relic-popover">
-          <button
-            type="button"
-            className="mes-relic-popover__close"
-            onClick={() => {
-              setSelectedRelicId(null);
-              setActivationResult(null);
-              setIsConfirmingActivation(false);
-              setError(null);
-            }}
-            aria-label="Close relic detail"
-          >
-            X
-          </button>
-          <div className="mes-relic-popover__title">
-            <RelicIcon iconKey={selectedRelic.iconKey} />
-            <strong>{selectedRelic.name}</strong>
-          </div>
-          <p>{selectedRelic.description}</p>
-          <div className="mes-relic-popover__meta">
-            <span>{selectedRelic.status}</span>
-            {selectedRelic.status === "ACTIVE" && (
-              <span>Bankruptcy Protection: {selectedRelic.daysRemaining ?? 0} days remaining</span>
-            )}
-            {selectedRelic.chargesRemaining != null && (
-              <span>{selectedRelic.chargesRemaining} charge(s)</span>
-            )}
-          </div>
-          {selectedRelic.targetType === "PRODUCT" && selectedRelic.status === "EQUIPPED" && (
-            <select
-              className="mes-select"
-              value={targetProductId ?? ""}
-              onChange={(event) => setTargetProductId(Number(event.target.value) || null)}
-            >
-              <option value="">Select Market Board asset</option>
-              {products.map((product) => (
-                <option key={product.id} value={Number(product.id)}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          )}
-          {activationResult?.forecast && (
-            <div className="mes-omen-result" aria-live="polite">
-              <strong>{activationResult.targetProductName} | Confidence {activationResult.confidence}</strong>
-              {activationResult.forecast.map((day) => (
-                <span key={day.dayOffset}>Day +{day.dayOffset}: {day.outlook}</span>
-              ))}
-            </div>
-          )}
-          {isConfirmingActivation && (
-            <div
-              className="mes-relic-confirmation"
-              role="alertdialog"
-              aria-labelledby="relic-confirmation-title"
-              aria-describedby="relic-confirmation-copy"
-            >
-              <span className="mes-relic-confirmation__eyebrow">CONFIRM RELIC USE</span>
-              <strong id="relic-confirmation-title">{selectedRelic.name}</strong>
-              <p id="relic-confirmation-copy">
-                {selectedRelic.targetType === "PRODUCT"
-                  ? `Consume one charge to reveal the three-day outlook for ${
-                      products.find((product) => Number(product.id) === targetProductId)?.name ?? "the selected asset"
-                    }.`
-                  : selectedRelic.code === "FORTUNE_DRAUGHT"
-                    ? "Consume this relic to restore the company treasury. This action cannot be undone."
-                    : "Activate this relic for the company. Its duration begins immediately."}
-              </p>
-              <div className="mes-relic-confirmation__actions">
-                <button
-                  type="button"
-                  className="mes-button mes-button--primary"
-                  disabled={isSubmitting}
-                  onClick={activate}
-                  autoFocus
-                >
-                  {isSubmitting ? "ACTIVATING..." : "CONFIRM USE"}
-                </button>
-                <button
-                  type="button"
-                  className="mes-button"
-                  disabled={isSubmitting}
-                  onClick={() => setIsConfirmingActivation(false)}
-                >
-                  CANCEL
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="mes-relic-popover__actions">
-            {selectedRelic.status === "EQUIPPED" && canManage && !isConfirmingActivation && (
-              <button
-                type="button"
-                className="mes-button mes-button--primary"
-                disabled={isSubmitting || (selectedRelic.targetType === "PRODUCT" && !targetProductId)}
-                onClick={() => {
-                  setActivationResult(null);
-                  setError(null);
-                  setIsConfirmingActivation(true);
-                }}
-              >
-                USE
-              </button>
-            )}
-            {selectedRelic.status === "EQUIPPED" && canManage && !isConfirmingActivation && (
-              <button
-                type="button"
-                className="mes-button"
-                disabled={isSubmitting}
-                onClick={async () => {
-                  setIsSubmitting(true);
-                  try {
-                    await unequipRelic(selectedRelic.id);
-                    setSelectedRelicId(null);
-                    await onChanged();
-                  } catch (requestError) {
-                    setError(normalizeApiError(requestError).message);
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-              >
-                UNEQUIP
-              </button>
-            )}
-          </div>
-        </div>
+      {openPopover?.kind === "picker" && (
+        <RelicInventoryPicker
+          anchor={slotRefs.current[openPopover.slot]}
+          targetSlot={openPopover.slot}
+          relics={relics}
+          canManage={canManage}
+          isLoading={isLoading}
+          loadError={loadError}
+          onRetry={onChanged}
+          onEquipped={async (slot) => {
+            await onChanged();
+            setRecentlyEquippedSlot(slot);
+            setOpenPopover({ kind: "detail", slot });
+          }}
+          onClose={closePopover}
+        />
+      )}
+
+      {openPopover?.kind === "detail" && slotted.get(openPopover.slot) && (
+        <RelicDetailPopover
+          anchor={slotRefs.current[openPopover.slot]}
+          relic={slotted.get(openPopover.slot)!}
+          products={products}
+          canManage={canManage}
+          onChanged={onChanged}
+          onCompanyChanged={onCompanyChanged}
+          onClose={closePopover}
+        />
       )}
     </section>
   );

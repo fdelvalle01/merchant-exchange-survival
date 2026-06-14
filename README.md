@@ -71,11 +71,12 @@ muestra ese impacto y destaca si afecta activos que el jugador posee.
 
 | Aplicacion | Funcion |
 |---|---|
-| Company Keep | Estado financiero, runway, riesgo, dia y avance de jornada |
+| Company Keep | Estado financiero, runway, riesgo y avance de jornada |
 | Market Board | Activos, precios, variacion y acceso a compra/venta |
 | Royal Ticket | Ordenes BUY y SELL |
 | Vault | Holdings, costo promedio, valor y asignacion |
-| Active Relics | Cuatro slots persistentes para equipar, mover y activar reliquias |
+| Company HUD | Estado compacto y acceso persistente a Company Keep |
+| Active Relics | Cuatro slots persistentes con picker y detalle anclados |
 | Trade Ledger | Historial de ordenes y P/L realizado |
 | Guild Herald | Noticias, rumores y alertas sobre el portfolio |
 | Asset Chronicle | Detalle e historial de un activo |
@@ -259,8 +260,25 @@ seleccion usando la seed de la compania, el dia, el id de subasta y la posicion.
 El payload publico solo muestra posiciones y estado; el contenido de las cartas
 permanece oculto.
 
-La recompensa llega a `Vault > INVENTORY` y puede equiparse en uno de cuatro
-slots inferiores mediante drag and drop o botones. El catalogo inicial incluye:
+Cada carta persiste una polaridad `POSITIVE`, `NEGATIVE` o `NEUTRAL`. Solo un
+resultado positivo crea una reliquia en el inventario persistente de la
+compania. Los cuatro reversos son identicos antes del reveal y el API nunca
+expone el contenido de los lotes perdidos.
+
+Los resultados negativos iniciales son `CUTPURSE_IN_THE_HALL`, `VAULT_THEFT` y
+`COMPANY_BLACKOUT`; el resultado neutro es `BROKEN_SEAL`. Blackout bloquea solo
+BUY hasta el siguiente End Day y conserva SELL. Los pesos y danos monetarios se
+configuran bajo `game.sealed-auction`.
+
+El acceso de UI a reliquias vive en los cuatro slots del HUD inferior: un slot
+vacio abre `RELIC INVENTORY` y un slot ocupado abre el detalle anclado. Vault
+vuelve a ser exclusivamente el portfolio de holdings.
+
+La toolbar muestra el progreso de victoria usando `companyValue` y el objetivo
+real, separado del control `DAY`. Company Keep se abre o enfoca desde el modulo
+persistente de compania del HUD inferior y ya no aparece en el dock.
+
+El catalogo inicial incluye:
 
 - `Ring of Last Mercy`: evita exactamente dos evaluaciones de quiebra de End Day.
 - `Book of Three Omens`: consume una carga y entrega tres perspectivas
@@ -269,6 +287,11 @@ slots inferiores mediante drag and drop o botones. El catalogo inicial incluye:
   configurable de tesoreria de `100,000`.
 
 Game Master puede crear/expirar una subasta y otorgar reliquias de prueba.
+
+Una subasta resuelta permanece durante el dia como `CLAIMED`, muestra solo el
+resultado elegido y no vuelve a abrir el flujo. Una subasta no reclamada se
+muestra como `EXPIRED`. Durante el reveal, las otras tres cartas quedan `LOST`
+sin revelar su contenido.
 
 ## Activos Demo
 

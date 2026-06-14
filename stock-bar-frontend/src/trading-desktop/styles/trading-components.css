@@ -1151,6 +1151,18 @@
   box-shadow: inset 2px 0 var(--mes-gold-muted);
 }
 
+.mes-auction-row.is-settled {
+  cursor: default;
+  opacity: 0.68;
+  filter: saturate(0.72);
+}
+
+.mes-auction-row__result {
+  color: var(--mes-ash);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
 .mes-auction-row__icon {
   display: grid;
   width: 22px;
@@ -1264,6 +1276,67 @@
   background: #1d1308;
 }
 
+.mes-sealed-card.is-revealed.is-negative,
+.mes-auction-reveal.is-negative {
+  border-color: var(--mes-danger);
+  color: var(--mes-danger);
+  background: rgba(148, 42, 34, 0.12);
+}
+
+.mes-sealed-card.is-revealed.is-neutral,
+.mes-auction-reveal.is-neutral {
+  border-color: #897c6a;
+  color: var(--mes-ash);
+  background: rgba(137, 124, 106, 0.08);
+}
+
+.mes-sealed-card.is-revealing {
+  animation: mes-card-reveal 340ms ease-out;
+}
+
+.mes-sealed-card.is-lost {
+  border-color: #382b21;
+  color: #63594d;
+  background: #0d0907;
+  filter: grayscale(0.8);
+  opacity: 0.58;
+  transform: none;
+  animation: mes-card-lost 200ms ease-out;
+}
+
+.mes-sealed-card.is-lost .mes-sealed-card__mystery {
+  color: #85786a;
+}
+
+.mes-sealed-card.is-lost .mes-sealed-card__seal {
+  border-color: #4b3b31;
+  color: #87776a;
+  background: #17110d;
+  text-decoration: line-through;
+}
+
+@keyframes mes-card-reveal {
+  from {
+    opacity: 0.45;
+    transform: translateY(5px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mes-card-lost {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.58;
+  }
+}
+
 .mes-sealed-card__lot,
 .mes-sealed-card__seal {
   font-family: var(--mes-font-display);
@@ -1294,6 +1367,13 @@
   text-align: center;
 }
 
+.mes-sealed-card__description {
+  color: var(--mes-ash);
+  font-size: 8px;
+  line-height: 1.35;
+  text-align: center;
+}
+
 .mes-sealed-card__seal {
   padding: 5px 8px;
   border: 1px solid #8a3025;
@@ -1312,6 +1392,15 @@
   background: rgba(201, 151, 74, 0.07);
 }
 
+.mes-auction-lost-notice {
+  margin: 0 20px 8px;
+  color: var(--mes-danger);
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-align: center;
+}
+
 .mes-auction-reveal > svg {
   flex: 0 0 auto;
   font-size: 28px;
@@ -1321,6 +1410,14 @@
   margin-top: 3px;
   color: var(--mes-ash);
   font-size: 10px;
+}
+
+.mes-auction-reveal__polarity {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--mes-font-display);
+  font-size: 8px;
+  letter-spacing: 0.14em;
 }
 
 .mes-auction-modal > .mes-banner {
@@ -1335,92 +1432,117 @@
   border-top: 1px solid var(--mes-line);
 }
 
-.mes-vault-tabs {
+.mes-lower-hud {
+  position: relative;
+  z-index: 800;
   display: flex;
-  gap: 5px;
-}
-
-.mes-inventory {
-  min-height: 180px;
-  padding: 4px;
-  border: 1px dashed rgba(138, 109, 59, 0.55);
-}
-
-.mes-inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 8px;
-}
-
-.mes-inventory-card {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 78px;
+  flex: 0 0 78px;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--mes-line);
-  background: #120c06;
+  padding: 6px 10px;
+  border-top: 1px solid var(--mes-line-strong);
+  background: linear-gradient(180deg, #171006, #0b0704);
 }
 
-.mes-inventory-card__icon {
+.mes-company-launcher {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: min(460px, 40vw);
+  min-width: 320px;
+  height: 64px;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--mes-line);
+  background:
+    linear-gradient(90deg, rgba(201, 151, 74, 0.08), transparent 55%),
+    #0d0905;
+}
+
+.mes-company-launcher__crest {
+  display: grid;
+  width: 48px;
+  height: 48px;
   place-items: center;
   border: 1px solid var(--mes-gold-muted);
   color: var(--mes-gold);
-  font-size: 19px;
+  background: #180f06;
+  font-size: 21px;
 }
 
-.mes-inventory-card__title {
+.mes-company-launcher__summary {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: var(--mes-ash);
+  background: transparent;
+  text-align: left;
+}
+
+.mes-company-launcher__heading,
+.mes-company-launcher__metrics {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.mes-company-launcher__heading strong {
+  overflow: hidden;
   color: var(--mes-parchment);
   font-family: var(--mes-font-display);
-  font-size: 10px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.mes-inventory-card__title span {
-  color: var(--mes-ember);
-  font-family: var(--mes-font-data);
+.mes-company-launcher__status {
+  flex: 0 0 auto;
+  color: var(--mes-positive);
   font-size: 8px;
 }
 
-.mes-inventory-card p {
-  margin-top: 5px;
-  color: var(--mes-ash);
-  font-size: 10px;
-  line-height: 1.45;
+.mes-company-launcher__status.is-bankrupt {
+  color: var(--mes-danger);
 }
 
-.mes-inventory-card__meta,
-.mes-inventory-card__actions {
+.mes-company-launcher__status.is-victorious {
+  color: var(--mes-gold);
+}
+
+.mes-company-launcher__metrics {
+  font-size: 8px;
+}
+
+.mes-company-launcher__metrics span {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 7px;
+  gap: 4px;
+  white-space: nowrap;
 }
 
-.mes-inventory-card__meta span {
-  padding: 2px 5px;
-  border: 1px solid var(--mes-line);
-  color: var(--mes-ash);
-  font-size: 8px;
+.mes-company-launcher__metrics strong {
+  color: var(--mes-gold);
+  font-weight: 500;
+}
+
+.mes-company-launcher__open {
+  max-width: 96px;
+  white-space: normal;
 }
 
 .mes-relic-bar {
   position: relative;
-  z-index: 800;
   display: flex;
-  min-height: 62px;
-  flex: 0 0 62px;
+  height: 64px;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 6px 12px;
-  border-top: 1px solid var(--mes-line-strong);
-  background: linear-gradient(180deg, #171006, #0b0704);
+  gap: 9px;
+  padding: 5px 7px;
+  border: 1px solid var(--mes-line);
+  background: #0d0905;
 }
 
 .mes-relic-bar__label {
@@ -1432,14 +1554,14 @@
 
 .mes-relic-slots {
   display: grid;
-  grid-template-columns: repeat(4, 52px);
-  gap: 5px;
+  grid-template-columns: repeat(4, 62px);
+  gap: 6px;
 }
 
 .mes-relic-slot {
   position: relative;
   display: grid;
-  height: 48px;
+  height: 54px;
   place-items: center;
   overflow: hidden;
   border: 1px solid var(--mes-line);
@@ -1457,6 +1579,22 @@
   color: var(--mes-positive);
 }
 
+.mes-relic-slot.is-equipped-pulse {
+  animation: mes-relic-equipped 620ms ease-out;
+}
+
+@keyframes mes-relic-equipped {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  45% {
+    border-color: var(--mes-gold);
+    box-shadow: 0 0 13px rgba(227, 185, 107, 0.55);
+  }
+}
+
 .mes-relic-slot__key {
   position: absolute;
   top: 2px;
@@ -1465,7 +1603,16 @@
 }
 
 .mes-relic-slot__icon {
-  font-size: 17px;
+  font-size: 20px;
+}
+
+.mes-relic-slot__status {
+  position: absolute;
+  right: 3px;
+  top: 2px;
+  color: var(--mes-ember);
+  font-size: 6px;
+  letter-spacing: 0.05em;
 }
 
 .mes-relic-slot__count {
@@ -1473,12 +1620,7 @@
   right: 3px;
   bottom: 2px;
   color: var(--mes-ash);
-  font-size: 7px;
-}
-
-.mes-relic-slot__drag {
-  position: absolute;
-  inset: 0;
+  font-size: 8px;
 }
 
 .mes-relic-bar__error {
@@ -1488,17 +1630,26 @@
 }
 
 .mes-relic-popover {
-  position: absolute;
-  z-index: 900;
-  bottom: calc(100% + 7px);
-  left: 50%;
-  width: min(390px, calc(100vw - 24px));
+  z-index: 11000;
   padding: 12px;
+  overflow: auto;
   border: 1px solid var(--mes-gold-muted);
   color: var(--mes-parchment);
   background: #100a06;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.78);
-  transform: translateX(-50%);
+  animation: mes-popover-open 150ms ease-out;
+}
+
+@keyframes mes-popover-open {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .mes-relic-popover__close {
@@ -1516,6 +1667,22 @@
   color: var(--mes-gold);
   font-family: var(--mes-font-display);
   font-size: 11px;
+}
+
+.mes-relic-popover__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 25px;
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.mes-relic-popover__heading strong {
+  color: var(--mes-ember);
+  font-size: 8px;
 }
 
 .mes-relic-popover > p {
@@ -1538,6 +1705,85 @@
   display: flex;
   gap: 6px;
   margin-top: 9px;
+}
+
+.mes-relic-target {
+  display: grid;
+  gap: 4px;
+  margin-top: 9px;
+  color: var(--mes-ash);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mes-relic-picker__list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.mes-relic-picker__item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--mes-line);
+  background: #0b0704;
+}
+
+.mes-relic-picker__icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--mes-gold-muted);
+  color: var(--mes-gold);
+  font-size: 16px;
+}
+
+.mes-relic-picker__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.mes-relic-picker__copy strong {
+  overflow: hidden;
+  color: var(--mes-parchment);
+  font-family: var(--mes-font-display);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mes-relic-picker__copy span {
+  color: var(--mes-ember);
+  font-size: 8px;
+}
+
+.mes-relic-picker__empty {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 18px 10px;
+  border: 1px dashed var(--mes-line);
+  color: var(--mes-ash);
+  font-size: 9px;
+  text-align: center;
+}
+
+.mes-relic-picker__empty strong {
+  color: var(--mes-gold-muted);
+  font-family: var(--mes-font-display);
+}
+
+.mes-relic-picker__help {
+  margin-top: 9px;
+  color: var(--mes-ash-dark);
+  font-size: 8px;
+  text-align: center;
 }
 
 .mes-relic-confirmation {
@@ -1609,12 +1855,33 @@
     min-height: 180px;
   }
 
-  .mes-relic-bar {
+  .mes-lower-hud {
     justify-content: flex-start;
     overflow-x: auto;
   }
 
+  .mes-company-launcher {
+    width: 190px;
+    min-width: 190px;
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .mes-company-launcher__metrics,
+  .mes-company-launcher__open {
+    display: none;
+  }
+
   .mes-relic-bar__label {
     display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .mes-company-launcher__open {
+    display: none;
+  }
+
+  .mes-company-launcher {
+    grid-template-columns: 50px minmax(0, 1fr);
   }
 }

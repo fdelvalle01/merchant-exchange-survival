@@ -5,7 +5,7 @@
   min-height: 62px;
   flex: 0 0 62px;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
   padding: 7px 14px;
   border-bottom: 1px solid var(--mes-line);
   background:
@@ -16,6 +16,7 @@
 
 .mes-brand {
   display: flex;
+  max-width: 340px;
   min-width: 0;
   align-items: center;
   gap: 12px;
@@ -70,6 +71,53 @@
 
 .mes-topbar__spacer {
   flex: 1;
+}
+
+.mes-victory-progress {
+  display: grid;
+  width: clamp(190px, 17vw, 260px);
+  flex: 0 1 260px;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid var(--mes-line);
+  color: var(--mes-ash);
+  background: rgba(5, 3, 2, 0.44);
+}
+
+.mes-victory-progress__copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.mes-victory-progress__copy span {
+  color: var(--mes-gold);
+  font-family: var(--mes-font-display);
+}
+
+.mes-victory-progress__copy strong {
+  overflow: hidden;
+  color: var(--mes-parchment);
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+.mes-victory-progress__track {
+  height: 3px;
+  overflow: hidden;
+  background: #090604;
+}
+
+.mes-victory-progress__track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--mes-ember), var(--mes-gold));
+  transition: width 220ms ease;
 }
 
 .mes-topbar__legacy {
@@ -742,7 +790,8 @@
 
   .mes-brand__subtitle,
   .mes-topbar__day,
-  .mes-topbar__account {
+  .mes-topbar__account,
+  .mes-victory-progress {
     display: none;
   }
 

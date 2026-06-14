@@ -17,6 +17,7 @@ import TickerTape from "./components/TickerTape";
 import TopBar from "./components/TopBar";
 import Workspace from "./components/Workspace";
 import ActiveRelicsBar from "./components/ActiveRelicsBar";
+import CompanyHudLauncher from "./components/CompanyHudLauncher";
 import SealedAuctionModal from "./components/SealedAuctionModal";
 
 export default function TradingDesktop() {
@@ -164,7 +165,7 @@ export default function TradingDesktop() {
         isLiveData={isLiveData}
         feedMode={feedMode}
         currentUser={currentUser}
-        gameDay={company?.gameDay}
+        company={company}
         onLogout={logout}
       />
       <TickerTape instruments={products} />
@@ -232,13 +233,23 @@ export default function TradingDesktop() {
         onDismiss={dismissNewsToast}
         onOpenNews={() => openAllowedWindow("herald")}
       />
-      <ActiveRelicsBar
-        relics={relics}
-        products={products}
-        canManage={canUseOrders}
-        onChanged={refreshGameItems}
-        onCompanyChanged={refreshCompany}
-      />
+      <div className="mes-lower-hud">
+        <CompanyHudLauncher
+          company={company}
+          isLoading={isLoadingCompany}
+          error={companyError}
+          onOpen={() => openAllowedWindow("company")}
+        />
+        <ActiveRelicsBar
+          relics={relics}
+          products={products}
+          canManage={canUseOrders}
+          isLoading={isLoadingRelics}
+          loadError={relicsError}
+          onChanged={refreshGameItems}
+          onCompanyChanged={refreshCompany}
+        />
+      </div>
       <StatusBar
         isLiveData={isLiveData}
         isLoadingProducts={isLoading}

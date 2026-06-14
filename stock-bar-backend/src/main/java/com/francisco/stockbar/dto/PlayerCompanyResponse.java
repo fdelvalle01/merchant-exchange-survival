@@ -28,6 +28,7 @@ public class PlayerCompanyResponse {
     private BigDecimal victoryTarget;
     private LocalDateTime lastDayProcessedAt;
     private String bankruptcyReason;
+    private Integer buyBlockedUntilDay;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -55,6 +56,7 @@ public class PlayerCompanyResponse {
                 .victoryTarget(company.getVictoryTarget())
                 .lastDayProcessedAt(company.getLastDayProcessedAt())
                 .bankruptcyReason(company.getBankruptcyReason())
+                .buyBlockedUntilDay(company.getBuyBlockedUntilDay())
                 .createdAt(company.getCreatedAt())
                 .updatedAt(company.getUpdatedAt())
                 .build();

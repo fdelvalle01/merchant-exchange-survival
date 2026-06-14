@@ -35,6 +35,7 @@ public class PlayerCompanySurvivalSchemaMigration implements ApplicationRunner {
         jdbcTemplate.execute("alter table player_company add column if not exists victory_target numeric(14,2) default 1000000.00");
         jdbcTemplate.execute("alter table player_company add column if not exists last_day_processed_at timestamp");
         jdbcTemplate.execute("alter table player_company add column if not exists bankruptcy_reason varchar(600)");
+        jdbcTemplate.execute("alter table player_company add column if not exists buy_blocked_until_day integer");
     }
 
     private void backfillSurvivalColumns() {

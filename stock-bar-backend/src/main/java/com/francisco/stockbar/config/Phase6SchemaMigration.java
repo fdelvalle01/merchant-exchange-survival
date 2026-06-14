@@ -17,6 +17,8 @@ public class Phase6SchemaMigration implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            addRiskyAuctionColumns();
+            backfillRiskyAuctionColumns();
             jdbcTemplate.execute("""
                     create unique index if not exists uk_company_active_auction
                     on sealed_auctions(company_id)
@@ -53,5 +55,36 @@ public class Phase6SchemaMigration implements ApplicationRunner {
         } catch (RuntimeException exception) {
             log.warn("Phase 6 schema hardening skipped: {}", exception.getMessage());
         }
+    }
+
+    private void addRiskyAuctionColumns() {
+        jdbcTemplate.execute("""
+                alter table sealed_auction_cards
+                add column if not exists outcome_polarity varchar(16) default 'POSITIVE'
+                """);
+        jdbcTemplate.execute("""
+                alter table sealed_auction_cards
+                add column if not exists outcome_code varchar(80) default 'RING_OF_LAST_MERCY'
+                """);
+        jdbcTemplate.execute("""
+                alter table sealed_auction_cards
+                add column if not exists resolution_details varchar(800)
+                """);
+        jdbcTemplate.execute("""
+                alter table sealed_auction_cards
+                alter column relic_definition_id drop not null
+                """);
+    }
+
+    private void backfillRiskyAuctionColumns() {
+        jdbcTemplate.update("""
+                update sealed_auction_cards card
+                set outcome_polarity = 'POSITIVE',
+                    outcome_code = definition.code
+                from relic_definitions definition
+                where card.relic_definition_id = definition.id
+                """);
+        jdbcTemplate.execute("alter table sealed_auction_cards alter column outcome_polarity set not null");
+        jdbcTemplate.execute("alter table sealed_auction_cards alter column outcome_code set not null");
     }
 }

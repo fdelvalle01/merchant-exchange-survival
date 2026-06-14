@@ -59,6 +59,12 @@ game:
     duration-days: ${GAME_SEALED_AUCTION_DURATION_DAYS:1}
     fortune-recovery: ${GAME_RELIC_FORTUNE_RECOVERY:8000}
     fortune-treasury-cap: ${GAME_RELIC_FORTUNE_TREASURY_CAP:100000}
+    positive-outcome-weight: ${GAME_SEALED_AUCTION_POSITIVE_WEIGHT:50}
+    negative-outcome-weight: ${GAME_SEALED_AUCTION_NEGATIVE_WEIGHT:40}
+    neutral-outcome-weight: ${GAME_SEALED_AUCTION_NEUTRAL_WEIGHT:10}
+    cutpurse-loss: ${GAME_SEALED_AUCTION_CUTPURSE_LOSS:6000}
+    vault-theft-min-pct: ${GAME_SEALED_AUCTION_VAULT_THEFT_MIN_PCT:0.05}
+    vault-theft-max-pct: ${GAME_SEALED_AUCTION_VAULT_THEFT_MAX_PCT:0.12}
 
 logging:
   level:

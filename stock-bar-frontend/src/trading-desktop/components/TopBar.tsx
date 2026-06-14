@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaChartLine, FaSignOutAlt, FaUserShield } from "react-icons/fa";
-import type { DesktopUser, FeedMode } from "../types";
+import type { DesktopUser, FeedMode, PlayerCompanyResponse } from "../types";
+import VictoryProgress from "./VictoryProgress";
 
 type TopBarProps = {
   isLiveData: boolean;
   feedMode: FeedMode;
   currentUser: DesktopUser;
-  gameDay?: number;
+  company: PlayerCompanyResponse | null;
   onLogout: () => void;
 };
 
@@ -24,7 +25,7 @@ export default function TopBar({
   isLiveData,
   feedMode,
   currentUser,
-  gameDay,
+  company,
   onLogout
 }: TopBarProps) {
   const [clock, setClock] = useState(() => new Date());
@@ -72,9 +73,11 @@ export default function TopBar({
 
       <div className="mes-topbar__spacer" />
 
-      {gameDay !== undefined && (
+      <VictoryProgress company={company} />
+
+      {company?.gameDay !== undefined && (
         <div className="mes-topbar__plate mes-topbar__day" title="Current game day">
-          DAY {gameDay}
+          DAY {company.gameDay}
         </div>
       )}
 

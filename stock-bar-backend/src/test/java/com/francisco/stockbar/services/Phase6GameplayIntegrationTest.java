@@ -46,7 +46,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
         "spring.sql.init.mode=never",
         "game.survival.random-event-on-end-day-enabled=false",
-        "game.sealed-auction.appearance-chance=0"
+        "game.sealed-auction.appearance-chance=0",
+        "game.sealed-auction.positive-outcome-weight=100",
+        "game.sealed-auction.negative-outcome-weight=0",
+        "game.sealed-auction.neutral-outcome-weight=0"
 })
 @Transactional
 class Phase6GameplayIntegrationTest {
@@ -157,6 +160,18 @@ class Phase6GameplayIntegrationTest {
         assertThatThrownBy(() -> sealedAuctionService.getAuction(auction.getId()))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("not found");
+    }
+
+    @Test
+    void openingAuctionDetailIsIdempotent() {
+        SealedAuctionResponse auction = sealedAuctionService.forceSpawn();
+
+        SealedAuctionResponse first = sealedAuctionService.getAuction(auction.getId());
+        SealedAuctionResponse second = sealedAuctionService.getAuction(auction.getId());
+
+        assertThat(first.getId()).isEqualTo(auction.getId());
+        assertThat(second.getId()).isEqualTo(auction.getId());
+        assertThat(sealedAuctionRepository.findById(auction.getId()).orElseThrow().getOpenedAt()).isNotNull();
     }
 
     @Test

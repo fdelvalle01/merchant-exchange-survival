@@ -1,6 +1,7 @@
 import { apiClient } from "./apiClient";
 
 export type AuctionStatus = "AVAILABLE" | "ENTERED" | "RESOLVED" | "EXPIRED" | "DECLINED";
+export type AuctionOutcomePolarity = "POSITIVE" | "NEGATIVE" | "NEUTRAL";
 
 export type AuctionCardResponse = {
   position: number;
@@ -17,6 +18,10 @@ export type SealedAuctionResponse = {
   daysRemaining: number;
   status: AuctionStatus;
   selectedCardPosition?: number | null;
+  selectedOutcomePolarity?: AuctionOutcomePolarity | null;
+  selectedOutcomeCode?: string | null;
+  selectedOutcomeTitle?: string | null;
+  selectedOutcomeDescription?: string | null;
   selectedRelic?: RelicResponse | null;
   cards: AuctionCardResponse[];
 };
@@ -54,7 +59,11 @@ export type AuctionSelectionResponse = {
   auctionId: number;
   status: AuctionStatus;
   selectedCardPosition: number;
-  relic: RelicResponse;
+  selectedOutcomePolarity: AuctionOutcomePolarity;
+  selectedOutcomeCode: string;
+  selectedOutcomeTitle: string;
+  selectedOutcomeDescription: string;
+  relic?: RelicResponse | null;
   cash: number;
 };
 

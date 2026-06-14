@@ -95,6 +95,8 @@ public class PlayerCompany {
     @Column(length = 600)
     private String bankruptcyReason;
 
+    private Integer buyBlockedUntilDay;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

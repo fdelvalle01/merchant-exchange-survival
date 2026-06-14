@@ -164,11 +164,13 @@ Presenta:
 - Cash runway.
 - Reputation.
 - Risk level.
-- Game day.
 - Company status.
 - Principales holdings.
 
 Permite terminar el dia a `TRADER` y `ADMIN_BAR`.
+
+El dia y el progreso de victoria se presentan en TopBar. El progreso usa
+`PlayerCompany.companyValue` contra `victoryTarget`.
 
 #### Market Board
 
@@ -198,7 +200,7 @@ precio y es la autoridad de ejecucion.
 
 #### Vault
 
-Muestra holdings positivos:
+Muestra exclusivamente holdings positivos:
 
 - Cantidad.
 - Costo promedio.
@@ -206,6 +208,8 @@ Muestra holdings positivos:
 - Valor de mercado.
 - P/L no realizado.
 - Asignacion dentro del portfolio.
+
+El inventario de reliquias no forma parte de esta ventana.
 
 #### Trade Ledger
 
@@ -908,10 +912,15 @@ GET permite `VIEWER`, `TRADER` y `ADMIN_BAR`; mutaciones jugables requieren
 
 ### 22.5 Frontend
 
-- `MarketBoardApp`: fila especial con `????` y apertura por mouse o teclado.
-- `SealedAuctionModal`: cuatro lotes, confirmacion y reconstruccion tras recarga.
-- `PortfolioApp`: tabs `HOLDINGS` e `INVENTORY`.
-- `ActiveRelicsBar`: cuatro slots, teclas `1..4`, detalle y activacion.
+- `MarketBoardApp`: fila especial con estados `AVAILABLE`, `CLAIMED` y `EXPIRED`.
+- `SealedAuctionModal`: cuatro lotes, confirmacion, un reveal y tres estados
+  `LOST`, con reconstruccion tras recarga.
+- `PortfolioApp`: portfolio-only.
+- `CompanyHudLauncher`: resumen persistente y acceso idempotente a Company Keep.
+- `VictoryProgress`: progreso no editable basado en valor de compania.
+- `ActiveRelicsBar`: cuatro slots, teclas `1..4` y drag and drop.
+- `RelicInventoryPicker`: inventario anclado al slot vacio destino.
+- `RelicDetailPopover`: detalle, target, activacion y desequipamiento anclados.
 - Drag and drop comparte los mismos endpoints que los botones accesibles.
 - `prefers-reduced-motion` hereda la regla global del desktop.
 
@@ -935,3 +944,68 @@ Limitaciones:
 - La suite frontend es de componentes; no reemplaza una futura prueba E2E.
 - El asset `designs/sealed-auction-four-fates-concept.png` no estaba presente en
   el checkout, por lo que la composicion siguio la especificacion textual.
+
+### 22.7 Refinamiento UX 6A.1
+
+La segunda pasada no agrega dominio ni endpoints. Reorganiza responsabilidades:
+
+```text
+TopBar
+  VictoryProgress
+  Day
+
+LowerHud
+  CompanyHudLauncher
+  ActiveRelicsBar
+    RelicInventoryPicker
+    RelicDetailPopover
+```
+
+Company Keep conserva `END DAY`, metricas financieras, holdings y riesgo, pero
+ya no repite Game Day ni Victory Target. `useDesktopWindows` conserva una sola
+ventana por aplicacion y el launcher inferior usa ese contrato para restaurar o
+enfocar.
+
+La fuente de reliquias sigue siendo `useRelics`; picker, slots, detalle y Market
+Board no crean polling adicional. Los popovers calculan posicion contra el
+viewport, cierran por Escape/outside click y devuelven foco al slot.
+
+`SealedAuctionResponse.selectedRelic` ya entregaba la informacion minima para
+presentar `CLAIMED`, por lo que no fue necesario cambiar backend ni exponer
+cartas perdidas.
+
+Verificacion de esta pasada:
+
+- Frontend: 11 tests Vitest correctos.
+- TypeScript: `npx tsc --noEmit` correcto.
+- Build: `npm run build` correcto.
+- Backend: 33 tests Maven correctos.
+- Docker Compose: backend, frontend, Keycloak y PostgreSQL levantados.
+- Edge headless: verificado en 1920x1080, 1440x900 y 1366x768, incluyendo
+  picker, detalle, AVAILABLE, reveal/LOST, CLAIMED, EXPIRED y Vault.
+
+### 22.8 Risky Sealed Auction 6A.2
+
+`SealedAuctionCard` persiste `outcomePolarity`, `outcomeCode` y el detalle final
+de resolucion. `relicDefinition` es nullable para outcomes que no crean
+inventario. Las cuatro cartas siguen generandose antes de seleccionar mediante
+`DeterministicGameRng`; los pesos viven en `AuctionProperties`.
+
+La resolucion cobra siempre el entry bid y luego aplica exactamente una rama:
+
+- `POSITIVE`: adquiere una de las tres reliquias existentes.
+- `NEGATIVE`: aplica cutpurse fijo, vault theft porcentual determinista o
+  blackout persistente de BUY.
+- `NEUTRAL`: `BROKEN_SEAL`, sin efecto adicional.
+
+El detalle monetario resuelto se guarda en la carta para que un reintento
+idempotente no recalcule ni reaplique el dano. `RelicHistory` registra
+`SEALED_AUCTION_OUTCOME` incluso cuando no existe `CompanyRelic`.
+
+`PlayerCompany.buyBlockedUntilDay` es nullable. `OrderService` lo consulta solo
+para BUY y `GameClockService` lo limpia cuando End Day alcanza el dia indicado.
+Los DTO publicos exponen unicamente el outcome seleccionado; las cartas no
+elegidas conservan solo posicion y flags publicos.
+
+Esta implementacion no fue compilada ni ejecutada con tests o Docker por
+instruccion explicita de la fase.

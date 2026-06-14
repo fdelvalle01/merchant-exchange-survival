@@ -81,7 +81,6 @@ export default function CompanyDashboardApp({
   const realizedPnl = company?.realizedPnl ?? 0;
   const cash = company?.cash ?? 0;
   const companyValue = company?.companyValue ?? 0;
-  const gameDay = company?.gameDay ?? 1;
   const companyStatus = company?.status ?? "ACTIVE";
   const dailyBurnRate = company?.dailyBurnRate ?? 500;
   const cashRunwayDays = company?.cashRunwayDays ?? 0;
@@ -183,7 +182,7 @@ export default function CompanyDashboardApp({
       } else if (nextState.status === "VICTORIOUS") {
         setDayResult(nextState.victoryMessage ?? "Victory achieved.");
       } else {
-        setDayResult(`Day ${nextState.gameDay ?? gameDay + 1} processed. Operating costs paid.`);
+        setDayResult(`Day ${nextState.gameDay ?? (company.gameDay ?? 1) + 1} processed. Operating costs paid.`);
       }
 
       await Promise.all([
@@ -346,12 +345,10 @@ export default function CompanyDashboardApp({
         )}
 
         <div className="mes-plate-grid">
-          <Metric label="Game Day" value={String(gameDay)} className="mes-warning" />
           <Metric label="Status" value={String(companyStatus)} className={riskClass(companyStatus === "ACTIVE" ? company?.riskLevel : companyStatus === "VICTORIOUS" ? "LOW" : "CRITICAL")} />
           <Metric label="Daily Burn" value={money.format(dailyBurnRate)} className="mes-warning" />
           <Metric label="Cash Runway" value={`${cashRunwayDays.toFixed(1)} days`} className={cashRunwayDays <= 3 ? "mes-negative" : cashRunwayDays <= 10 ? "mes-warning" : "mes-positive"} />
           <Metric label="Critical Days" value={String(criticalDays)} className={criticalDays > 0 ? "mes-negative" : ""} />
-          <Metric label="Victory Target" value={money.format(company?.victoryTarget ?? 1000000)} />
           <Metric label="Treasury / Cash" value={money.format(company?.cash ?? 0)} className="mes-positive" />
           <Metric label="Debt to Crown" value={money.format(company?.debt ?? 0)} className="mes-negative" />
           <Metric label="House Value" value={money.format(company?.companyValue ?? 0)} className="mes-warning" />

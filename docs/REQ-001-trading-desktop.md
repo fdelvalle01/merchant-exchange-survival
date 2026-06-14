@@ -38,6 +38,9 @@ TradingDesktop
       NewsFeedApp
       ProductDetailApp
       AdminMarketControlsApp
+  LowerHud
+    CompanyHudLauncher
+    ActiveRelicsBar
   StatusBar
 ```
 
@@ -64,8 +67,12 @@ Phase 6A agrega elementos del escritorio, no aplicaciones nuevas:
 
 - Fila `ROYAL SEALED AUCTION` dentro de Market Board.
 - Modal central de cuatro cartas, fuera de `react-rnd`.
-- Pestaña `INVENTORY` dentro de Vault.
-- Barra inferior `ACTIVE RELICS` con cuatro slots sobre Status Bar.
+- Barra inferior con `CompanyHudLauncher` y `ACTIVE RELICS`.
+- `RelicInventoryPicker` anclado a slots vacios.
+- `RelicDetailPopover` anclado a slots ocupados.
+
+Company Keep ya no aparece en Sidebar. El launcher inferior abre la ventana o
+enfoca la instancia existente, sin duplicarla.
 
 ## Comportamiento De Ventanas
 
@@ -80,6 +87,9 @@ El desktop permite:
 - Mantener ventanas dentro del viewport.
 
 El estado se administra con `useDesktopWindows`.
+
+`openWindow("company")` restaura, enfoca y trae al frente Company Keep cuando
+ya existe.
 
 ## Estado Compartido
 
@@ -186,6 +196,21 @@ persistidos por el backend actual.
 - Persistir preferencias/layout de ventanas si se desea continuidad.
 - Ampliar el reinicio terminal con estadisticas comparativas entre partidas.
 - Ampliar la suite frontend de Phase 6A a pruebas E2E con navegador real.
+
+## Phase 6A.1 - Desktop, Auction & Relics UX Refinement
+
+- Company sale del dock y pasa al HUD inferior.
+- TopBar muestra `VICTORY current / target` y `DAY` como controles separados.
+- Company Keep deja de duplicar Game Day y Victory Target.
+- Vault vuelve a ser portfolio-only.
+- Los cuatro slots crecen y muestran tecla, estado y contador.
+- Picker y detalle son popovers anclados con Escape, outside click y retorno de
+  foco.
+- Hotkeys `1..4`, drag and drop, EQUIP y UNEQUIP comparten los endpoints
+  existentes.
+- Market Board distingue `AVAILABLE`, `CLAIMED` y `EXPIRED`.
+- El modal revela una carta y marca las otras tres `LOST` sin exponer contenido.
+- Las animaciones respetan `prefers-reduced-motion`.
 
 ## Criterio De Fuente De Verdad
 
